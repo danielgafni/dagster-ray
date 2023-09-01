@@ -1,0 +1,45 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.0.1
+    hooks:
+      - id: check-added-large-files
+        args: [ '--maxkb=10000' ]
+      - id: check-json
+      - id: check-toml
+      - id: check-yaml
+      - id: forbid-new-submodules
+      - id: mixed-line-ending
+        args: [ '--fix=lf' ]
+      - id: trailing-whitespace
+      - id: check-docstring-first
+      - id: check-merge-conflict
+      - id: detect-private-key
+#  - repo: https://github.com/asottile/pyupgrade
+#    rev: v3.4.0
+#    hooks:
+#      - id: pyupgrade
+#        entry: pyupgrade --py38-plus
+  - repo: local
+    hooks:
+      - id: isort
+        name: isort
+        entry: isort --settings-file pyproject.toml .
+        language: system
+        pass_filenames: false
+      - id: ruff
+        name: ruff
+        entry: ruff --fix .
+        language: system
+        pass_filenames: false
+      - id: black
+        name: black
+        entry: black .
+        language: system
+        pass_filenames: false
+
+      - id: pyright
+        name: pyright
+        entry: pyright .
+        language: system
+        pass_filenames: false
+

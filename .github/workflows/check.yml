@@ -1,0 +1,69 @@
+name: check
+on:
+  push:
+  schedule:
+    - cron: "0 8 * * *"
+
+jobs:
+  test:
+    name: test ${{ matrix.py }} - ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - Ubuntu
+          - MacOs
+        py:
+          - "3.11"
+          - "3.10"
+          - "3.9"
+          - "3.8"
+    steps:
+      - name: Setup python for test ${{ matrix.py }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.py }}
+      - uses: actions/checkout@v2
+      - name: Install and configure Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.4.2
+          virtualenvs-create: false
+          virtualenvs-in-project: false
+          installer-parallel: true
+      - name: Install dependencies
+        run: poetry install --all-extras --sync
+      - name: Run tests
+        run: pytest -v .
+
+  lint:
+    name: lint ${{ matrix.py }} - ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - Ubuntu
+        py:
+          - "3.11"
+          - "3.10"
+          - "3.9"
+          - "3.8"
+    steps:
+      - name: Setup python for test ${{ matrix.py }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.py }}
+      - uses: actions/checkout@v2
+      - name: Install and configure Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.4.2
+          virtualenvs-create: false
+          virtualenvs-in-project: false
+          installer-parallel: true
+      - name: Install dependencies
+        run: poetry install --all-extras --sync
+      - name: Run pre-commit hooks
+        run: pre-commit run --all-files
