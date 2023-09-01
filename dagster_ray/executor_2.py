@@ -45,7 +45,8 @@
 #         "image": Field(str, default_value=os.getenv("DAGSTER_CURRENT_IMAGE"), is_required=False),
 #         "max_concurrency": Field(int, is_required=False),
 #         "storage": Field(Noneable(str), is_required=False, description="Shared storage path for Ray workers"),
-#         "resources": Field(Noneable(Dict[str, Any]), is_required=False, description="Resources to pass to Ray workers"),
+#         "resources": Field(Noneable(Dict[str, Any]),
+#         is_required=False, description="Resources to pass to Ray workers"),
 #         "retries": get_retries_config(),
 #         "max_concurrent": Field(
 #             IntSource,
@@ -161,7 +162,8 @@
 #             },
 #         )
 #
-#         self.steps_refs[step_key] = self.execute_on_ray.options(num_cpus=..., num_gpus=...).remote(step_handler_context)
+#         self.steps_refs[step_key] = self.execute_on_ray.options(num_cpus=..., num_gpus=...)
+#         .remote(step_handler_context)
 #
 #     def check_step_health(self, step_handler_context: StepHandlerContext) -> CheckStepHealthResult:
 #         step_key = self._get_step_key(step_handler_context)

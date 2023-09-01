@@ -6,7 +6,6 @@ from dagster import DagsterInstance
 
 from dagster_ray.resource import RayResource
 
-
 logging.getLogger("alembic.runtime.migration").setLevel(logging.WARNING)
 
 
@@ -17,4 +16,4 @@ def dagster_instance(tmp_path_factory: TempPathFactory) -> DagsterInstance:
 
 @pytest.fixture(scope="session")
 def ray_resource():
-    return RayResource()
+    return RayResource(address=None)

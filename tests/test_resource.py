@@ -1,12 +1,12 @@
-from dagster import materialize, asset
 import ray
-from dagster_ray.resource import RayResource, RAY_RESOURCE_CONFIG_SCHEMA
+from dagster import asset, materialize
+
+from dagster_ray.resource import RAY_RESOURCE_CONFIG_SCHEMA, RayResource
 
 
 def test_resource(ray_resource: RayResource):
     @asset
     def my_asset(ray_resource: RayResource) -> None:
-
         @ray.remote
         def f():
             return 1
