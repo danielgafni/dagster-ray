@@ -1,5 +1,5 @@
-from dagster_ray.resource import RayResource
+from dagster_ray.resources.kuberay.ray_cluster import RayClusterResource
 
 __all__ = [
-    "RayResource",
+    "RayClusterResource",
 ]
