@@ -37,9 +37,9 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: .
-          push: false
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+        push: false
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
     - name: Setup KubeRay
       run: |
         helm repo add kuberay https://ray-project.github.io/kuberay-helm/
