@@ -1,0 +1,50 @@
+name: Minikube Integration Tests
+on:
+  push:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: build example and deploy to minikube
+    steps:
+    - uses: actions/checkout@v4
+    - uses: azure/setup-helm@v4.2.0
+    - name: Start minikube
+      uses: medyagh/setup-minikube@master
+    - name: Try the cluster !
+      run: kubectl get pods -A
+    - name: Docker meta
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        # list of Docker images to use as base name for tags
+        images: |
+          dagster-ray
+          # generate Docker tags based on the following events/attributes
+          tags: |
+            type=schedule
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha
+    - name: Setup Docker with Minikube
+      run: |
+        export SHELL=/bin/bash
+        eval $(minikube -p minikube docker-env)
+    - name: Build Image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+    - name: Setup KubeRay
+      run: |
+        helm repo add kuberay https://ray-project.github.io/kuberay-helm/
+        helm repo update
+        helm install --create-namespace -n kuberay kuberay-operator kuberay/kuberay-operator --version 1.1.0
+        echo $(kubectl -n kuberay get svc)
+
+
