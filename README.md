@@ -20,6 +20,11 @@
 
 ## Resources
 
+### `LocalRay`
+
+A dummy resource which is useful for testing and development.
+It doesn't do anything, but provides the same interface as the other `*Ray` resources.
+
 ### `KubeRayCluster`
 
 `KubeRayCluster` can be used for running Ray computations on Kubernetes. Requires `KubeRay Operator` to be installed the Kubernetes cluster.

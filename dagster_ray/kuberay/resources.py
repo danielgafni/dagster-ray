@@ -5,21 +5,17 @@ import random
 import re
 import string
 import sys
-import uuid
 from typing import Any, Dict, Generator, List, Optional, cast
 
 import dagster._check as check
-from dagster import ConfigurableResource, InitResourceContext
+from dagster import InitResourceContext
 from kubernetes import client, config, watch
 from pydantic import Field, PrivateAttr
 
 # yes, `python-client` is actually the KubeRay package name
 # https://github.com/ray-project/kuberay/issues/2078
 from python_client import kuberay_cluster_api
-from requests.exceptions import ConnectionError
-from tenacity import retry, retry_if_exception_type, stop_after_delay
 
-from dagster_ray.config import RayDataExecutionOptions
 from dagster_ray.kuberay.ray_cluster_api import PatchedRayClusterApi
 
 if sys.version_info >= (3, 11):
@@ -27,9 +23,10 @@ if sys.version_info >= (3, 11):
 else:
     from typing_extensions import Self
 
-import ray
 from dagster import Config, DagsterRun, DagsterRunStatus
 from ray._private.worker import BaseContext as RayBaseContext  # noqa
+
+from dagster_ray._base.resources import BaseRayResource
 
 in_k8s = os.environ.get("KUBERNETES_SERVICE_HOST") is not None
 IS_PROD = os.getenv("DAGSTER_CLOUD_DEPLOYMENT_NAME") == "prod"
@@ -149,7 +146,7 @@ DEFAULT_CLUSTER_NAME_PREFIX = (
 DEFAULT_CLUSTER_NAME_PREFIX = DEFAULT_CLUSTER_NAME_PREFIX or "dev"
 
 
-class KubeRayCluster(ConfigurableResource):
+class KubeRayCluster(BaseRayResource):
     """
     Provides a RayCluster for the current step selection
     The cluster is automatically deleted after steps execution
@@ -159,27 +156,23 @@ class KubeRayCluster(ConfigurableResource):
         default=DEFAULT_CLUSTER_NAME_PREFIX,
         description="Prefix for the RayCluster name. It's recommended to match it with the Dagster deployment name. Dagster Cloud variables are used for the default value.",
     )
-    ray_cluster: RayClusterConfig = RayClusterConfig()
-    data_execution_options: RayDataExecutionOptions = RayDataExecutionOptions()
+    ray_cluster: RayClusterConfig = Field(default_factory=RayClusterConfig)
     disable_cluster_cleanup: bool = False
     skip_init: bool = False
-
-    # TODO: inject this ports into the RayCluster configuration in self._build_raycluster
-    redis_port: Optional[int] = Field(
-        default=10001, description="Redis port. Make sure to match with the actual available port."
-    )
-    dashboard_port: Optional[int] = Field(
-        default=8265, description="Dashboard port. Make sure to match with the actual available port."
-    )
 
     kubeconfig_file: Optional[str] = None
 
     _cluster_name: str = PrivateAttr()
-    _context: Optional[RayBaseContext] = PrivateAttr()
     _host: str = PrivateAttr()
     _kuberay_api: PatchedRayClusterApi = PrivateAttr()
     _k8s_api: client.CustomObjectsApi = PrivateAttr()
     _k8s_core_api: client.CoreV1Api = PrivateAttr()
+
+    @property
+    def host(self) -> str:
+        if self._host is None:
+            raise ValueError("RayClusterResource not initialized")
+        return self._host
 
     @property
     def namespace(self) -> str:
@@ -192,15 +185,6 @@ class KubeRayCluster(ConfigurableResource):
         return self._cluster_name
 
     @property
-    def context(self) -> "RayBaseContext":
-        assert self._context is not None, "RayClusterResource not initialized"
-        return self._context
-
-    @property
-    def host(self) -> str:
-        return self._host
-
-    @property
     def kuberay_api(self) -> kuberay_cluster_api.RayClusterApi:
         if self._kuberay_api is None:
             raise ValueError("RayClusterResource not initialized")
@@ -211,14 +195,6 @@ class KubeRayCluster(ConfigurableResource):
         if self._k8s_api is None:
             raise ValueError("RayClusterResource not initialized")
         return self._k8s_api
-
-    @property
-    def ray_address(self) -> str:
-        return f"ray://{self.host}:{self.redis_port}"
-
-    @property
-    def dashboard_url(self) -> str:
-        return f"http://{self.host}:{self.dashboard_port}"
 
     @contextlib.contextmanager
     def yield_for_execution(self, context: InitResourceContext) -> Generator[Self, None, None]:
@@ -296,6 +272,8 @@ class KubeRayCluster(ConfigurableResource):
         """
         Builds a RayCluster from the provided configuration, while injecting custom image and labels (only known during resource setup)
         """
+        # TODO: inject self.redis_port and self.dashboard_port into the RayCluster configuration
+
         image = self.ray_cluster.image or image
         head_group_spec = self.ray_cluster.head_group_spec.copy()
         worker_group_specs = self.ray_cluster.worker_group_specs.copy()
@@ -331,22 +309,6 @@ class KubeRayCluster(ConfigurableResource):
                 "workerGroupSpecs": worker_group_specs,
             },
         }
-
-    @property
-    def runtime_job_id(self) -> str:
-        """
-        Returns the Ray Job ID for the current job which was created with `ray.init()`.
-        :return:
-        """
-        return ray.get_runtime_context().get_job_id()
-
-    @retry(stop=stop_after_delay(120), retry=retry_if_exception_type(ConnectionError), reraise=True)
-    def init_ray(self) -> "RayBaseContext":
-        self.data_execution_options.apply()
-        self._context = ray.init(address=self.ray_address, ignore_reinit_error=True)
-        self.data_execution_options.apply()
-        self.data_execution_options.apply_remote()
-        return cast(RayBaseContext, self._context)
 
     def _wait_raycluster_ready(self):
         if not self.kuberay_api.wait_until_ray_cluster_running(self.cluster_name, k8s_namespace=self.namespace):
@@ -387,11 +349,6 @@ class KubeRayCluster(ConfigurableResource):
                 f"config parameter is set to `True` or the run failed. "
                 f"It may be still be deleted by the automatic cleanup job."
             )
-
-    def _get_step_key(self, context: InitResourceContext) -> str:
-        # just return a random string
-        # since we want a fresh cluster every time
-        return str(uuid.uuid4())
 
     def _get_ray_cluster_step_name(self, context: InitResourceContext) -> str:
         assert isinstance(context.run_id, str)
