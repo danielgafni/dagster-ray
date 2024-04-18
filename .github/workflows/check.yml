@@ -42,7 +42,7 @@ jobs:
         run: poetry install --all-extras --sync
       - name: Run tests
         env:
-          PYTEST_KUBERAY_VERSIONS: "1.0.0,1.1.1"  # will run tests for all these KubeRay versions
+          PYTEST_KUBERAY_VERSIONS: "1.0.0,1.1.0"  # will run tests for all these KubeRay versions
         run: pytest -v .
 
   lint:

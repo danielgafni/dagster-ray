@@ -71,9 +71,6 @@ def dagster_ray_image():
 # probably should only do it in CI
 KUBERNETES_VERSION = "1.25.3"
 
-# TODO: same as above
-KUBERAY_VERSION = "1.1.0"
-
 KUBERAY_VERSIONS = os.environ.get("PYTEST_KUBERAY_VERSIONS", "1.1.0").split(",")
 
 
