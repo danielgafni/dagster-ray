@@ -1,4 +1,4 @@
-name: check
+name: QA & Tests
 on:
   push:
   pull_request:
