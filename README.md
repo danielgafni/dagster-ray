@@ -11,8 +11,10 @@
 
 [Ray](https://github.com/ray-project/ray) integration library for [Dagster](https://github.com/dagster-io/dagster).
 
-> [!WARNING]
-> WIP, perhaps not usable.
+`dagster-ray` allows you to run Ray computations in your Dagster pipelines. The following backends are implemented:
+- `KubeRay` (kubernetes)
+
+`dagster-ray` is tested across multiple version combinations of components such as `ray`, `dagster`, `KubeRay Operator`, and `Python`.
 
 # Features
 
@@ -31,9 +33,6 @@ When added as resource dependency to an `@op/@asset`, the `KubeRayCluster`:
 
 `dagster-ray` provides a schedule for automatic cleanup of old `RayClusters` in the cluster.
 They may be left behind if the automatic cleanup was disabled or failed.
-
-## IOManagers
-WIP
 
 ## Executor
 WIP
