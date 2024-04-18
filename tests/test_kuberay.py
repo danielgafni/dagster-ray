@@ -54,6 +54,7 @@ def dagster_ray_image():
                 "BUILD_DEPENDENCIES=dev",
                 "--build-arg",
                 f"PYTHON_VERSION={python_version}",
+                "-t",
                 image,
                 str(ROOT_DIR),
             ],
