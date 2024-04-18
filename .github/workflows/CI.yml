@@ -1,0 +1,125 @@
+name: QA & Tests
+
+on:
+  workflow_dispatch:
+  push:
+  release:
+      types:
+        - created
+      # Sequence of patterns matched against refs/tags
+      tags:
+        - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: test ${{ matrix.py }} - ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - Ubuntu
+        py:
+#          - "3.12"
+          - "3.11"
+          - "3.10"
+          - "3.9"
+#          - "3.8"
+    steps:
+      - name: Setup python for test ${{ matrix.py }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.py }}
+      - uses: actions/checkout@v4
+      - name: Install and configure Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.2
+          virtualenvs-create: false
+          virtualenvs-in-project: false
+          installer-parallel: true
+      - uses: azure/setup-helm@v4.2.0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Start minikube
+        uses: medyagh/setup-minikube@master
+        with:
+          start: false
+          driver: docker
+      - name: Install dependencies
+        run: poetry install --all-extras --sync
+      - name: Run tests
+        env:
+          PYTEST_KUBERAY_VERSIONS: "1.0.0,1.1.0"  # will run tests for all these KubeRay versions
+        run: pytest -v .
+
+  lint:
+    name: lint ${{ matrix.py }} - ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - Ubuntu
+        py:
+#          - "3.12"
+          - "3.11"
+          - "3.10"
+          - "3.9"
+#          - "3.8"
+    steps:
+      - name: Setup python for test ${{ matrix.py }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.py }}
+      - uses: actions/checkout@v2
+      - name: Install and configure Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.2
+          virtualenvs-create: false
+          virtualenvs-in-project: false
+          installer-parallel: true
+      - name: Install dependencies
+        run: poetry install --all-extras --sync
+      - name: Run pre-commit hooks
+        run: pre-commit run --all-files
+
+  qa_success:
+    name: QA Success
+    needs: [ test, lint ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Success
+        run: echo "QA Succeeded!"
+
+  publish:
+    needs: qa_success
+    if: contains(github.ref, 'refs/tags/')
+    name: Publish to PyPI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - uses: actions/checkout@v2
+      - name: Install and configure Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.2
+          virtualenvs-create: false
+          virtualenvs-in-project: false
+          installer-parallel: true
+      - name: Install poetry-dynamic-versioning
+        run: poetry self add poetry-dynamic-versioning@1.2.0
+      - name: Publish to PyPI
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          poetry config pypi-token.pypi $PYPI_TOKEN
+          poetry publish --build

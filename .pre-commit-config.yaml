@@ -21,25 +21,18 @@ repos:
 #        entry: pyupgrade --py38-plus
   - repo: local
     hooks:
-      - id: isort
-        name: isort
-        entry: isort --settings-file pyproject.toml .
-        language: system
-        pass_filenames: false
       - id: ruff
         name: ruff
-        entry: ruff --fix .
+        entry: ruff check --fix .
         language: system
         pass_filenames: false
-      - id: black
-        name: black
-        entry: black .
+      - id: format
+        name: format
+        entry: ruff format
         language: system
         pass_filenames: false
-
       - id: pyright
         name: pyright
         entry: pyright .
         language: system
         pass_filenames: false
-
