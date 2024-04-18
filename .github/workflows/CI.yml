@@ -1,6 +1,18 @@
 name: QA & Tests
+
 on:
+  workflow_dispatch:
   push:
+  release:
+      types:
+        - created
+      # Sequence of patterns matched against refs/tags
+      tags:
+        - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
@@ -76,3 +88,38 @@ jobs:
         run: poetry install --all-extras --sync
       - name: Run pre-commit hooks
         run: pre-commit run --all-files
+
+  qa_success:
+    name: QA Success
+    needs: [ test, lint ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Success
+        run: echo "QA Succeeded!"
+
+  publish:
+    needs: qa_success
+    if: contains(github.ref, 'refs/tags/')
+    name: Publish to PyPI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - uses: actions/checkout@v2
+      - name: Install and configure Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.2
+          virtualenvs-create: false
+          virtualenvs-in-project: false
+          installer-parallel: true
+      - name: Install poetry-dynamic-versioning
+        run: poetry self add poetry-dynamic-versioning@1.2.0
+      - name: Publish to PyPI
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          poetry config pypi-token.pypi $PYPI_TOKEN
+          poetry publish --build
