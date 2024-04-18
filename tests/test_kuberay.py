@@ -1,11 +1,13 @@
 import os
 import socket
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 from typing import Any, Dict, Generator, List, cast
 
 import pytest
+import pytest_cases
 import ray
 from dagster import asset, materialize_to_memory
 from pytest_kubernetes.options import ClusterOptions
@@ -28,7 +30,7 @@ def kuberay_helm_repo():
     subprocess.run(["helm", "repo", "update", "kuberay"], check=True)
 
 
-LOCAL_IMAGE = "docker.io/local/dagster-ray:latest"
+PYTEST_DAGSTER_RAY_IMAGE = os.getenv("PYTEST_DAGSTER_RAY_IMAGE")
 
 
 @pytest.fixture(scope="session")
@@ -37,10 +39,11 @@ def dagster_ray_image():
     Either returns the image name from the environment variable PYTEST_DAGSTER_RAY_IMAGE
     or builds the image and returns it
     """
-    image = os.getenv("PYTEST_DAGSTER_RAY_IMAGE", LOCAL_IMAGE)
 
-    if image == LOCAL_IMAGE:
+    if PYTEST_DAGSTER_RAY_IMAGE is None:
         # build the local image
+        python_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+        image = f"local/dagster-ray:py-{python_version}"
         subprocess.run(
             [
                 "docker",
@@ -49,12 +52,15 @@ def dagster_ray_image():
                 str(ROOT_DIR / "Dockerfile"),
                 "--build-arg",
                 "BUILD_DEPENDENCIES=dev",
-                "-t",
+                "--build-arg",
+                f"PYTHON_VERSION={python_version}" "-t",
                 image,
                 str(ROOT_DIR),
             ],
             check=True,
         )
+    else:
+        image = PYTEST_DAGSTER_RAY_IMAGE
 
     return image
 
@@ -67,13 +73,18 @@ KUBERNETES_VERSION = "1.25.3"
 # TODO: same as above
 KUBERAY_VERSION = "1.1.0"
 
+KUBERAY_VERSIONS = os.environ.get("PYTEST_KUBERAY_VERSIONS", "1.1.0").split(",")
 
-@pytest.fixture(scope="session")
-def k8s_with_raycluster(request, kuberay_helm_repo, dagster_ray_image: str) -> Generator[AClusterManager, None, None]:
+
+@pytest_cases.fixture(scope="session")
+@pytest.mark.parametrize("kuberay_version", KUBERAY_VERSIONS)
+def k8s_with_raycluster(
+    request, kuberay_helm_repo, dagster_ray_image: str, kuberay_version: str
+) -> Generator[AClusterManager, None, None]:
     k8s = select_provider_manager("minikube")("dagster-ray")
     k8s.create(ClusterOptions(api_version=KUBERNETES_VERSION))
     # load images in advance to avoid possible timeouts later on
-    k8s.load_image(f"quay.io/kuberay/operator:v{KUBERAY_VERSION}")
+    k8s.load_image(f"quay.io/kuberay/operator:v{kuberay_version}")
 
     # warning: minikube fails to load the image directly because of
     # https://github.com/kubernetes/minikube/issues/18021
@@ -98,7 +109,7 @@ def k8s_with_raycluster(request, kuberay_helm_repo, dagster_ray_image: str) -> G
             "kuberay-operator",
             "kuberay/kuberay-operator",
             "--version",
-            KUBERAY_VERSION,
+            kuberay_version,
         ],
         check=True,
     )
