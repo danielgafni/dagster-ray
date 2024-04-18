@@ -33,10 +33,9 @@ kubernetes = ">=20.0.0" # no idea what's a good lower bound
 # FIXME: switch to PyPI once the package is published
 # https://github.com/ray-project/kuberay/issues/2078
 python-client = { git = "https://github.com/ray-project/kuberay.git", subdirectory = "clients/python-client", optional = true }
-tenacity = "^8.2.3"
-ray = {extras = ["all"], version = "^2.11.0"}
-dagster = "^1.7.1"
-poetry = "^1.8.2"
+tenacity = ">=8.0.0"
+ray = {extras = ["all"], version = ">=2.7.0"}
+dagster = ">=1.6.0"
 
 [tool.poetry.extras]
 kuberay = [
@@ -73,6 +72,7 @@ files = [
 ]
 
 [tool.pytest.ini_options]
+addopts = "-vvv --capture=no --log-disable=faker"
 log_cli = true
 log_level = "INFO"
 
