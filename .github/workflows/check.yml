@@ -39,8 +39,6 @@ jobs:
         with:
           start: false
           driver: docker
-      - name: Try the cluster !
-        run: kubectl get pods -A
       - name: Install dependencies
         run: poetry install --all-extras --sync
       - name: Run tests
