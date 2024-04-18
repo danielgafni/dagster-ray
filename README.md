@@ -46,3 +46,26 @@ poetry install --all-extras
 poetry shell
 pre-commit install
 ```
+
+`just` is used for running tasks. Run `just -l` to see the available tasks.
+
+## Running tests
+
+
+### KubeRay
+Required tools:
+
+- `docker`
+- `kubectl`
+- `helm`
+- `minikube`
+
+Running `pytest` will start a `minikube` cluster, install `kuberay-operator` with `helm`, and run the tests in it.
+
+Note: for the first time it may take a while to download `minikube` and `kuberay-operator` images.
+The tests may fail with a timeout.
+To manually pull the images into the `minukube` cluster, run:
+
+```shell
+just setup-minikube
+```
