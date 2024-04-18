@@ -4,6 +4,7 @@ from typing import Optional
 
 import ray
 from dagster import Config
+from pydantic import Field
 from ray.data import ExecutionResources
 
 
@@ -14,7 +15,7 @@ class ExecutionOptionsConfig(Config):
 
 
 class RayDataExecutionOptions(Config):
-    execution_options: ExecutionOptionsConfig = ExecutionOptionsConfig()
+    execution_options: ExecutionOptionsConfig = Field(default_factory=ExecutionOptionsConfig)
 
     cpu_limit: int = 5000
     gpu_limit: int = 0

@@ -20,6 +20,11 @@
 
 ## Resources
 
+### `LocalRay`
+
+A dummy resource which is useful for testing and development.
+It doesn't do anything, but provides the same interface as the other `*Ray` resources.
+
 ### `KubeRayCluster`
 
 `KubeRayCluster` can be used for running Ray computations on Kubernetes. Requires `KubeRay Operator` to be installed the Kubernetes cluster.
@@ -45,10 +50,10 @@ poetry shell
 pre-commit install
 ```
 
-## Running tests
-
+## Testing
 
 ### KubeRay
+
 Required tools:
 
 - `docker`
@@ -56,7 +61,17 @@ Required tools:
 - `helm`
 - `minikube`
 
-Running `pytest` will start a `minikube` cluster, install `kuberay-operator` with `helm`, and run the tests in it.
+Running `pytest` will **automatically**:
+ - build an image with the local `dagster-ray` code, using the current Python's interpreter version
+ - start a `minikube` Kubernetes cluster
+ - load the built `dagster-ray` and loaded `kuberay-operator` images into the cluster
+ - install the `KubeRay Operator` in the cluster with `helm`
+ - run the tests
+
+Thus, no manual setup is required, just the presence of the tools listed above.
+
+> [!NOTE]
+> Specifying a comma-separated list of `KubeRay Operator` versions in the `KUBE_RAY_OPERATOR_VERSIONS` environment variable will spawn a new test for each version.
 
 > [!NOTE]
 > it may take a while to download `minikube` and `kuberay-operator` images and build the local `dagster-ray` image during the first tests invocation
