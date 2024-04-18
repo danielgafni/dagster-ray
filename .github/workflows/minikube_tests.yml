@@ -1,0 +1,35 @@
+name: Minikube Integration Tests
+on:
+  push:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: build example and deploy to minikube
+    steps:
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11
+      - uses: actions/checkout@v4
+      - name: Install and configure Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.4.2
+          virtualenvs-create: false
+          virtualenvs-in-project: false
+          installer-parallel: true
+      - uses: azure/setup-helm@v4.2.0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Start minikube
+        uses: medyagh/setup-minikube@master
+        with:
+          start: false
+          driver: docker
+      - name: Try the cluster !
+        run: kubectl get pods -A
+      - name: Install dependencies
+        run: poetry install --all-extras --sync
+      - name: Run tests
+        run: pytest -v .
