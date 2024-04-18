@@ -8,7 +8,7 @@ FROM python:${PYTHON_VERSION}-slim AS base
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN --mount=type=cache,target=/var/cache/apt \
-    apt-get update && apt-get install -y git jq curl gcc python3-dev libpq-dev
+    apt-get update && apt-get install -y git jq curl gcc python3-dev libpq-dev wget
 
 # install poetry
 ENV PYTHONUNBUFFERED=1 \
@@ -72,7 +72,7 @@ FROM base-${BUILD_DEPENDENCIES} AS final
 COPY . .
 
 # finally install all our code
-RUN poetry install --only-root --all-extras
+RUN poetry install --all-extras
 
 ARG POETRY_DYNAMIC_VERSIONING_BYPASS=unset
 ENV POETRY_DYNAMIC_VERSIONING_BYPASS_TMP=$POETRY_DYNAMIC_VERSIONING_BYPASS

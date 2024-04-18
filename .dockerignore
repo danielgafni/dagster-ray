@@ -1,0 +1,9 @@
+# ignore all by default, add exceptions explicitly
+*
+!dagster_ray
+!tests
+!pyproject.toml
+!poetry.lock
+!poetry.toml
+!README.md
+!.pre-commit-config.yaml

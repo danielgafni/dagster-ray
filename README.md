@@ -8,7 +8,6 @@
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 [![Checked with pyright](https://microsoft.github.io/pyright/img/pyright_badge.svg)](https://microsoft.github.io/pyright/)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 [Ray](https://github.com/ray-project/ray) integration library for [Dagster](https://github.com/dagster-io/dagster).
 
@@ -21,7 +20,7 @@
 
 ### `KubeRayCluster`
 
-`KubeRayCluster` can be used for running Ray computations on Kubernetes. `KubeRay Operator` must be installed in the cluster for it to work.
+`KubeRayCluster` can be used for running Ray computations on Kubernetes. Requires `KubeRay Operator` to be installed the Kubernetes cluster.
 
 When added as resource dependency to an `@op/@asset`, the `KubeRayCluster`:
  - Starts a dedicated `RayCluster` for it
@@ -47,8 +46,6 @@ poetry shell
 pre-commit install
 ```
 
-`just` is used for running tasks. Run `just -l` to see the available tasks.
-
 ## Running tests
 
 
@@ -62,10 +59,5 @@ Required tools:
 
 Running `pytest` will start a `minikube` cluster, install `kuberay-operator` with `helm`, and run the tests in it.
 
-Note: for the first time it may take a while to download `minikube` and `kuberay-operator` images.
-The tests may fail with a timeout.
-To manually pull the images into the `minukube` cluster, run:
-
-```shell
-just setup-minikube
-```
+> [!NOTE]
+> it may take a while to download `minikube` and `kuberay-operator` images and build the local `dagster-ray` image during the first tests invocation

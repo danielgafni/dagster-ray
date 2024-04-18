@@ -10,7 +10,7 @@ from typing import Any, Dict, Generator, List, Optional, cast
 
 import dagster._check as check
 from dagster import ConfigurableResource, InitResourceContext
-from kubernetes import config
+from kubernetes import client, config, watch
 from pydantic import Field, PrivateAttr
 
 # yes, `python-client` is actually the KubeRay package name
@@ -45,61 +45,100 @@ DEFAULT_AUTOSCALER_OPTIONS = {
     },
 }
 
+DEFAULT_HEAD_GROUP_SPEC = {
+    "serviceType": "ClusterIP",
+    "rayStartParams": {"dashboard-host": "0.0.0.0"},
+    "metadata": {
+        "labels": {},
+        "annotations": {},
+    },
+    "template": {
+        "spec": {
+            "imagePullSecrets": [],
+            "containers": [
+                {
+                    "volumeMounts": [
+                        {"mountPath": "/tmp/ray", "name": "log-volume"},
+                    ],
+                    "name": "head",
+                    "imagePullPolicy": "Always",
+                },
+            ],
+            "volumes": [
+                {"name": "log-volume", "emptyDir": {}},
+            ],
+            "affinity": {},
+            "tolerations": [],
+            "nodeSelector": {},
+        },
+    },
+}
+#
+#
+# class WorkerGroupSpecConfig(Config):
+#     imagePullSecrets: List[Dict[str, Any]] = []
+#     containers: List[Dict[str, Any]] = [{
+#                                     "volumeMounts": [
+#                                         {"mountPath": "/tmp/ray", "name": "log-volume"},
+#                                     ],
+#                                     "name": "worker",
+#                                 }]
+#     volumes: List[Dict[str, Any]] = []
+#     affinity: Dict[str, Any] = {}
+#     tolerations: List[Dict[str, Any]] = []
+#     nodeSelector: Dict[str, Any] = {}
+#
+#
+#
+# class WorkerGroupTemplateConfig(Config):
+#     spec: WorkerGroupSpecConfig = WorkerGroupSpecConfig()
+#
+#
+# class WorkerGroupConfig(Config):
+#     template: WorkerGroupTemplateConfig = WorkerGroupTemplateConfig()
+#
+# class HeadGroupConfig(Config):
+#     serviceType: str = "ClusterIP"
+#     rayStartParams: Dict[str, Any] = {"dashboard-host": "0.0.0.0"}
+#     template: GroupTemplateConfig = GroupTemplateConfig()
+
+
+DEFAULT_WORKER_GROUP_SPECS = [
+    {
+        "groupName": "workers",
+        "rayStartParams": {},
+        "template": {
+            "metadata": {"labels": {}, "annotations": {}},
+            "spec": {
+                "imagePullSecrets": [],
+                "containers": [
+                    {
+                        "volumeMounts": [
+                            {"mountPath": "/tmp/ray", "name": "log-volume"},
+                        ],
+                        "name": "worker",
+                        "imagePullPolicy": "Always",
+                    }
+                ],
+                "volumes": [
+                    {"name": "log-volume", "emptyDir": {}},
+                ],
+                "affinity": {},
+                "tolerations": [],
+                "nodeSelector": {},
+            },
+        },
+    }
+]
+
 
 class RayClusterConfig(Config):
     image: Optional[str] = None
     namespace: str = "kuberay"
     enable_in_tree_autoscaling: bool = False
     autoscaler_options: Dict[str, Any] = DEFAULT_AUTOSCALER_OPTIONS  # TODO: add a dedicated Config type
-    head_group_spec: Dict[str, Any] = {}  # TODO: add a dedicated Config type
-    worker_group_specs: List[Dict[str, Any]] = [{}]  # TODO: add a dedicated Config type
-
-    def build_raycluster(
-        self,
-        cluster_name: str,
-        image: str,
-        labels: Optional[Dict[str, str]] = None,  # TODO: use in RayCluster labels
-    ) -> Dict[str, Any]:
-        return {
-            "apiVersion": "ray.io/v1alpha1",
-            "kind": "RayCluster",
-            "metadata": {
-                "name": cluster_name,
-                "labels": labels or {},
-            },
-            "spec": {
-                "enableInTreeAutoscaling": self.enable_in_tree_autoscaling,
-                "autoscalerOptions": self.autoscaler_options,
-                "headGroupSpec": {
-                    "serviceType": "ClusterIP",
-                    "rayStartParams": {"dashboard-host": "0.0.0.0"},
-                    "template": {
-                        "spec": {
-                            "imagePullSecrets": [],
-                            "containers": [
-                                {
-                                    "volumeMounts": [
-                                        {"mountPath": "/tmp/ray", "name": "log-volume"},
-                                    ],
-                                    "name": "ray-head",
-                                    "image": image,
-                                }
-                            ],
-                            "volumes": [
-                                {"name": "log-volume", "emptyDir": {}},
-                            ],
-                            "affinity": {},
-                            "tolerations": [],
-                            "nodeSelector": {},
-                        },
-                        "metadata": {
-                            "annotations": {},
-                        },
-                    },
-                },
-                "workerGroupSpecs": self.worker_group_specs,
-            },
-        }
+    head_group_spec: Dict[str, Any] = DEFAULT_HEAD_GROUP_SPEC  # TODO: add a dedicated Config type
+    worker_group_specs: List[Dict[str, Any]] = DEFAULT_WORKER_GROUP_SPECS  # TODO: add a dedicated Config type
 
 
 DEFAULT_CLUSTER_NAME_PREFIX = (
@@ -125,75 +164,31 @@ class KubeRayCluster(ConfigurableResource):
     disable_cluster_cleanup: bool = False
     skip_init: bool = False
 
+    # TODO: inject this ports into the RayCluster configuration in self._build_raycluster
+    redis_port: Optional[int] = Field(
+        default=10001, description="Redis port. Make sure to match with the actual available port."
+    )
+    dashboard_port: Optional[int] = Field(
+        default=8265, description="Dashboard port. Make sure to match with the actual available port."
+    )
+
     kubeconfig_file: Optional[str] = None
 
     _cluster_name: str = PrivateAttr()
     _context: Optional[RayBaseContext] = PrivateAttr()
     _host: str = PrivateAttr()
     _kuberay_api: PatchedRayClusterApi = PrivateAttr()
+    _k8s_api: client.CustomObjectsApi = PrivateAttr()
+    _k8s_core_api: client.CoreV1Api = PrivateAttr()
 
-    @contextlib.contextmanager
-    def yield_for_execution(self, context: InitResourceContext) -> Generator[Self, None, None]:
-        assert context.log is not None
-        assert context.dagster_run is not None
-
-        self._load_kubeconfig(self.kubeconfig_file)
-
-        self._kuberay_api = PatchedRayClusterApi(config_file=self.kubeconfig_file)
-        self._cluster_name = self._get_ray_cluster_step_name(context)
-
-        # for now, self.cluster is a raw dict
-        namespace = self.ray_cluster.namespace
-
-        self._host = f"{self.cluster_name}-head-svc.{namespace}.svc.cluster.local"
-
-        try:
-            if not self.kuberay_api.list_ray_clusters(  # just a safety measure, no need to recreate the cluster for step retries
-                k8s_namespace=namespace,
-                label_selector=f"dagster.io/clusterName={self.cluster_name}",
-            ):
-                cluster_body = self.ray_cluster.build_raycluster(
-                    cluster_name=self.cluster_name,
-                    image=(self.ray_cluster.image or context.dagster_run.tags["dagster/image"]),
-                    labels={
-                        "dagster.io/run_id": cast(str, context.run_id),
-                        "dagster.io/clusterName": self.cluster_name,
-                        # TODO: add more labels
-                    },
-                )
-
-                self.kuberay_api.create_ray_cluster(body=cluster_body, k8s_namespace=namespace)
-                context.log.info(
-                    f"Created RayCluster {namespace}/{self.cluster_name}. Waiting for it to become ready..."
-                )
-                self.kuberay_api.wait_until_ray_cluster_running(self.cluster_name, k8s_namespace=namespace)
-                context.log.info(
-                    f"Run `kubectl -n {namespace} port-forward svc/{self.cluster_name}-head-svc 8265:8265 6379:6379 10001:10001` to connect to RayCluster "
-                    f"and open localhost:8265 to view the Ray Dashboard"
-                )
-
-            context.log.debug(f"Ray host: {self.host}")
-
-            if not self.skip_init:
-                self.init_ray()
-                context.log.info("Initialized Ray!")
-            else:
-                self._context = None
-
-            self.data_execution_options.apply()
-
-            yield self
-        except Exception as e:
-            context.log.critical("Couldn't create or connect to RayCluster!")
-            self._maybe_cleanup_raycluster(context, self.cluster_name, namespace=namespace)
-            raise e
-
-        self._maybe_cleanup_raycluster(context, self.cluster_name, namespace=namespace)
-        if self._context is not None:
-            self._context.disconnect()
+    @property
+    def namespace(self) -> str:
+        return self.ray_cluster.namespace  # TODO: add namespace auto-creation logic
 
     @property
     def cluster_name(self) -> str:
+        if self._cluster_name is None:
+            raise ValueError("RayClusterResource not initialized")
         return self._cluster_name
 
     @property
@@ -207,15 +202,135 @@ class KubeRayCluster(ConfigurableResource):
 
     @property
     def kuberay_api(self) -> kuberay_cluster_api.RayClusterApi:
+        if self._kuberay_api is None:
+            raise ValueError("RayClusterResource not initialized")
         return self._kuberay_api
 
     @property
+    def k8s_api(self) -> client.CustomObjectsApi:
+        if self._k8s_api is None:
+            raise ValueError("RayClusterResource not initialized")
+        return self._k8s_api
+
+    @property
     def ray_address(self) -> str:
-        return f"ray://{self.host}:10001"
+        return f"ray://{self.host}:{self.redis_port}"
 
     @property
     def dashboard_url(self) -> str:
-        return f"http://{self.host}:8265"
+        return f"http://{self.host}:{self.dashboard_port}"
+
+    @contextlib.contextmanager
+    def yield_for_execution(self, context: InitResourceContext) -> Generator[Self, None, None]:
+        assert context.log is not None
+        assert context.dagster_run is not None
+
+        self._load_kubeconfig(self.kubeconfig_file)
+
+        self._kuberay_api = PatchedRayClusterApi(config_file=self.kubeconfig_file)
+        self._k8s_api = client.CustomObjectsApi()
+        self._k8s_core_api = client.CoreV1Api()
+
+        self._cluster_name = self._get_ray_cluster_step_name(context)
+
+        # self._host = f"{self.cluster_name}-head-svc.{self.namespace}.svc.cluster.local"
+
+        try:
+            # just a safety measure, no need to recreate the cluster for step retries or smth
+            if not self.kuberay_api.list_ray_clusters(
+                k8s_namespace=self.namespace,
+                label_selector=f"dagster.io/cluster={self.cluster_name}",
+            )["items"]:
+                cluster_body = self._build_raycluster(
+                    image=(self.ray_cluster.image or context.dagster_run.tags["dagster/image"]),
+                    labels={
+                        "dagster.io/run_id": cast(str, context.run_id),
+                        "dagster.io/cluster": self.cluster_name,
+                        # TODO: add more labels
+                    },
+                )
+
+                self.kuberay_api.create_ray_cluster(body=cluster_body, k8s_namespace=self.namespace)
+                context.log.info(
+                    f"Created RayCluster {self.namespace}/{self.cluster_name}. Waiting for it to become ready..."
+                )
+
+                self._wait_raycluster_ready()
+
+                # TODO: currently this will only work from withing the cluster
+                # find a way to make it work from outside
+                # probably would need a LoadBalancer/Ingress
+                self._host = self.kuberay_api.get_ray_cluster(name=self.cluster_name, k8s_namespace=self.namespace)[
+                    "status"
+                ]["head"]["serviceIP"]
+
+                context.log.info("RayCluster is ready! Connection command:")
+
+                context.log.info(
+                    f"`kubectl -n {self.namespace} port-forward svc/{self.cluster_name}-head-svc 8265:8265 6379:6379 10001:10001`"
+                )
+
+            context.log.debug(f"Ray host: {self.host}")
+
+            if not self.skip_init:
+                self.init_ray()
+                context.log.info("Initialized Ray!")
+            else:
+                self._context = None
+
+            yield self
+        except Exception as e:
+            context.log.critical("Couldn't create or connect to RayCluster!")
+            self._maybe_cleanup_raycluster(context)
+            raise e
+
+        self._maybe_cleanup_raycluster(context)
+        if self._context is not None:
+            self._context.disconnect()
+
+    def _build_raycluster(
+        self,
+        image: str,
+        labels: Optional[Dict[str, str]] = None,  # TODO: use in RayCluster labels
+    ) -> Dict[str, Any]:
+        """
+        Builds a RayCluster from the provided configuration, while injecting custom image and labels (only known during resource setup)
+        """
+        image = self.ray_cluster.image or image
+        head_group_spec = self.ray_cluster.head_group_spec.copy()
+        worker_group_specs = self.ray_cluster.worker_group_specs.copy()
+
+        def update_group_spec(group_spec: Dict[str, Any]):
+            # TODO: only inject if the container has a `dagster.io/inject-image` annotation or smth
+            if group_spec["template"]["spec"]["containers"][0].get("image") is None:
+                group_spec["template"]["spec"]["containers"][0]["image"] = image
+
+            if group_spec.get("metadata") is None:
+                group_spec["metadata"] = {"labels": labels or {}}
+            else:
+                if group_spec["metadata"].get("labels") is None:
+                    group_spec["metadata"]["labels"] = labels or {}
+                else:
+                    group_spec["metadata"]["labels"].update(labels or {})
+
+        update_group_spec(head_group_spec)
+        for worker_group_spec in worker_group_specs:
+            update_group_spec(worker_group_spec)
+
+        return {
+            "apiVersion": "ray.io/v1alpha1",
+            "kind": "RayCluster",
+            "metadata": {
+                "name": self.cluster_name,
+                "labels": labels or {},
+            },
+            "spec": {
+                "enableInTreeAutoscaling": self.ray_cluster.enable_in_tree_autoscaling,
+                "autoscalerOptions": self.ray_cluster.autoscaler_options,
+                "headGroupSpec": head_group_spec,
+                "workerGroupSpecs": worker_group_specs,
+            },
+        }
 
     @property
     def runtime_job_id(self) -> str:
@@ -225,23 +340,50 @@ class KubeRayCluster(ConfigurableResource):
         """
         return ray.get_runtime_context().get_job_id()
 
-    @retry(stop=stop_after_delay(120), retry=retry_if_exception_type(ConnectionError))
+    @retry(stop=stop_after_delay(120), retry=retry_if_exception_type(ConnectionError), reraise=True)
     def init_ray(self) -> "RayBaseContext":
+        self.data_execution_options.apply()
         self._context = ray.init(address=self.ray_address, ignore_reinit_error=True)
+        self.data_execution_options.apply()
+        self.data_execution_options.apply_remote()
         return cast(RayBaseContext, self._context)
 
-    def _maybe_cleanup_raycluster(self, context: InitResourceContext, cluster_name: str, namespace: str):
+    def _wait_raycluster_ready(self):
+        if not self.kuberay_api.wait_until_ray_cluster_running(self.cluster_name, k8s_namespace=self.namespace):
+            status = self.kuberay_api.get_ray_cluster_status(self.cluster_name, k8s_namespace=self.namespace)
+            raise Exception(f"RayCluster {self.namespace}/{self.cluster_name} failed to start: {status}")
+
+        # the above code only checks for RayCluster creation
+        # not for head pod readiness
+
+        w = watch.Watch()
+        for event in w.stream(
+            func=self._k8s_core_api.list_namespaced_pod,
+            namespace=self.namespace,
+            label_selector=f"ray.io/cluster={self.cluster_name},ray.io/group=headgroup",
+            timeout_seconds=60,
+        ):
+            if event["object"].status.phase == "Running":  # type: ignore
+                w.stop()
+                return
+            # event.type: ADDED, MODIFIED, DELETED
+            if event["type"] == "DELETED":  # type: ignore
+                # Pod was deleted while we were waiting for it to start.
+                w.stop()
+                return
+
+    def _maybe_cleanup_raycluster(self, context: InitResourceContext):
         assert context.log is not None
 
         if (
             not self.disable_cluster_cleanup
             and cast(DagsterRun, context.dagster_run).status != DagsterRunStatus.FAILURE
         ):
-            self.kuberay_api.delete_ray_cluster(cluster_name, k8s_namespace=namespace)
-            context.log.info(f"Deleted RayCluster {namespace}/{cluster_name}")
+            self.kuberay_api.delete_ray_cluster(self.cluster_name, k8s_namespace=self.namespace)
+            context.log.info(f"Deleted RayCluster {self.namespace}/{self.cluster_name}")
         else:
             context.log.warning(
-                f"Skipping RayCluster {cluster_name} deletion because `disable_cluster_cleanup` "
+                f"Skipping RayCluster {self.cluster_name} deletion because `disable_cluster_cleanup` "
                 f"config parameter is set to `True` or the run failed. "
                 f"It may be still be deleted by the automatic cleanup job."
             )

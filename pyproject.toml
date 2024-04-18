@@ -36,6 +36,7 @@ python-client = { git = "https://github.com/ray-project/kuberay.git", subdirecto
 tenacity = "^8.2.3"
 ray = {extras = ["all"], version = "^2.11.0"}
 dagster = "^1.7.1"
+poetry = "^1.8.2"
 
 [tool.poetry.extras]
 kuberay = [
