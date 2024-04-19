@@ -31,6 +31,12 @@ repos:
         entry: ruff format
         language: system
         pass_filenames: false
+      - id: format-docs
+        name: format docs
+        entry: blacken-docs
+        language: system
+        pass_filenames: true
+        files: "\\.(md)$"
       - id: pyright
         name: pyright
         entry: pyright .

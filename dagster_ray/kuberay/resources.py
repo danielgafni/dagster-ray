@@ -1,14 +1,13 @@
 import contextlib
 import hashlib
-import os
 import random
 import re
 import string
 import sys
-from typing import Any, Dict, Generator, List, Optional, cast
+from typing import Any, Dict, Generator, Optional, cast
 
 import dagster._check as check
-from dagster import InitResourceContext
+from dagster import ConfigurableResource, InitResourceContext
 from kubernetes import client, config, watch
 from pydantic import Field, PrivateAttr
 
@@ -16,6 +15,7 @@ from pydantic import Field, PrivateAttr
 # https://github.com/ray-project/kuberay/issues/2078
 from python_client import kuberay_cluster_api
 
+from dagster_ray.kuberay.configs import DEFAULT_DEPLOYMENT_NAME, RayClusterConfig
 from dagster_ray.kuberay.ray_cluster_api import PatchedRayClusterApi
 
 if sys.version_info >= (3, 11):
@@ -23,127 +23,50 @@ if sys.version_info >= (3, 11):
 else:
     from typing_extensions import Self
 
-from dagster import Config, DagsterRun, DagsterRunStatus
+from dagster import DagsterRun, DagsterRunStatus
 from ray._private.worker import BaseContext as RayBaseContext  # noqa
 
 from dagster_ray._base.resources import BaseRayResource
 
-in_k8s = os.environ.get("KUBERNETES_SERVICE_HOST") is not None
-IS_PROD = os.getenv("DAGSTER_CLOUD_DEPLOYMENT_NAME") == "prod"
 
-DEFAULT_AUTOSCALER_OPTIONS = {
-    "upscalingMode": "Default",
-    "idleTimeoutSeconds": 60,
-    "env": [],
-    "envFrom": [],
-    "resources": {
-        "limits": {"cpu": "1000m", "memory": "1Gi"},
-        "requests": {"cpu": "1000m", "memory": "1Gi"},
-    },
-}
+class KubeRayAPI(ConfigurableResource):
+    kubeconfig_file: Optional[str] = None
 
-DEFAULT_HEAD_GROUP_SPEC = {
-    "serviceType": "ClusterIP",
-    "rayStartParams": {"dashboard-host": "0.0.0.0"},
-    "metadata": {
-        "labels": {},
-        "annotations": {},
-    },
-    "template": {
-        "spec": {
-            "imagePullSecrets": [],
-            "containers": [
-                {
-                    "volumeMounts": [
-                        {"mountPath": "/tmp/ray", "name": "log-volume"},
-                    ],
-                    "name": "head",
-                    "imagePullPolicy": "Always",
-                },
-            ],
-            "volumes": [
-                {"name": "log-volume", "emptyDir": {}},
-            ],
-            "affinity": {},
-            "tolerations": [],
-            "nodeSelector": {},
-        },
-    },
-}
-#
-#
-# class WorkerGroupSpecConfig(Config):
-#     imagePullSecrets: List[Dict[str, Any]] = []
-#     containers: List[Dict[str, Any]] = [{
-#                                     "volumeMounts": [
-#                                         {"mountPath": "/tmp/ray", "name": "log-volume"},
-#                                     ],
-#                                     "name": "worker",
-#                                 }]
-#     volumes: List[Dict[str, Any]] = []
-#     affinity: Dict[str, Any] = {}
-#     tolerations: List[Dict[str, Any]] = []
-#     nodeSelector: Dict[str, Any] = {}
-#
-#
-#
-# class WorkerGroupTemplateConfig(Config):
-#     spec: WorkerGroupSpecConfig = WorkerGroupSpecConfig()
-#
-#
-# class WorkerGroupConfig(Config):
-#     template: WorkerGroupTemplateConfig = WorkerGroupTemplateConfig()
-#
-# class HeadGroupConfig(Config):
-#     serviceType: str = "ClusterIP"
-#     rayStartParams: Dict[str, Any] = {"dashboard-host": "0.0.0.0"}
-#     template: GroupTemplateConfig = GroupTemplateConfig()
+    _kuberay_api: PatchedRayClusterApi = PrivateAttr()
+    _k8s_api: client.CustomObjectsApi = PrivateAttr()
+    _k8s_core_api: client.CoreV1Api = PrivateAttr()
 
+    @property
+    def kuberay(self) -> kuberay_cluster_api.RayClusterApi:
+        if self._kuberay_api is None:
+            raise ValueError("KubeRayAPI not initialized")
+        return self._kuberay_api
 
-DEFAULT_WORKER_GROUP_SPECS = [
-    {
-        "groupName": "workers",
-        "rayStartParams": {},
-        "template": {
-            "metadata": {"labels": {}, "annotations": {}},
-            "spec": {
-                "imagePullSecrets": [],
-                "containers": [
-                    {
-                        "volumeMounts": [
-                            {"mountPath": "/tmp/ray", "name": "log-volume"},
-                        ],
-                        "name": "worker",
-                        "imagePullPolicy": "Always",
-                    }
-                ],
-                "volumes": [
-                    {"name": "log-volume", "emptyDir": {}},
-                ],
-                "affinity": {},
-                "tolerations": [],
-                "nodeSelector": {},
-            },
-        },
-    }
-]
+    @property
+    def k8s(self) -> client.CustomObjectsApi:
+        if self._k8s_api is None:
+            raise ValueError("KubeRayAPI not initialized")
+        return self._k8s_api
 
+    @property
+    def k8s_core(self) -> client.CoreV1Api:
+        if self._k8s_core_api is None:
+            raise ValueError("KubeRayAPI not initialized")
+        return self._k8s_core_api
 
-class RayClusterConfig(Config):
-    image: Optional[str] = None
-    namespace: str = "kuberay"
-    enable_in_tree_autoscaling: bool = False
-    autoscaler_options: Dict[str, Any] = DEFAULT_AUTOSCALER_OPTIONS  # TODO: add a dedicated Config type
-    head_group_spec: Dict[str, Any] = DEFAULT_HEAD_GROUP_SPEC  # TODO: add a dedicated Config type
-    worker_group_specs: List[Dict[str, Any]] = DEFAULT_WORKER_GROUP_SPECS  # TODO: add a dedicated Config type
+    def setup_for_execution(self, context: InitResourceContext) -> None:
+        self._load_kubeconfig(self.kubeconfig_file)
 
+        self._kuberay_api = PatchedRayClusterApi(config_file=self.kubeconfig_file)
+        self._k8s_api = client.CustomObjectsApi()
+        self._k8s_core_api = client.CoreV1Api()
 
-DEFAULT_CLUSTER_NAME_PREFIX = (
-    os.getenv("DAGSTER_CLOUD_DEPLOYMENT_NAME")
-    if os.getenv("DAGSTER_CLOUD_IS_BRANCH_DEPLOYMENT") == "0"
-    else os.getenv("DAGSTER_CLOUD_GIT_BRANCH")
-)
-DEFAULT_CLUSTER_NAME_PREFIX = DEFAULT_CLUSTER_NAME_PREFIX or "dev"
+    @staticmethod
+    def _load_kubeconfig(kubeconfig_file: Optional[str] = None):
+        try:
+            config.load_kube_config(config_file=kubeconfig_file)
+        except config.config_exception.ConfigException:
+            config.load_incluster_config()
 
 
 class KubeRayCluster(BaseRayResource):
@@ -152,21 +75,19 @@ class KubeRayCluster(BaseRayResource):
     The cluster is automatically deleted after steps execution
     """
 
-    cluster_name_prefix: str = Field(
-        default=DEFAULT_CLUSTER_NAME_PREFIX,
-        description="Prefix for the RayCluster name. It's recommended to match it with the Dagster deployment name. Dagster Cloud variables are used for the default value.",
+    deployment_name: str = Field(
+        default=DEFAULT_DEPLOYMENT_NAME,
+        description="Prefix for the RayCluster name. It's recommended to match it with the Dagster deployment name. "
+        "Dagster Cloud variables are used to determine the default value.",
     )
     ray_cluster: RayClusterConfig = Field(default_factory=RayClusterConfig)
-    disable_cluster_cleanup: bool = False
+    skip_cleanup: bool = False
     skip_init: bool = False
 
-    kubeconfig_file: Optional[str] = None
+    api: KubeRayAPI = Field(default_factory=KubeRayAPI)
 
     _cluster_name: str = PrivateAttr()
     _host: str = PrivateAttr()
-    _kuberay_api: PatchedRayClusterApi = PrivateAttr()
-    _k8s_api: client.CustomObjectsApi = PrivateAttr()
-    _k8s_core_api: client.CoreV1Api = PrivateAttr()
 
     @property
     def host(self) -> str:
@@ -184,28 +105,10 @@ class KubeRayCluster(BaseRayResource):
             raise ValueError("RayClusterResource not initialized")
         return self._cluster_name
 
-    @property
-    def kuberay_api(self) -> kuberay_cluster_api.RayClusterApi:
-        if self._kuberay_api is None:
-            raise ValueError("RayClusterResource not initialized")
-        return self._kuberay_api
-
-    @property
-    def k8s_api(self) -> client.CustomObjectsApi:
-        if self._k8s_api is None:
-            raise ValueError("RayClusterResource not initialized")
-        return self._k8s_api
-
     @contextlib.contextmanager
     def yield_for_execution(self, context: InitResourceContext) -> Generator[Self, None, None]:
         assert context.log is not None
         assert context.dagster_run is not None
-
-        self._load_kubeconfig(self.kubeconfig_file)
-
-        self._kuberay_api = PatchedRayClusterApi(config_file=self.kubeconfig_file)
-        self._k8s_api = client.CustomObjectsApi()
-        self._k8s_core_api = client.CoreV1Api()
 
         self._cluster_name = self._get_ray_cluster_step_name(context)
 
@@ -213,20 +116,16 @@ class KubeRayCluster(BaseRayResource):
 
         try:
             # just a safety measure, no need to recreate the cluster for step retries or smth
-            if not self.kuberay_api.list_ray_clusters(
+            if not self.api.kuberay.list_ray_clusters(
                 k8s_namespace=self.namespace,
                 label_selector=f"dagster.io/cluster={self.cluster_name}",
             )["items"]:
                 cluster_body = self._build_raycluster(
                     image=(self.ray_cluster.image or context.dagster_run.tags["dagster/image"]),
-                    labels={
-                        "dagster.io/run_id": cast(str, context.run_id),
-                        "dagster.io/cluster": self.cluster_name,
-                        # TODO: add more labels
-                    },
+                    labels=self._get_labels(context),
                 )
 
-                self.kuberay_api.create_ray_cluster(body=cluster_body, k8s_namespace=self.namespace)
+                self.api.kuberay.create_ray_cluster(body=cluster_body, k8s_namespace=self.namespace)
                 context.log.info(
                     f"Created RayCluster {self.namespace}/{self.cluster_name}. Waiting for it to become ready..."
                 )
@@ -236,7 +135,7 @@ class KubeRayCluster(BaseRayResource):
                 # TODO: currently this will only work from withing the cluster
                 # find a way to make it work from outside
                 # probably would need a LoadBalancer/Ingress
-                self._host = self.kuberay_api.get_ray_cluster(name=self.cluster_name, k8s_namespace=self.namespace)[
+                self._host = self.api.kuberay.get_ray_cluster(name=self.cluster_name, k8s_namespace=self.namespace)[
                     "status"
                 ]["head"]["serviceIP"]
 
@@ -249,8 +148,7 @@ class KubeRayCluster(BaseRayResource):
             context.log.debug(f"Ray host: {self.host}")
 
             if not self.skip_init:
-                self.init_ray()
-                context.log.info("Initialized Ray!")
+                self.init_ray(context)
             else:
                 self._context = None
 
@@ -263,6 +161,21 @@ class KubeRayCluster(BaseRayResource):
         self._maybe_cleanup_raycluster(context)
         if self._context is not None:
             self._context.disconnect()
+
+    def _get_labels(self, context: InitResourceContext) -> Dict[str, str]:
+        assert context.dagster_run is not None
+
+        labels = {
+            "dagster.io/run_id": cast(str, context.run_id),
+            "dagster.io/cluster": self.cluster_name,
+            "dagster.io/deployment": self.deployment_name,
+            # TODO: add more labels
+        }
+
+        if context.dagster_run.tags.get("user"):
+            labels["dagster.io/user"] = context.dagster_run.tags["user"]
+
+        return labels
 
     def _build_raycluster(
         self,
@@ -311,8 +224,8 @@ class KubeRayCluster(BaseRayResource):
         }
 
     def _wait_raycluster_ready(self):
-        if not self.kuberay_api.wait_until_ray_cluster_running(self.cluster_name, k8s_namespace=self.namespace):
-            status = self.kuberay_api.get_ray_cluster_status(self.cluster_name, k8s_namespace=self.namespace)
+        if not self.api.kuberay.wait_until_ray_cluster_running(self.cluster_name, k8s_namespace=self.namespace):
+            status = self.api.kuberay.get_ray_cluster_status(self.cluster_name, k8s_namespace=self.namespace)
             raise Exception(f"RayCluster {self.namespace}/{self.cluster_name} failed to start: {status}")
 
         # the above code only checks for RayCluster creation
@@ -320,7 +233,7 @@ class KubeRayCluster(BaseRayResource):
 
         w = watch.Watch()
         for event in w.stream(
-            func=self._k8s_core_api.list_namespaced_pod,
+            func=self.api.k8s_core.list_namespaced_pod,
             namespace=self.namespace,
             label_selector=f"ray.io/cluster={self.cluster_name},ray.io/group=headgroup",
             timeout_seconds=60,
@@ -337,11 +250,8 @@ class KubeRayCluster(BaseRayResource):
     def _maybe_cleanup_raycluster(self, context: InitResourceContext):
         assert context.log is not None
 
-        if (
-            not self.disable_cluster_cleanup
-            and cast(DagsterRun, context.dagster_run).status != DagsterRunStatus.FAILURE
-        ):
-            self.kuberay_api.delete_ray_cluster(self.cluster_name, k8s_namespace=self.namespace)
+        if not self.skip_cleanup and cast(DagsterRun, context.dagster_run).status != DagsterRunStatus.FAILURE:
+            self.api.kuberay.delete_ray_cluster(self.cluster_name, k8s_namespace=self.namespace)
             context.log.info(f"Deleted RayCluster {self.namespace}/{self.cluster_name}")
         else:
             context.log.warning(
@@ -356,7 +266,7 @@ class KubeRayCluster(BaseRayResource):
 
         # try to make the name as short as possible
 
-        cluster_name_prefix = f"dr-{self.cluster_name_prefix.replace('-', '')[:8]}-{context.run_id[:8]}"
+        cluster_name_prefix = f"dr-{self.deployment_name.replace('-', '')[:8]}-{context.run_id[:8]}"
 
         dagster_user_email = context.dagster_run.tags.get("user")
         if dagster_user_email is not None:
@@ -373,13 +283,6 @@ class KubeRayCluster(BaseRayResource):
         step_name = re.sub(r"[^-0-9a-z]", "-", step_name)
 
         return step_name
-
-    @staticmethod
-    def _load_kubeconfig(kubeconfig_file: Optional[str] = None):
-        try:
-            config.load_kube_config(config_file=kubeconfig_file)
-        except config.config_exception.ConfigException:
-            config.load_incluster_config()
 
 
 def get_k8s_object_name(run_id: str, step_key: Optional[str] = None):

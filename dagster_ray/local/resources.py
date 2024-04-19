@@ -36,8 +36,7 @@ class LocalRay(BaseRayResource):
 
         context.log.debug(f"Ray host: {self.host}")
 
-        self.init_ray()
-        context.log.info("Initialized Ray!")
+        self.init_ray(context)
 
         yield self
 

@@ -9,12 +9,12 @@ from typing import Any, Dict, Generator, List, cast
 import pytest
 import pytest_cases
 import ray
-from dagster import asset, materialize_to_memory
+from dagster import AssetExecutionContext, asset, materialize_to_memory
 from pytest_kubernetes.options import ClusterOptions
 from pytest_kubernetes.providers import AClusterManager, select_provider_manager
 
-from dagster_ray.kuberay import KubeRayCluster
-from dagster_ray.kuberay.resources import DEFAULT_HEAD_GROUP_SPEC, DEFAULT_WORKER_GROUP_SPECS, RayClusterConfig
+from dagster_ray.kuberay import KubeRayAPI, KubeRayCluster
+from dagster_ray.kuberay.configs import DEFAULT_HEAD_GROUP_SPEC, DEFAULT_WORKER_GROUP_SPECS, RayClusterConfig
 from tests import ROOT_DIR
 
 
@@ -149,7 +149,7 @@ def ray_cluster_resource(
         # have have to first run port-forwarding with minikube
         # we can only init ray after that
         skip_init=True,
-        kubeconfig_file=str(k8s_with_raycluster.kubeconfig),
+        api=KubeRayAPI(kubeconfig_file=str(k8s_with_raycluster.kubeconfig)),
         ray_cluster=RayClusterConfig(
             image=dagster_ray_image,
             head_group_spec=head_group_spec,
@@ -169,7 +169,7 @@ def test_kuberay_cluster_resource(
     k8s_with_raycluster: AClusterManager,
 ):
     @asset
-    def my_asset(ray_cluster: KubeRayCluster) -> None:
+    def my_asset(context: AssetExecutionContext, ray_cluster: KubeRayCluster) -> None:
         # port-forward to the head node
         # because it's not possible to access it otherwise
 
@@ -182,7 +182,7 @@ def test_kuberay_cluster_resource(
             # now we can access the head node
             # hack the _host attribute to point to the port-forwarded address
             ray_cluster._host = "127.0.0.1"
-            ray_cluster.init_ray()  # normally this would happen automatically during resource setup
+            ray_cluster.init_ray(context)  # normally this would happen automatically during resource setup
             assert ray_cluster.context is not None
 
             # make sure a @remote function runs inside the cluster
