@@ -2893,25 +2893,6 @@ pytest = ">=7.2.1,<8.0.0"
 pyyaml = ">=6.0,<7.0"
 
 [[package]]
-name = "python_client"
-version = "1.1.0"
-description = "A Kuberay python client library to create/delete/update clusters"
-optional = true
-python-versions = ">=3.6.5"
-files = []
-develop = false
-
-[package.dependencies]
-kubernetes = "*"
-
-[package.source]
-type = "git"
-url = "https://github.com/ray-project/kuberay.git"
-reference = "HEAD"
-resolved_reference = "17809bcbe38bda06aba9194b2a3212bdc05a309e"
-subdirectory = "clients/python-client"
-
-[[package]]
 name = "python-dateutil"
 version = "2.8.2"
 description = "Extensions to the standard Python datetime module"
@@ -4336,9 +4317,9 @@ docs = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "rst.link
 testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "pytest (>=6)", "pytest-black (>=0.3.7)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-ignore-flaky", "pytest-mypy (>=0.9.1)", "pytest-ruff"]
 
 [extras]
-kuberay = ["kubernetes", "python-client", "pyyaml"]
+kuberay = ["kubernetes", "pyyaml"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.1,<3.13"
-content-hash = "7d063237e1ebef30fd2ebdd01cbe16c73ddafb006d879e7b75ba4d6b5e95dc6d"
+content-hash = "9ae768ec0503b1419022a71e97a548552d70df683128d580151853c03071c730"

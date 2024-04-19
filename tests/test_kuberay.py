@@ -17,7 +17,7 @@ from dagster_ray import RayResource
 from dagster_ray.kuberay import KubeRayAPI, KubeRayCluster, RayClusterConfig, cleanup_kuberay_clusters
 from dagster_ray.kuberay.configs import DEFAULT_HEAD_GROUP_SPEC, DEFAULT_WORKER_GROUP_SPECS
 from dagster_ray.kuberay.ops import CleanupKuberayClustersConfig
-from dagster_ray.kuberay.ray_cluster_api import PatchedRayClusterApi
+from dagster_ray.kuberay.ray_cluster_api import RayClusterApi
 from tests import ROOT_DIR
 
 
@@ -230,7 +230,7 @@ def test_kuberay_cluster_resource(
         resources={"ray_cluster": ray_cluster_resource},
     )
 
-    kuberay_api = PatchedRayClusterApi(config_file=str(k8s_with_raycluster.kubeconfig))
+    kuberay_api = RayClusterApi(config_file=str(k8s_with_raycluster.kubeconfig))
 
     # make sure the RayCluster is cleaned up
 
@@ -257,7 +257,7 @@ def test_kuberay_cleanup_job(
         resources={"ray_cluster": ray_cluster_resource_skip_cleanup},
     )
 
-    kuberay_api = PatchedRayClusterApi(config_file=str(k8s_with_raycluster.kubeconfig))
+    kuberay_api = RayClusterApi(config_file=str(k8s_with_raycluster.kubeconfig))
 
     assert (
         len(

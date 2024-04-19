@@ -14,10 +14,8 @@ from pydantic import Field, PrivateAttr
 
 # yes, `python-client` is actually the KubeRay package name
 # https://github.com/ray-project/kuberay/issues/2078
-from python_client import kuberay_cluster_api
-
 from dagster_ray.kuberay.configs import DEFAULT_DEPLOYMENT_NAME, RayClusterConfig
-from dagster_ray.kuberay.ray_cluster_api import PatchedRayClusterApi
+from dagster_ray.kuberay.ray_cluster_api import RayClusterApi
 
 if sys.version_info >= (3, 11):
     from typing import Self
@@ -33,12 +31,12 @@ from dagster_ray._base.resources import BaseRayResource
 class KubeRayAPI(ConfigurableResource):
     kubeconfig_file: Optional[str] = None
 
-    _kuberay_api: PatchedRayClusterApi = PrivateAttr()
+    _kuberay_api: RayClusterApi = PrivateAttr()
     _k8s_api: client.CustomObjectsApi = PrivateAttr()
     _k8s_core_api: client.CoreV1Api = PrivateAttr()
 
     @property
-    def kuberay(self) -> kuberay_cluster_api.RayClusterApi:
+    def kuberay(self) -> RayClusterApi:
         if self._kuberay_api is None:
             raise ValueError("KubeRayAPI not initialized")
         return self._kuberay_api
@@ -58,7 +56,7 @@ class KubeRayAPI(ConfigurableResource):
     def setup_for_execution(self, context: InitResourceContext) -> None:
         self._load_kubeconfig(self.kubeconfig_file)
 
-        self._kuberay_api = PatchedRayClusterApi(config_file=self.kubeconfig_file)
+        self._kuberay_api = RayClusterApi(config_file=self.kubeconfig_file)
         self._k8s_api = client.CustomObjectsApi()
         self._k8s_core_api = client.CoreV1Api()
 
