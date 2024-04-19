@@ -17,6 +17,7 @@ DEFAULT_AUTOSCALER_OPTIONS = {
 }
 DEFAULT_HEAD_GROUP_SPEC = {
     "serviceType": "ClusterIP",
+    "rayStartParams": {},
     "metadata": {
         "labels": {},
         "annotations": {},

@@ -19,10 +19,9 @@ The following backends are implemented:
 
 `dagster-ray` is tested across multiple version combinations of components such as `ray`, `dagster`, `KubeRay Operator`, and `Python`.
 
-`dagster-ray` integrates with `Dagster Plus` out of the box by using environment variables such as `DAGSTER_CLOUD_DEPLOYMENT_NAME` and tags such as `dagster/user`.
+`dagster-ray` integrates with [Dagster+](https://dagster.io/plus) out of the box.
 
 Documentation can be found below.
-
 
 > [!NOTE]
 > This project is in early development. Contributions are very welcome! See the [Development](#development) section below.
@@ -116,6 +115,8 @@ definitions = Definitions(
 
 This backend requires a Kubernetes cluster with the `KubeRay Operator` installed.
 
+Integrates with [Dagster+](https://dagster.io/plus) by injecting environment variables such as `DAGSTER_CLOUD_DEPLOYMENT_NAME` and tags such as `dagster/user` into default configuration values and `RayCluster` labels.
+
 The public objects can be imported from `dagster_ray.kuberay` module.
 
 ### Resources
@@ -168,6 +169,7 @@ ray_cluster = KubeRayCluster(
                 "replicas": 2,
                 "minReplicas": 1,
                 "maxReplicas": 10,
+                # ...
             }
         ],
     )

@@ -17,6 +17,7 @@ from dagster_ray import RayResource
 from dagster_ray.kuberay import KubeRayAPI, KubeRayCluster, cleanup_kuberay_clusters
 from dagster_ray.kuberay.configs import DEFAULT_HEAD_GROUP_SPEC, DEFAULT_WORKER_GROUP_SPECS, RayClusterConfig
 from dagster_ray.kuberay.ops import CleanupKuberayClustersConfig
+from dagster_ray.kuberay.ray_cluster_api import PatchedRayClusterApi
 from tests import ROOT_DIR
 
 
@@ -229,11 +230,18 @@ def test_kuberay_cluster_resource(
         resources={"ray_cluster": ray_cluster_resource},
     )
 
+    kuberay_api = PatchedRayClusterApi(config_file=str(k8s_with_raycluster.kubeconfig))
+
     # make sure the RayCluster is cleaned up
 
-    assert not ray_cluster_resource.api.kuberay.list_ray_clusters(
-        k8s_namespace=ray_cluster_resource.namespace, label_selector=f"dagster.io/run_id={result.run_id}"
-    )["items"]
+    assert (
+        len(
+            kuberay_api.list_ray_clusters(
+                k8s_namespace=ray_cluster_resource.namespace, label_selector=f"dagster.io/run_id={result.run_id}"
+            )["items"]
+        )
+        == 0
+    )
 
 
 def test_kuberay_cleanup_job(
@@ -249,9 +257,11 @@ def test_kuberay_cleanup_job(
         resources={"ray_cluster": ray_cluster_resource_skip_cleanup},
     )
 
+    kuberay_api = PatchedRayClusterApi(config_file=str(k8s_with_raycluster.kubeconfig))
+
     assert (
         len(
-            ray_cluster_resource_skip_cleanup.api.kuberay.list_ray_clusters(
+            kuberay_api.list_ray_clusters(
                 k8s_namespace=ray_cluster_resource_skip_cleanup.namespace,
                 label_selector=f"dagster.io/run_id={result.run_id}",
             )["items"]
@@ -269,6 +279,6 @@ def test_kuberay_cleanup_job(
         )
     )
 
-    assert not ray_cluster_resource_skip_cleanup.api.kuberay.list_ray_clusters(
+    assert not kuberay_api.list_ray_clusters(
         k8s_namespace=ray_cluster_resource_skip_cleanup.namespace, label_selector=f"dagster.io/run_id={result.run_id}"
     )["items"]

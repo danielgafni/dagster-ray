@@ -1,5 +1,6 @@
 import contextlib
 import hashlib
+import os
 import random
 import re
 import string
@@ -110,6 +111,8 @@ class KubeRayCluster(BaseRayResource):
         assert context.log is not None
         assert context.dagster_run is not None
 
+        self.api.setup_for_execution(context)
+
         self._cluster_name = self._get_ray_cluster_step_name(context)
 
         # self._host = f"{self.cluster_name}-head-svc.{self.namespace}.svc.cluster.local"
@@ -125,7 +128,12 @@ class KubeRayCluster(BaseRayResource):
                     labels=self._get_labels(context),
                 )
 
-                self.api.kuberay.create_ray_cluster(body=cluster_body, k8s_namespace=self.namespace)
+                resource = self.api.kuberay.create_ray_cluster(body=cluster_body, k8s_namespace=self.namespace)
+                if resource is None:
+                    raise Exception(
+                        f"Couldn't create RayCluster {self.namespace}/{self.cluster_name}! Reason logged above."
+                    )
+
                 context.log.info(
                     f"Created RayCluster {self.namespace}/{self.cluster_name}. Waiting for it to become ready..."
                 )
@@ -154,7 +162,7 @@ class KubeRayCluster(BaseRayResource):
 
             yield self
         except Exception as e:
-            context.log.critical("Couldn't create or connect to RayCluster!")
+            context.log.critical(f"Couldn't create or connect to RayCluster {self.namespace}/{self.cluster_name}!")
             self._maybe_cleanup_raycluster(context)
             raise e
 
@@ -175,6 +183,12 @@ class KubeRayCluster(BaseRayResource):
         if context.dagster_run.tags.get("user"):
             labels["dagster.io/user"] = context.dagster_run.tags["user"]
 
+        if os.getenv("DAGSTER_CLOUD_GIT_BRANCH"):
+            labels["dagster.io/git-branch"] = os.environ["DAGSTER_CLOUD_GIT_BRANCH"]
+
+        if os.getenv("DAGSTER_CLOUD_GIT_SHA"):
+            labels["dagster.io/git-sha"] = os.environ["DAGSTER_CLOUD_GIT_SHA"]
+
         return labels
 
     def _build_raycluster(
@@ -187,6 +201,9 @@ class KubeRayCluster(BaseRayResource):
         """
         # TODO: inject self.redis_port and self.dashboard_port into the RayCluster configuration
 
+        labels = labels or {}
+        assert isinstance(labels, dict)
+
         image = self.ray_cluster.image or image
         head_group_spec = self.ray_cluster.head_group_spec.copy()
         worker_group_specs = self.ray_cluster.worker_group_specs.copy()
@@ -197,12 +214,12 @@ class KubeRayCluster(BaseRayResource):
                 group_spec["template"]["spec"]["containers"][0]["image"] = image
 
             if group_spec.get("metadata") is None:
-                group_spec["metadata"] = {"labels": labels or {}}
+                group_spec["metadata"] = {"labels": labels}
             else:
                 if group_spec["metadata"].get("labels") is None:
-                    group_spec["metadata"]["labels"] = labels or {}
+                    group_spec["metadata"]["labels"] = labels
                 else:
-                    group_spec["metadata"]["labels"].update(labels or {})
+                    group_spec["metadata"]["labels"].update(labels)
 
         update_group_spec(head_group_spec)
         for worker_group_spec in worker_group_specs:
