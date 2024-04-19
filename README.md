@@ -233,7 +233,7 @@ Required tools:
 - `minikube`
 
 Running `pytest` will **automatically**:
- - build an image with the local `dagster-ray` code, using the current Python's interpreter version
+ - build an image with the local `dagster-ray` code
  - start a `minikube` Kubernetes cluster
  - load the built `dagster-ray` and loaded `kuberay-operator` images into the cluster
  - install the `KubeRay Operator` in the cluster with `helm`
