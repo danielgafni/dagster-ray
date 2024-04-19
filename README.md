@@ -1,13 +1,14 @@
 # `dagster-ray`
 
-
 [![image](https://img.shields.io/pypi/v/dagster-ray.svg)](https://pypi.python.org/pypi/dagster-ray)
 [![image](https://img.shields.io/pypi/l/dagster-ray.svg)](https://pypi.python.org/pypi/dagster-ray)
 [![image](https://img.shields.io/pypi/pyversions/dagster-ray.svg)](https://pypi.python.org/pypi/dagster-ray)
-[![CI](https://github.com/danielgafni/dagster-ray/actions/workflows/ci.yml/badge.svg)](https://github.com/danielgafni/dagster-ray/actions/workflows/CI.yml)
+[![CI](https://github.com/danielgafni/dagster-ray/actions/workflows/CI.yml/badge.svg)](https://github.com/danielgafni/dagster-ray/actions/workflows/CI.yml)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 [![Checked with pyright](https://microsoft.github.io/pyright/img/pyright_badge.svg)](https://microsoft.github.io/pyright/)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+
+---
 
 [Ray](https://github.com/ray-project/ray) integration library for [Dagster](https://github.com/dagster-io/dagster).
 
@@ -25,6 +26,18 @@ Documentation can be found below.
 
 > [!NOTE]
 > This project is in early development. Contributions are very welcome! See the [Development](#development) section below.
+
+# Installation
+
+```shell
+pip install dagster-ray
+```
+
+To install with extra dependencies for a particular backend (like `kuberay`), run:
+
+```shell
+pip install 'dagster-ray[kuberay]'
+```
 
 # Backends
 
