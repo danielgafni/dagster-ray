@@ -29,7 +29,8 @@ Documentation can be found below.
 
 # Backends
 
-`dagster-ray` provides a `RayResource` class, which does not implement any specific backend, but defines the common interface for all `Ray` resources.
+`dagster-ray` provides a `RayResource` class, which does not implement any specific backend.
+It defines the common interface for all `Ray` resources.
 It can be used for type annotations in your `@op` and `@asset` definitions.
 
 Examples:
@@ -43,7 +44,7 @@ import ray
 @asset
 def my_asset(
     ray_cluster: RayResource,  # RayResource is only used as a type annotation
-):  # this type annotation only defines the interface
+):
     return ray.get(ray.put(42))
 ```
 
