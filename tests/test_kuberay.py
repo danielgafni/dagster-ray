@@ -16,6 +16,7 @@ from pytest_kubernetes.providers import AClusterManager, select_provider_manager
 from dagster_ray import RayResource
 from dagster_ray.kuberay import KubeRayAPI, KubeRayCluster, cleanup_kuberay_clusters
 from dagster_ray.kuberay.configs import DEFAULT_HEAD_GROUP_SPEC, DEFAULT_WORKER_GROUP_SPECS, RayClusterConfig
+from dagster_ray.kuberay.ops import CleanupKuberayClustersConfig
 from tests import ROOT_DIR
 
 
@@ -261,11 +262,9 @@ def test_kuberay_cleanup_job(
     cleanup_kuberay_clusters.execute_in_process(
         run_config=RunConfig(
             ops={
-                "cleanup_kuberay_clusters": {
-                    "config": {
-                        "namespace": ray_cluster_resource_skip_cleanup.namespace,
-                    }
-                }
+                "cleanup_kuberay_clusters": CleanupKuberayClustersConfig(
+                    namespace=ray_cluster_resource_skip_cleanup.namespace,
+                )
             }
         )
     )

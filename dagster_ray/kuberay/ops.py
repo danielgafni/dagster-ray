@@ -29,7 +29,7 @@ def delete_kuberay_clusters_op(
             context.log.exception(f"Couldn't delete RayCluster {config.namespace}/{cluster_name}")
 
 
-class DeleteOldKubeRayClustersConfig(Config):
+class CleanupKuberayClustersConfig(Config):
     namespace: str = "kuberay"
     label_selector: str = Field(
         default=f"dagster.io/deployment={DEFAULT_DEPLOYMENT_NAME}", description="Label selector to filter RayClusters"
@@ -42,7 +42,7 @@ class DeleteOldKubeRayClustersConfig(Config):
 )
 def cleanup_kuberay_clusters_op(
     context: OpExecutionContext,
-    config: DeleteOldKubeRayClustersConfig,
+    config: CleanupKuberayClustersConfig,
     kuberay_api: KubeRayAPI,
 ) -> None:
     current_runs = context.instance.get_runs(
