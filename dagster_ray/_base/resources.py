@@ -1,9 +1,9 @@
 import sys
 import uuid
 from abc import ABC, abstractmethod
-from typing import Optional, cast
+from typing import TYPE_CHECKING, Optional, Union, cast
 
-from dagster import ConfigurableResource, InitResourceContext
+from dagster import ConfigurableResource, InitResourceContext, OpExecutionContext
 from pydantic import Field, PrivateAttr
 
 # yes, `python-client` is actually the KubeRay package name
@@ -18,8 +18,9 @@ if sys.version_info >= (3, 11):
 else:
     pass
 
-import ray
-from ray._private.worker import BaseContext as RayBaseContext  # noqa
+
+if TYPE_CHECKING:
+    from ray._private.worker import BaseContext as RayBaseContext  # noqa
 
 
 class BaseRayResource(ConfigurableResource, ABC):
@@ -36,7 +37,13 @@ class BaseRayResource(ConfigurableResource, ABC):
         default=8265, description="Dashboard port for connection. Make sure to match with the actual available port."
     )
 
-    _context: Optional[RayBaseContext] = PrivateAttr()
+    _context: Optional["RayBaseContext"] = PrivateAttr()
+
+    def setup_for_execution(self, context: InitResourceContext) -> None:
+        raise NotImplementedError(
+            "This is an abstract resource, it's not meant to be provided directly. "
+            "Use a backend-specific resource instead."
+        )
 
     @property
     def context(self) -> "RayBaseContext":
@@ -62,15 +69,22 @@ class BaseRayResource(ConfigurableResource, ABC):
         Returns the Ray Job ID for the current job which was created with `ray.init()`.
         :return:
         """
+        import ray
+
         return ray.get_runtime_context().get_job_id()
 
     @retry(stop=stop_after_delay(120), retry=retry_if_exception_type(ConnectionError), reraise=True)
-    def init_ray(self) -> "RayBaseContext":
+    def init_ray(self, context: Union[OpExecutionContext, InitResourceContext]) -> "RayBaseContext":
+        assert context.log is not None
+
+        import ray
+
         self.data_execution_options.apply()
         self._context = ray.init(address=self.ray_address, ignore_reinit_error=True)
         self.data_execution_options.apply()
         self.data_execution_options.apply_remote()
-        return cast(RayBaseContext, self._context)
+        context.log.info("Initialized Ray!")
+        return cast("RayBaseContext", self._context)
 
     def _get_step_key(self, context: InitResourceContext) -> str:
         # just return a random string
