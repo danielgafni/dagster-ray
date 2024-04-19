@@ -200,6 +200,7 @@ class KubeRayCluster(BaseRayResource):
         Builds a RayCluster from the provided configuration, while injecting custom image and labels (only known during resource setup)
         """
         # TODO: inject self.redis_port and self.dashboard_port into the RayCluster configuration
+        # TODO: autoa-apply some tags from dagster-k8s/config
 
         labels = labels or {}
         assert isinstance(labels, dict)
