@@ -3,7 +3,6 @@
 !dagster_ray
 !tests
 !pyproject.toml
-!poetry.lock
-!poetry.toml
+!uv.lock
 !README.md
 !.pre-commit-config.yaml

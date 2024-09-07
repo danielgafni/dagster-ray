@@ -12,33 +12,14 @@ RUN --mount=type=cache,target=/var/cache/apt \
 
 COPY --from=bitnami/kubectl:1.30.3 /opt/bitnami/kubectl/bin/kubectl /usr/local/bin/
 
-# install poetry
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=off \
-    PIP_DISABLE_PIP_VERSION_CHECK=on \
-    PIP_DEFAULT_TIMEOUT=100 \
-    POETRY_HOME="/opt/poetry" \
-    POETRY_NO_INTERACTION=1 \
-    PYSETUP_PATH="/opt/pysetup" \
-    VENV_PATH="/opt/pysetup/.venv"
+# install uv (https://github.com/astral-sh/uv)
+# docs for using uv with Docker: https://docs.astral.sh/uv/guides/integration/docker/
+COPY --from=ghcr.io/astral-sh/uv:0.3.4 /uv /bin/uv
+# RUN curl -LsSf https://astral.sh/uv/0.3.4/install.sh | sh
 
-ENV PATH="$POETRY_HOME/bin:$VENV_PATH/bin:$PATH" \
-    POETRY_VERSION=1.8.2 \
-    POETRY_DYNAMIC_VERSIONING_PLUGIN_VERSION=1.2.0 \
-    POETRY_DYNAMIC_VERSIONING_COMMANDS=version,build,publish
-
-RUN mkdir "$HOME/opt/" \
-    && curl -sSL https://install.python-poetry.org > /tmp/get-poetry.py \
-    && python3 /tmp/get-poetry.py \
-    && poetry config virtualenvs.create false \
-    && mkdir -p /cache/poetry \
-    && poetry config cache-dir /cache/poetry \
-    && python -m pip install --upgrade pip wheel setuptools \
-    && poetry self add "poetry-dynamic-versioning[plugin]=$POETRY_DYNAMIC_VERSIONING_PLUGIN_VERSION"
-
-ARG INSTALLER_PARALLEL=true
-RUN poetry config installer.parallel $INSTALLER_PARALLEL
+ENV UV_SYSTEM_PYTHON=1 \
+    UV_BREAK_SYSTEM_PACKAGES=true \
+    UV_CACHE_DIR=/root/.cache/uv
 
 ENV DAGSTER_HOME=/opt/dagster/dagster_home
 RUN mkdir -p $DAGSTER_HOME
@@ -47,10 +28,10 @@ FROM base AS base-prod
 
 WORKDIR /src
 
-COPY pyproject.toml poetry.lock  ./
+COPY pyproject.toml uv.lock  ./
 
-RUN --mount=type=cache,target=/cache/poetry \
-    poetry install --no-root --only main --all-extras
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --all-extras --no-dev --no-install-project
 
 FROM base-prod AS base-dev
 
@@ -64,8 +45,8 @@ RUN --mount=type=cache,target=/cache/downloads \
     curl https://nodejs.org/dist/v$NODE_VERSION/$NODE_PACKAGE.tar.gz -o /cache/downloads/$NODE_PACKAGE.tar.gz \
     && tar -xzC /opt/ -f /cache/downloads/$NODE_PACKAGE.tar.gz
 
-RUN --mount=type=cache,target=/cache/poetry \
-    poetry install --no-root --only dev --all-extras
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --all-extras --no-install-project
 
 # -------------------------------------------------------------
 FROM base-${BUILD_DEPENDENCIES} AS final
@@ -74,10 +55,4 @@ FROM base-${BUILD_DEPENDENCIES} AS final
 COPY . .
 
 # finally install all our code
-RUN poetry install --all-extras
-
-ARG POETRY_DYNAMIC_VERSIONING_BYPASS=unset
-ENV POETRY_DYNAMIC_VERSIONING_BYPASS_TMP=$POETRY_DYNAMIC_VERSIONING_BYPASS
-RUN if [ $POETRY_DYNAMIC_VERSIONING_BYPASS_TMP != unset ]; \
-    then export POETRY_DYNAMIC_VERSIONING_BYPASS=$POETRY_DYNAMIC_VERSIONING_BYPASS_TMP && poetry dynamic-versioning; \
-    fi
+RUN uv sync --frozen --all-extras

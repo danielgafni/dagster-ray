@@ -14,9 +14,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+env:
+  UV_SYSTEM_PYTHON: "1"
+
 jobs:
   test:
-    name: Test Python ${{ matrix.py }} - Kubernetes ${{ matrix.kubernetes }}
+    name: test ${{ matrix.py }} - ${{ matrix.os }}
     runs-on: ${{ matrix.os }}-latest
     strategy:
       fail-fast: false
@@ -24,27 +27,21 @@ jobs:
         os:
           - Ubuntu
         py:
-          #- "3.12"
+          - "3.12"
           - "3.11"
           - "3.10"
           - "3.9"
-        kubernetes:
-          - "1.31.0"
-          - "1.30.0"
-          - "1.29.0"
     steps:
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.py }}
       - uses: actions/checkout@v4
-      - name: Install and configure Poetry
-        uses: snok/install-poetry@v1
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
         with:
-          version: 1.8.2
-          virtualenvs-create: false
-          virtualenvs-in-project: false
-          installer-parallel: true
+          version: 0.4.18
+          enable-cache: true
+      - name: Set up Python ${{ matrix.py }}
+        run: uv python install ${{ matrix.py }}
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
       - uses: azure/setup-helm@v4.2.0
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -53,13 +50,10 @@ jobs:
         with:
           start: false
           driver: docker
-      - name: Install dependencies
-        run: poetry install --all-extras --sync
       - name: Run tests
         env:
-          PYTEST_KUBERAY_VERSIONS: "1.2.0"  # will run tests for all these KubeRay versions
-          PYTEST_KUBERNETES_VERSION: ${{ matrix.kubernetes }}
-        run: pytest -v .
+          PYTEST_KUBERAY_VERSIONS: "1.0.0,1.1.0"  # will run tests for all these KubeRay versions
+        run: uv run pytest -v .
 
   lint:
     name: lint ${{ matrix.py }} - ${{ matrix.os }}
@@ -70,27 +64,23 @@ jobs:
         os:
           - Ubuntu
         py:
-          #- "3.12"
+#          - "3.12"
           - "3.11"
           - "3.10"
           - "3.9"
     steps:
-      - name: Setup python for test ${{ matrix.py }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.py }}
       - uses: actions/checkout@v2
-      - name: Install and configure Poetry
-        uses: snok/install-poetry@v1
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
         with:
-          version: 1.8.2
-          virtualenvs-create: false
-          virtualenvs-in-project: false
-          installer-parallel: true
+          version: 0.4.18
+          enable-cache: true
+      - name: Set up Python ${{ matrix.py }}
+        run: uv python install ${{ matrix.py }}
       - name: Install dependencies
-        run: poetry install --all-extras --sync
+        run: uv sync --all-extras --dev
       - name: Run pre-commit hooks
-        run: pre-commit run --all-files
+        run: uv run pre-commit run --all-files
 
   qa_success:
     name: QA Success
@@ -110,19 +100,14 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.9
-      - uses: actions/checkout@v2
-      - name: Install and configure Poetry
-        uses: snok/install-poetry@v1
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
         with:
-          version: 1.8.2
-          virtualenvs-create: false
-          virtualenvs-in-project: false
-          installer-parallel: true
-      - name: Install poetry-dynamic-versioning
-        run: poetry self add poetry-dynamic-versioning@1.2.0
+          version: 0.3.4
+          enable-cache: true
+      - name: Set up Python ${{ matrix.py }}
+        run: uv python install
       - name: Publish to PyPI
         env:
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-        run: |
-          poetry config pypi-token.pypi $PYPI_TOKEN
-          poetry publish --build
+          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: uv publish
