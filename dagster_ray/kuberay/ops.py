@@ -3,25 +3,25 @@ from typing import List
 from dagster import Config, DagsterRunStatus, OpExecutionContext, RunsFilter, op
 from pydantic import Field
 
-from dagster_ray.kuberay.configs import DEFAULT_DEPLOYMENT_NAME
-from dagster_ray.kuberay.resources import KubeRayAPI
+from dagster_ray._base.constants import DEFAULT_DEPLOYMENT_NAME
+from dagster_ray.kuberay.resources import RayClusterClientResource
 
 
 class DeleteKubeRayClustersConfig(Config):
     namespace: str = "kuberay"
-    cluster_names: List[str] = Field(default_factory=list, description="Specific RayCluster names to delete")
+    cluster_names: List[str] = Field(default_factory=list, description="List of RayCluster names to delete")
 
 
-@op(description="Deletes KubeRay clusters from Kubernetes", name="delete_kuberay_clusters")
+@op(description="Deletes RayCluster resources from Kubernetes", name="delete_kuberay_clusters")
 def delete_kuberay_clusters_op(
     context: OpExecutionContext,
     config: DeleteKubeRayClustersConfig,
-    kuberay_api: KubeRayAPI,
+    client: RayClusterClientResource,
 ) -> None:
     for cluster_name in config.cluster_names:
         try:
-            if kuberay_api.kuberay.get_ray_cluster(name=cluster_name, k8s_namespace=config.namespace).get("items"):
-                kuberay_api.kuberay.delete_ray_cluster(name=cluster_name, k8s_namespace=config.namespace)
+            if client.client.get(name=cluster_name, namespace=config.namespace).get("items"):
+                client.client.delete(name=cluster_name, namespace=config.namespace)
                 context.log.info(f"RayCluster {config.namespace}/{cluster_name} deleted!")
             else:
                 context.log.warning(f"RayCluster {config.namespace}/{cluster_name} doesn't exist")
@@ -37,13 +37,13 @@ class CleanupKuberayClustersConfig(Config):
 
 
 @op(
-    description="Deletes KubeRay clusters which do not correspond to any active Dagster Runs in this deployment",
+    description="Deletes RayCluster resources which do not correspond to any active Dagster Runs in this deployment from Kubernetes",
     name="cleanup_kuberay_clusters",
 )
 def cleanup_kuberay_clusters_op(
     context: OpExecutionContext,
     config: CleanupKuberayClustersConfig,
-    kuberay_api: KubeRayAPI,
+    client: RayClusterClientResource,
 ) -> None:
     current_runs = context.instance.get_runs(
         filters=RunsFilter(
@@ -55,8 +55,8 @@ def cleanup_kuberay_clusters_op(
         )
     )
 
-    clusters = kuberay_api.kuberay.list_ray_clusters(
-        k8s_namespace=config.namespace,
+    clusters = client.client.list(
+        namespace=config.namespace,
         label_selector=config.label_selector,
     )["items"]
 
@@ -70,7 +70,7 @@ def cleanup_kuberay_clusters_op(
 
     for cluster_name in old_cluster_names:
         try:
-            kuberay_api.kuberay.delete_ray_cluster(name=cluster_name, k8s_namespace=config.namespace)
+            client.client.delete(name=cluster_name, namespace=config.namespace)
             context.log.info(f"RayCluster {config.namespace}/{cluster_name} deleted!")
         except:  # noqa
             context.log.exception(f"Couldn't delete RayCluster {config.namespace}/{cluster_name}")

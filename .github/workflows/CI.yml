@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   test:
-    name: test ${{ matrix.py }} - ${{ matrix.os }}
+    name: Test Python ${{ matrix.py }} - Kubernetes ${{ matrix.kubernetes }}
     runs-on: ${{ matrix.os }}-latest
     strategy:
       fail-fast: false
@@ -24,13 +24,16 @@ jobs:
         os:
           - Ubuntu
         py:
-#          - "3.12"
+          - "3.12"
           - "3.11"
           - "3.10"
           - "3.9"
-#          - "3.8"
+        kubernetes:
+          - "1.31.0"
+          - "1.30.0"
+          - "1.29.0"
     steps:
-      - name: Setup python for test ${{ matrix.py }}
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.py }}
@@ -54,7 +57,8 @@ jobs:
         run: poetry install --all-extras --sync
       - name: Run tests
         env:
-          PYTEST_KUBERAY_VERSIONS: "1.0.0,1.1.0"  # will run tests for all these KubeRay versions
+          PYTEST_KUBERAY_VERSIONS: "1.2.0"  # will run tests for all these KubeRay versions
+          PYTEST_KUBERNETES_VERSION: ${{ matrix.kubernetes }}
         run: pytest -v .
 
   lint:

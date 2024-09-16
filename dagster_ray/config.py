@@ -2,10 +2,8 @@ from __future__ import annotations
 
 from typing import Optional
 
-import ray
 from dagster import Config
 from pydantic import Field
-from ray.data import ExecutionResources
 
 
 class ExecutionOptionsConfig(Config):
@@ -23,6 +21,9 @@ class RayDataExecutionOptions(Config):
     use_polars: bool = True
 
     def apply(self):
+        import ray
+        from ray.data import ExecutionResources
+
         ctx = ray.data.DatasetContext.get_current()
 
         ctx.execution_options.resource_limits = ExecutionResources.for_limits(
@@ -35,6 +36,8 @@ class RayDataExecutionOptions(Config):
         ctx.use_polars = self.use_polars
 
     def apply_remote(self):
+        import ray
+
         @ray.remote
         def apply():
             self.apply()

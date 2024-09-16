@@ -1,0 +1,9 @@
+import os
+
+DEFAULT_DEPLOYMENT_NAME = (
+    os.getenv("DAGSTER_CLOUD_DEPLOYMENT_NAME")
+    if os.getenv("DAGSTER_CLOUD_IS_BRANCH_DEPLOYMENT") == "0"
+    else os.getenv("DAGSTER_CLOUD_GIT_BRANCH")
+) or "dev"
+
+IS_PROD = DEFAULT_DEPLOYMENT_NAME == "prod"

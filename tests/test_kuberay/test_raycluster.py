@@ -8,16 +8,16 @@ from typing import Any, Dict, Generator, List, cast
 
 import pytest
 import pytest_cases
-import ray
+import ray  # noqa: TID253
 from dagster import AssetExecutionContext, RunConfig, asset, materialize_to_memory
 from pytest_kubernetes.options import ClusterOptions
 from pytest_kubernetes.providers import AClusterManager, select_provider_manager
 
 from dagster_ray import RayResource
-from dagster_ray.kuberay import KubeRayAPI, KubeRayCluster, RayClusterConfig, cleanup_kuberay_clusters
+from dagster_ray.kuberay import KubeRayCluster, RayClusterClientResource, RayClusterConfig, cleanup_kuberay_clusters
+from dagster_ray.kuberay.client import RayClusterClient
 from dagster_ray.kuberay.configs import DEFAULT_HEAD_GROUP_SPEC, DEFAULT_WORKER_GROUP_SPECS
 from dagster_ray.kuberay.ops import CleanupKuberayClustersConfig
-from dagster_ray.kuberay.ray_cluster_api import RayClusterApi
 from tests import ROOT_DIR
 
 
@@ -72,14 +72,14 @@ def dagster_ray_image():
 # TODO: it's easy to parametrize over different versions of k8s
 # but it would take quite some time to test all of them!
 # probably should only do it in CI
-KUBERNETES_VERSION = "1.25.3"
+KUBERNETES_VERSION = os.getenv("PYTEST_KUBERNETES_VERSION", "1.31.0")
 
-KUBERAY_VERSIONS = os.environ.get("PYTEST_KUBERAY_VERSIONS", "1.1.0").split(",")
+KUBERAY_VERSIONS = os.getenv("PYTEST_KUBERAY_VERSIONS", "1.2.0").split(",")
 
 
 @pytest_cases.fixture(scope="session")
 @pytest.mark.parametrize("kuberay_version", KUBERAY_VERSIONS)
-def k8s_with_raycluster(
+def k8s_with_kuberay(
     request, kuberay_helm_repo, dagster_ray_image: str, kuberay_version: str
 ) -> Generator[AClusterManager, None, None]:
     k8s = select_provider_manager("minikube")("dagster-ray")
@@ -141,7 +141,7 @@ def worker_group_specs(dagster_ray_image: str) -> List[Dict[str, Any]]:
 
 @pytest.fixture(scope="session")
 def ray_cluster_resource(
-    k8s_with_raycluster: AClusterManager,
+    k8s_with_kuberay: AClusterManager,
     dagster_ray_image: str,
     head_group_spec: Dict[str, Any],
     worker_group_specs: List[Dict[str, Any]],
@@ -152,7 +152,7 @@ def ray_cluster_resource(
         # have have to first run port-forwarding with minikube
         # we can only init ray after that
         skip_init=True,
-        api=KubeRayAPI(kubeconfig_file=str(k8s_with_raycluster.kubeconfig)),
+        client=RayClusterClientResource(kubeconfig_file=str(k8s_with_kuberay.kubeconfig)),
         ray_cluster=RayClusterConfig(
             image=dagster_ray_image,
             head_group_spec=head_group_spec,
@@ -164,7 +164,7 @@ def ray_cluster_resource(
 
 @pytest.fixture(scope="session")
 def ray_cluster_resource_skip_cleanup(
-    k8s_with_raycluster: AClusterManager,
+    k8s_with_kuberay: AClusterManager,
     dagster_ray_image: str,
     head_group_spec: Dict[str, Any],
     worker_group_specs: List[Dict[str, Any]],
@@ -176,7 +176,7 @@ def ray_cluster_resource_skip_cleanup(
         # we can only init ray after that
         skip_init=True,
         skip_cleanup=True,
-        api=KubeRayAPI(kubeconfig_file=str(k8s_with_raycluster.kubeconfig)),
+        client=RayClusterClientResource(kubeconfig_file=str(k8s_with_kuberay.kubeconfig)),
         ray_cluster=RayClusterConfig(
             image=dagster_ray_image,
             head_group_spec=head_group_spec,
@@ -193,7 +193,7 @@ def get_hostname():
 
 def test_kuberay_cluster_resource(
     ray_cluster_resource: KubeRayCluster,
-    k8s_with_raycluster: AClusterManager,
+    k8s_with_kuberay: AClusterManager,
 ):
     @asset
     # testing RayResource type annotation too!
@@ -203,7 +203,7 @@ def test_kuberay_cluster_resource(
 
         assert isinstance(ray_cluster, KubeRayCluster)
 
-        with k8s_with_raycluster.port_forwarding(
+        with k8s_with_kuberay.port_forwarding(
             target=f"svc/{ray_cluster.cluster_name}-head-svc",
             source_port=cast(int, ray_cluster.redis_port),
             target_port=10001,
@@ -219,8 +219,8 @@ def test_kuberay_cluster_resource(
             # not in localhost
             assert ray_cluster.cluster_name in ray.get(get_hostname.remote())
 
-            ray_cluster_description = ray_cluster.api.kuberay.get_ray_cluster(
-                ray_cluster.cluster_name, k8s_namespace=ray_cluster.namespace
+            ray_cluster_description = ray_cluster.client.client.get(
+                ray_cluster.cluster_name, namespace=ray_cluster.namespace
             )
             assert ray_cluster_description["metadata"]["labels"]["dagster.io/run_id"] == context.run_id
             assert ray_cluster_description["metadata"]["labels"]["dagster.io/cluster"] == ray_cluster.cluster_name
@@ -230,14 +230,14 @@ def test_kuberay_cluster_resource(
         resources={"ray_cluster": ray_cluster_resource},
     )
 
-    kuberay_api = RayClusterApi(config_file=str(k8s_with_raycluster.kubeconfig))
+    kuberay_client = RayClusterClient(config_file=str(k8s_with_kuberay.kubeconfig))
 
     # make sure the RayCluster is cleaned up
 
     assert (
         len(
-            kuberay_api.list_ray_clusters(
-                k8s_namespace=ray_cluster_resource.namespace, label_selector=f"dagster.io/run_id={result.run_id}"
+            kuberay_client.list(
+                namespace=ray_cluster_resource.namespace, label_selector=f"dagster.io/run_id={result.run_id}"
             )["items"]
         )
         == 0
@@ -246,7 +246,7 @@ def test_kuberay_cluster_resource(
 
 def test_kuberay_cleanup_job(
     ray_cluster_resource_skip_cleanup: KubeRayCluster,
-    k8s_with_raycluster: AClusterManager,
+    k8s_with_kuberay: AClusterManager,
 ):
     @asset
     def my_asset(ray_cluster: RayResource) -> None:
@@ -257,12 +257,12 @@ def test_kuberay_cleanup_job(
         resources={"ray_cluster": ray_cluster_resource_skip_cleanup},
     )
 
-    kuberay_api = RayClusterApi(config_file=str(k8s_with_raycluster.kubeconfig))
+    kuberay_client = RayClusterClient(config_file=str(k8s_with_kuberay.kubeconfig))
 
     assert (
         len(
-            kuberay_api.list_ray_clusters(
-                k8s_namespace=ray_cluster_resource_skip_cleanup.namespace,
+            kuberay_client.list(
+                namespace=ray_cluster_resource_skip_cleanup.namespace,
                 label_selector=f"dagster.io/run_id={result.run_id}",
             )["items"]
         )
@@ -271,17 +271,17 @@ def test_kuberay_cleanup_job(
 
     cleanup_kuberay_clusters.execute_in_process(
         resources={
-            "kuberay_api": KubeRayAPI(kubeconfig_file=str(k8s_with_raycluster.kubeconfig)),
+            "client": RayClusterClientResource(kubeconfig_file=str(k8s_with_kuberay.kubeconfig)),
         },
         run_config=RunConfig(
             ops={
-                "cleanup_kuberay_clusters": CleanupKuberayClustersConfig(
+                "cleanup_kuberay_rayclusters": CleanupKuberayClustersConfig(
                     namespace=ray_cluster_resource_skip_cleanup.namespace,
                 )
             }
         ),
     )
 
-    assert not kuberay_api.list_ray_clusters(
-        k8s_namespace=ray_cluster_resource_skip_cleanup.namespace, label_selector=f"dagster.io/run_id={result.run_id}"
+    assert not kuberay_client.list(
+        namespace=ray_cluster_resource_skip_cleanup.namespace, label_selector=f"dagster.io/run_id={result.run_id}"
     )["items"]

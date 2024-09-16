@@ -1,10 +1,12 @@
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from dagster import Config
+from pydantic import Field
 
 in_k8s = os.environ.get("KUBERNETES_SERVICE_HOST") is not None
-IS_PROD = os.getenv("DAGSTER_CLOUD_DEPLOYMENT_NAME") == "prod"
+
+
 DEFAULT_AUTOSCALER_OPTIONS = {
     "upscalingMode": "Default",
     "idleTimeoutSeconds": 60,
@@ -77,15 +79,23 @@ DEFAULT_WORKER_GROUP_SPECS = [
 
 class RayClusterConfig(Config):
     image: Optional[str] = None
-    namespace: str = "kuberay"
+    namespace: str = "ray"
     enable_in_tree_autoscaling: bool = False
     autoscaler_options: Dict[str, Any] = DEFAULT_AUTOSCALER_OPTIONS  # TODO: add a dedicated Config type
     head_group_spec: Dict[str, Any] = DEFAULT_HEAD_GROUP_SPEC  # TODO: add a dedicated Config type
     worker_group_specs: List[Dict[str, Any]] = DEFAULT_WORKER_GROUP_SPECS  # TODO: add a dedicated Config type
 
 
-DEFAULT_DEPLOYMENT_NAME = (
-    os.getenv("DAGSTER_CLOUD_DEPLOYMENT_NAME")
-    if os.getenv("DAGSTER_CLOUD_IS_BRANCH_DEPLOYMENT") == "0"
-    else os.getenv("DAGSTER_CLOUD_GIT_BRANCH")
-) or "dev"
+class RayJobConfig(Config):
+    entrypoint_num_cpus: float
+    entrypoint_memory: float
+    entrypoint_num_gpus: int
+    suspend: bool = False
+    annotations: Optional[dict[str, str]] = None
+    labels: Optional[dict[str, str]] = None
+    shutdown_after_job_finishes: bool = True
+    ttl_seconds_after_finished: int = 60 * 10  # 10 minutes
+    active_deadline_seconds: int = 60 * 60 * 24  # 24 hours
+    submission_mode: Literal["K8sJobMode", "HTTPMode"] = "K8sJobMode"
+    runtime_env_yaml: Optional[str] = None
+    cluster: RayClusterConfig = Field(default_factory=RayClusterConfig)
