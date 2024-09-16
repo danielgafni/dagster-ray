@@ -4,7 +4,7 @@ from typing import Iterator, Literal, Optional, TypedDict, cast
 
 from typing_extensions import NotRequired
 
-from dagster_ray.kuberay.client.base import BaseKubeRayClient
+from dagster_ray.kuberay.client.base import BaseKubeRayClient, load_kubeconfig
 from dagster_ray.kuberay.client.raycluster import RayClusterClient, RayClusterStatus
 
 GROUP = "ray.io"
@@ -30,13 +30,17 @@ class RayJobStatus(TypedDict):
 
 class RayJobClient(BaseKubeRayClient):
     def __init__(self, config_file: Optional[str] = None, context: Optional[str] = None) -> None:
+        # this call must happen BEFORE creating K8s apis
+        load_kubeconfig(config_file=config_file, context=context)
+
+        self.config_file = config_file
+        self.context = context
+
         super().__init__(
             group=GROUP,
             version=VERSION,
             kind=KIND,
             plural=PLURAL,
-            config_file=config_file,
-            context=context,
         )
 
     def get_status(self, name: str, namespace: str, timeout: int = 60, poll_interval: int = 5) -> RayJobStatus:  # type: ignore
@@ -53,13 +57,13 @@ class RayJobClient(BaseKubeRayClient):
 
     @property
     def ray_cluster_client(self) -> RayClusterClient:
-        return RayClusterClient(config_file=self.kube_config, context=self.context)
+        return RayClusterClient(config_file=self.config_file, context=self.context)
 
     def wait_until_running(
         self,
         name: str,
         namespace: str,
-        timeout: int = 60 * 60,
+        timeout: int = 300,
         poll_interval: int = 5,
     ) -> bool:
         start_time = time.time()
@@ -70,11 +74,11 @@ class RayJobClient(BaseKubeRayClient):
             if status in ["Running", "Complete"]:
                 break
             elif status == "Failed":
-                return False
+                raise RuntimeError(f"RayJob {namespace}/{name} deployment failed. Status:\n{status}")
 
             if time.time() - start_time > timeout:
                 raise TimeoutError(
-                    f"Timed out waiting for RayJob {name} deployment to become available." f"Status: {status}"
+                    f"Timed out waiting for RayJob {namespace}/{name} deployment to become available. Status:\n{status}"
                 )
 
             time.sleep(poll_interval)
@@ -86,7 +90,7 @@ class RayJobClient(BaseKubeRayClient):
                 break
 
             if time.time() - start_time > timeout:
-                raise TimeoutError(f"Timed out waiting for RayJob {name} to start. " f"Status: {status}")
+                raise TimeoutError(f"Timed out waiting for RayJob {namespace}/{name} to start. Status:\n{status}")
 
             time.sleep(poll_interval)
 
@@ -96,7 +100,7 @@ class RayJobClient(BaseKubeRayClient):
         self,
         name: str,
         namespace: str,
-        timeout: int = 600,
+        timeout: int = 300,
         poll_interval: int = 10,
     ):
         start_time = time.time()

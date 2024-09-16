@@ -10,6 +10,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN --mount=type=cache,target=/var/cache/apt \
     apt-get update && apt-get install -y git jq curl gcc python3-dev libpq-dev wget
 
+COPY --from=bitnami/kubectl:1.30.3 /opt/bitnami/kubectl/bin/kubectl /usr/local/bin/
+
 # install poetry
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \

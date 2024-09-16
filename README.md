@@ -24,7 +24,7 @@ The following backends are implemented:
 Documentation can be found below.
 
 > [!NOTE]
-> This project is in early development. Contributions are very welcome! See the [Development](#development) section below.
+> This project is in early development. APIs are unstable and can change at any time. Contributions are very welcome! See the [Development](#development) section below.
 
 # Backends
 
@@ -142,7 +142,9 @@ def my_asset(context: AssetExecutionContext, pipes_rayjob_client: PipesRayJobCli
     pipes_rayjob_client.run(
         context=context,
         ray_job={
-            # RayJob manifest goes here, only .metadata.name is not required and will be generated if not provided
+            # RayJob manifest goes here
+            # .metadata.name is not required and will be generated if not provided
+            # *.container.image is not required and will be set to the current `dagster/image` tag if not provided
             # full reference: https://ray-project.github.io/kuberay/reference/api/#rayjob
             ...
         },
@@ -162,7 +164,7 @@ from dagster_pipes import open_dagster_pipes
 
 
 with open_dagster_pipes() as pipes:
-    pipes.log.info("Hello from Ray!")
+    pipes.log.info("Hello from Ray Pipes!")
     pipes.report_asset_materialization(
         metadata={"some_metric": {"raw_value": 0, "type": "int"}},
         data_version="alpha",
@@ -177,8 +179,18 @@ import yaml
 ray_job = {"spec": {"runtimeEnvYaml": yaml.safe_dump({"pip": ["dagster-pipes"]})}}
 ```
 
-The logs and events emitted by the Ray job will be captured by the `PipesRayJobClient` and will become available in the Dagster event log.
-Normal stdout & stderr will be forwarded to stdout.
+The logs and events emitted by the Ray job will be captured by the `PipesRayJobClient` and will become available in the Dagster event log. Standard output and standard error streams will be forwarded to the standard output of the Dagster process.
+
+
+**Running locally**
+
+When running locally, the `port_forward` option has to be set to `True` in the `PipesRayJobClient` resource in order to interact with the Ray job. For convenience, it can be set automatically with:
+
+```python
+from dagster_ray.kuberay.configs import in_k8s
+
+pipes_rayjob_client = PipesRayJobClient(..., port_forward=not in_k8s)
+```
 
 ### Resources
 
@@ -300,13 +312,13 @@ Running `pytest` will **automatically**:
  - build an image with the local `dagster-ray` code
  - start a `minikube` Kubernetes cluster
  - load the built `dagster-ray` and loaded `kuberay-operator` images into the cluster
- - install the `KubeRay Operator` in the cluster with `helm`
+ - install `KubeRay Operator` into the cluster with `helm`
  - run the tests
 
 Thus, no manual setup is required, just the presence of the tools listed above. This makes testing a breeze!
 
 > [!NOTE]
-> Specifying a comma-separated list of `KubeRay Operator` versions in the `KUBE_RAY_OPERATOR_VERSIONS` environment variable will spawn a new test for each version.
+> Specifying a comma-separated list of `KubeRay Operator` versions in the `PYTEST_KUBERAY_VERSIONS` environment variable will spawn a new test for each version.
 
 > [!NOTE]
 > it may take a while to download `minikube` and `kuberay-operator` images and build the local `dagster-ray` image during the first tests invocation

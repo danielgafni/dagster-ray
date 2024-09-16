@@ -27,20 +27,15 @@ class BaseKubeRayClient:
         version: str,
         kind: str,
         plural: str,
-        context: Optional[str] = None,
-        config_file: Optional[str] = None,
+        api_client: Optional[client.ApiClient] = None,
     ):
         self.group = group
         self.version = version
         self.kind = kind
         self.plural = plural
-        self.config_file = config_file
-        self.context = context
-
-        self.kube_config: Optional[Any] = load_kubeconfig(config_file=config_file, context=context)
-
-        self._api = client.CustomObjectsApi()
-        self._core_v1_api = client.CoreV1Api()
+        self.api_client = api_client
+        self._api = client.CustomObjectsApi(api_client=api_client)
+        self._core_v1_api = client.CoreV1Api(api_client=api_client)
 
     def wait_for_service_endpoints(self, service_name: str, namespace: str, poll_interval: int = 5, timeout: int = 60):
         start_time = time.time()

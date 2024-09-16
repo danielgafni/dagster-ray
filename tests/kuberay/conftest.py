@@ -54,6 +54,9 @@ def dagster_ray_image():
                 image,
                 str(ROOT_DIR),
             ],
+            env={
+                "DOCKER_BUILDKIT": "1",
+            },
             check=True,
         )
     else:
@@ -112,6 +115,11 @@ def k8s_with_kuberay(
 
     k8s.wait("deployment/kuberay-operator", "condition=Available=True", namespace="kuberay-operator")
     # namespace to create RayClusters in
-    k8s.kubectl(["create", "namespace", NAMESPACE])
+    try:
+        k8s.kubectl(["create", "namespace", NAMESPACE])
+    except RuntimeError as e:
+        if "AlreadyExists" not in str(e):
+            raise
+
     yield k8s
     k8s.delete()

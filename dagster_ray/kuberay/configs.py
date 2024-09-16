@@ -13,8 +13,8 @@ DEFAULT_AUTOSCALER_OPTIONS = {
     "env": [],
     "envFrom": [],
     "resources": {
-        "limits": {"cpu": "1000m", "memory": "1Gi"},
-        "requests": {"cpu": "1000m", "memory": "1Gi"},
+        "limits": {"cpu": "50m", "memory": "0.1Gi"},
+        "requests": {"cpu": "50m", "memory": "0.1Gi"},
     },
 }
 DEFAULT_HEAD_GROUP_SPEC = {

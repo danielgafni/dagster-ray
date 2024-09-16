@@ -84,9 +84,12 @@ class RayClusterClient(BaseKubeRayClient):
             version=VERSION,
             kind=KIND,
             plural=PLURAL,
-            config_file=config_file,
-            context=context,
         )
+
+        # these are only used because of kubectl port-forward CLI command
+        # TODO: remove kubectl usage and remove these attributes
+        self.config_file = config_file
+        self.context = context
 
     def get_status(self, name: str, namespace: str, timeout: int = 60, poll_interval: int = 5) -> RayClusterStatus:  # type: ignore
         return cast(
@@ -113,6 +116,7 @@ class RayClusterClient(BaseKubeRayClient):
         # TODO: use get_namespaced_custom_object instead
         # once https://github.com/kubernetes-client/python/issues/1679
         # is solved
+
         for event in w.stream(
             self._api.list_namespaced_custom_object,
             self.group,
@@ -129,7 +133,7 @@ class RayClusterClient(BaseKubeRayClient):
 
             if status.get("state") == "failed":
                 raise Exception(
-                    f"RayCluster {namespace}/{name} failed to start. More details: `kubectl -n {namespace} describe RayCluster {name}`"
+                    f"RayCluster {namespace}/{name} failed to start. Reason:\n{status.get('reason')}\nMore details: `kubectl -n {namespace} describe RayCluster {name}`"
                 )
 
             if (
@@ -196,6 +200,9 @@ class RayClusterClient(BaseKubeRayClient):
         if self.context:
             cmd.extend(["--context", self.context])
 
+        if self.config_file:
+            cmd.extend(["--kubeconfig", self.config_file])
+
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
         queue = Queue()
@@ -226,7 +233,9 @@ class RayClusterClient(BaseKubeRayClient):
                 if "Forwarding from" in line:
                     break
 
-            logger.debug(f"port-forwarding for ports {local_dashboard_port} and {local_gcs_port} started")
+            logger.info(
+                f"Connecting to {namespace}/{name} via port-forwarding for ports {local_dashboard_port} and {local_gcs_port}..."
+            )
 
             yield local_dashboard_port, local_gcs_port
         finally:
@@ -235,11 +244,11 @@ class RayClusterClient(BaseKubeRayClient):
             process.kill()
             process.wait()
             t.join()
-            logger.debug(f"port-forwarding for ports {local_dashboard_port} and {local_gcs_port} stopped")
+            logger.info(f"Port-forwarding for ports {local_dashboard_port} and {local_gcs_port} has been stopped.")
 
     @contextmanager
     def job_submission_client(
-        self, name: str, namespace: str, port_forward: bool = False
+        self, name: str, namespace: str, port_forward: bool = False, timeout: int = 60
     ) -> Iterator["JobSubmissionClient"]:
         """
         Returns a JobSubmissionClient object that can be used to interact with Ray jobs running in the KubeRay cluster.
@@ -259,7 +268,7 @@ class RayClusterClient(BaseKubeRayClient):
 
             yield JobSubmissionClient(address=f"http://{host}:{dashboard_port}")
         else:
-            self.wait_for_service_endpoints(service_name=f"{name}-head-svc", namespace=namespace)
+            self.wait_for_service_endpoints(service_name=f"{name}-head-svc", namespace=namespace, timeout=timeout)
             with self.port_forward(name=name, namespace=namespace, local_dashboard_port=0, local_gcs_port=0) as (
                 local_dashboard_port,
                 _,

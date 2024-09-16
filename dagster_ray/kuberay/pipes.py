@@ -42,8 +42,6 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
         Is useful when running in a local environment.
     """
 
-    client: RayJobClient
-
     def __init__(
         self,
         client: Optional[RayJobClient] = None,
@@ -101,7 +99,9 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
             namespace = ray_job["metadata"]["namespace"]
 
             with self.client.ray_cluster_client.job_submission_client(
-                name=name, namespace=namespace, port_forward=self.port_forward
+                name=self.client.get_ray_cluster_name(name=name, namespace=namespace),
+                namespace=namespace,
+                port_forward=self.port_forward,
             ) as job_submission_client:
                 self._job_submission_client = job_submission_client
 
@@ -130,27 +130,19 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
         ray_job["metadata"] = ray_job.get("metadata", {})
         ray_job["metadata"]["labels"] = ray_job["metadata"].get("labels", {})
 
-        ray_job["metadata"]["name"] = ray_job["metadata"].get("name", f"dg-{context.run_id[:6]}")
+        ray_job["metadata"]["name"] = ray_job["metadata"].get("name", f"dg-{context.run.run_id[:8]}")
         ray_job["metadata"]["labels"].update(self.get_dagster_tags(context))
 
         # update env vars in runtimeEnv
-        runtime_env_yaml = ray_job["spec"].get("runtimeEnvYAML")
+        runtime_env_yaml = ray_job["spec"].get("runtimeEnvYAML", "{}")
 
-        if runtime_env_yaml is None:
-            runtime_env_yaml = yaml.safe_dump(
-                {
-                    "env_vars": env_vars,
-                }
-            )
-        else:
-            runtime_env = yaml.safe_load(runtime_env_yaml)
-            runtime_env["env_vars"] = runtime_env.get("env_vars", {})
-            runtime_env["env_vars"].update(env_vars)
+        runtime_env = yaml.safe_load(runtime_env_yaml)
+        runtime_env["env_vars"] = runtime_env.get("env_vars", {})
+        runtime_env["env_vars"].update(env_vars)
 
-            ray_job["spec"]["runtimeEnvYAML"] = yaml.safe_dump(runtime_env)
+        ray_job["spec"]["runtimeEnvYAML"] = yaml.safe_dump(runtime_env)
 
-        # set image from tag context.dagster_run.tags["dagster/image"] if not set
-        image_from_run_tag = context.dagster_run.tags.get("dagster/image")
+        image_from_run_tag = context.run.tags.get("dagster/image")
 
         for container in ray_job["spec"]["rayClusterSpec"]["headGroupSpec"]["template"]["spec"]["containers"]:
             container["image"] = container.get("image") or image_from_run_tag
@@ -189,7 +181,12 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
 
         if isinstance(self._message_reader, PipesRayJobSubmissionClientMessageReader):
             # starts a thread
-            self._message_reader.tail_job_logs(client=self.job_submission_client, job_id=status["jobId"])
+            self._message_reader.consume_job_logs(
+                # TODO: investigate why some messages aren't being handled with blocking=False
+                client=self.job_submission_client,
+                job_id=status["jobId"],
+                blocking=True,
+            )
 
     def _wait_for_completion(self, context: OpExecutionContext, start_response: Dict[str, Any]) -> RayJobStatus:
         context.log.info("[pipes] Waiting for RayJob to complete...")
@@ -209,12 +206,14 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
                 elif job_status == "SUCCEEDED":
                     context.log.info(f"[pipes] RayJob {namespace}/{name} is complete!")
                     return status
-                elif job_status == ["STOPPED", "FAILED"]:
+                elif job_status in ["STOPPED", "FAILED"]:
                     raise RuntimeError(
-                        f"RayJob {namespace}/{name} status is {job_status}. Reason:\n{status.get('message')}"
+                        f"RayJob {namespace}/{name} status is {job_status}. Message:\n{status.get('message')}"
                     )
                 else:
-                    raise RuntimeError(f"RayJob {namespace}/{name} has an unknown status: {job_status}")
+                    raise RuntimeError(
+                        f"RayJob {namespace}/{name} has an unknown status: {job_status}. Message:\n{status.get('message')}"
+                    )
 
             time.sleep(self.poll_interval)
 
