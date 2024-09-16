@@ -19,8 +19,7 @@ class PipesRayJobSubmissionClientMessageReader(PipesMessageReader):
     Will extract Dagster events and forward the rest to stdout.
     """
 
-    def __init__(self, client: "JobSubmissionClient"):
-        self.client = client
+    def __init__(self):
         self._handler: Optional["PipesMessageHandler"] = None
         self._thread: Optional[threading.Thread] = None
         self._terminate_reading = threading.Event()
@@ -83,3 +82,6 @@ class PipesRayJobSubmissionClientMessageReader(PipesMessageReader):
         else:
             self._thread = threading.Thread(target=_thread, daemon=True)
             self.thread.start()
+
+    def no_messages_debug_text(self) -> str:
+        return "Tried to read messages from a Ray job logs, but no messages were received."

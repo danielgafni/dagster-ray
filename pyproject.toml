@@ -29,6 +29,10 @@ license = "Apache-2.0"
 python = ">=3.8.1,<3.13"
 dagster = ">=1.8.0"
 tenacity = ">=8.0.0"
+grpcio = [
+    {version = "*", python = "<3.12"},
+    {version = ">=1.60.0", python = ">=3.12"}
+]
 greenlet = [
     {version = "*", python = "<3.12"},
     {version = ">=3.0", python = ">=3.12"}
@@ -44,15 +48,15 @@ kuberay = [
 ]
 
 [tool.poetry.group.dev.dependencies]
-hypothesis = "^6.77.0"
-pytest = "^7.3.1"
-ruff = "^0.3.0"
+hypothesis = ">=6.77.0"
+pytest = ">=7.3.1"
+ruff = ">=0.3.0"
 pyright = "^1.1.313"
 pre-commit = "^3.3.2"
-dagit = "^1.3.9"
-pytest-cases = "^3.6.14"
-pytest-kubernetes = "^0.3.1"
-blacken-docs = "^1.16.0"
+dagster-webserver = ">=1.3.9"
+pytest-cases = ">=3.6.14"
+pytest-kubernetes = ">=0.3.1"
+blacken-docs = ">=1.16.0"
 ray = { version = ">=2.7.0", extras = ["all"] }
 
 [build-system]

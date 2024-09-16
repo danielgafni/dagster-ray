@@ -132,14 +132,15 @@ Examples:
 On the orchestration side, import the `PipesRayJobClient` and invoke it inside an `@op` or an `@asset`:
 
 ```python
-from dagster import asset, Definitions
+from dagster import AssetExecutionContext, Definitions, asset
 
 from dagster_ray.kuberay import PipesRayJobClient
 
 
 @asset
-def my_asset(pipes_ray_job_client: PipesRayJobClient):
-    pipes_ray_job_client.run(
+def my_asset(context: AssetExecutionContext, pipes_rayjob_client: PipesRayJobClient):
+    pipes_rayjob_client.run(
+        context=context,
         ray_job={
             # RayJob manifest goes here, only .metadata.name is not required and will be generated if not provided
             # full reference: https://ray-project.github.io/kuberay/reference/api/#rayjob
@@ -150,7 +151,7 @@ def my_asset(pipes_ray_job_client: PipesRayJobClient):
 
 
 definitions = Definitions(
-    resources={"pipes_ray_job_client": PipesRayJobClient()}, assets=[my_asset]
+    resources={"pipes_rayjob_client": PipesRayJobClient()}, assets=[my_asset]
 )
 ```
 
@@ -161,7 +162,7 @@ from dagster_pipes import open_dagster_pipes
 
 
 with open_dagster_pipes() as pipes:
-    pipes.log("Hello from Ray!")
+    pipes.log.info("Hello from Ray!")
     pipes.report_asset_materialization(
         metadata={"some_metric": {"raw_value": 0, "type": "int"}},
         data_version="alpha",
