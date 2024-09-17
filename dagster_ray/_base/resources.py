@@ -1,7 +1,6 @@
-import sys
 import uuid
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Optional, Union, cast
+from typing import TYPE_CHECKING, Dict, Optional, Union, cast
 
 from dagster import ConfigurableResource, InitResourceContext, OpExecutionContext
 from pydantic import Field, PrivateAttr
@@ -11,13 +10,8 @@ from pydantic import Field, PrivateAttr
 from requests.exceptions import ConnectionError
 from tenacity import retry, retry_if_exception_type, stop_after_delay
 
+from dagster_ray._base.utils import get_dagster_tags
 from dagster_ray.config import RayDataExecutionOptions
-
-if sys.version_info >= (3, 11):
-    pass
-else:
-    pass
-
 
 if TYPE_CHECKING:
     from ray._private.worker import BaseContext as RayBaseContext  # noqa
@@ -85,6 +79,10 @@ class BaseRayResource(ConfigurableResource, ABC):
         self.data_execution_options.apply_remote()
         context.log.info("Initialized Ray!")
         return cast("RayBaseContext", self._context)
+
+    def get_dagster_tags(self, context: InitResourceContext) -> Dict[str, str]:
+        tags = get_dagster_tags(context)
+        return tags
 
     def _get_step_key(self, context: InitResourceContext) -> str:
         # just return a random string
