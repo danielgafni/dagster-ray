@@ -19,7 +19,7 @@ env:
 
 jobs:
   test:
-    name: test ${{ matrix.py }} - ${{ matrix.os }}
+    name: Test Python ${{ matrix.py }} - KubeRay ${{ matrix.kuberay }}
     runs-on: ${{ matrix.os }}-latest
     strategy:
       fail-fast: false
@@ -31,6 +31,9 @@ jobs:
           - "3.11"
           - "3.10"
           - "3.9"
+        kuberay:
+          - "1.1.0"
+          - "1.2.2"
     steps:
       - uses: actions/checkout@v4
       - name: Install uv
@@ -53,7 +56,7 @@ jobs:
           #- uses: mxschmitt/action-tmate@v3
       - name: Run tests
         env:
-          PYTEST_KUBERAY_VERSIONS: "1.1.0,1.2.2"  # will run tests for all these KubeRay versions
+          PYTEST_KUBERAY_VERSIONS: "${{ matrix.kuberay }}"
         run: uv run pytest -v .
 
   lint:
@@ -107,6 +110,8 @@ jobs:
       - name: Set up Python
         run: uv python install 3.11.9
       - name: Generate Version
-        run: uv run hatch version $(dunamai from any --style pep440)
+        run: export VERSION=$(uv run dunamai from any --style pep440) && echo "Version is $VERSION" && echo "VERSION=$VERSION" >> $GITHUB_ENV
+      - name: Replace version in code
+        run: uv run hatch version $VERSION
       - name: Publish to PyPI
         run: uv publish
