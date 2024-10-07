@@ -55,7 +55,7 @@ dev-dependencies = [
     "pytest-cases<4.0.0,>=3.6.14",
     "pytest-kubernetes<1.0.0,>=0.3.1",
     "blacken-docs<2.0.0,>=1.16.0",
-    "ray[client]>=2.7.0",
+    "ray[default,data]>=2.7.0",
     "hatch>=1.12.0",
     "dunamai>=1.22.0",
 ]
