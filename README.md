@@ -294,12 +294,15 @@ WIP
 # Development
 
 ```shell
-poetry install --all-extras
-poetry shell
-pre-commit install
+uv sync --all-extras
+uv run pre-commit install
 ```
 
 ## Testing
+
+```shell
+uv run pytest
+```
 
 ### KubeRay
 
