@@ -118,6 +118,12 @@ def job_testing_runtime_env():
 
 
 def test_ray_executor_local_runtime_env(local_ray_address: str, dagster_instance: DagsterInstance):
+    # first test this runtime_env just with ray
+
+    import ray
+
+    ray.get(ray.remote(runtime_env=RUNTIME_ENV)(runtime_env_checks).remote())
+
     result = execute_job(
         job=reconstructable(job_testing_runtime_env),
         instance=dagster_instance,
@@ -143,6 +149,12 @@ def job_with_user_provided_runtime_env():
 
 
 def test_ray_executor_local_user_provided_runtime_env(local_ray_address: str, dagster_instance: DagsterInstance):
+    # first test this runtime_env just with ray
+
+    import ray
+
+    ray.get(ray.remote(runtime_env=RUNTIME_ENV)(runtime_env_checks).remote())
+
     result = execute_job(
         job=reconstructable(job_with_user_provided_runtime_env),
         instance=dagster_instance,
