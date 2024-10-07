@@ -141,6 +141,7 @@ class RayClusterClient(BaseKubeRayClient):
                 and item["metadata"].get("name") == name  # type: ignore
                 and status.get("state") == "ready"
                 and status.get("head")
+                and status.get("endpoints", {}).get("dashboard")
             ):
                 if image is not None:
                     if (

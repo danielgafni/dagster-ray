@@ -70,7 +70,7 @@ def dagster_ray_image():
 # probably should only do it in CI
 KUBERNETES_VERSION = os.getenv("PYTEST_KUBERNETES_VERSION", "1.31.0")
 
-KUBERAY_VERSIONS = os.getenv("PYTEST_KUBERAY_VERSIONS", "1.2.0").split(",")
+KUBERAY_VERSIONS = os.getenv("PYTEST_KUBERAY_VERSIONS", "1.2.2").split(",")
 
 NAMESPACE = "ray"
 
