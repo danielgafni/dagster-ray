@@ -114,4 +114,4 @@ jobs:
       - name: Replace version in code
         run: uv run hatch version $VERSION
       - name: Publish to PyPI
-        run: uv publish
+        run: uv build && uv publish
