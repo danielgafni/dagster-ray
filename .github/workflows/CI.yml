@@ -50,9 +50,10 @@ jobs:
         with:
           start: false
           driver: docker
+          #- uses: mxschmitt/action-tmate@v3
       - name: Run tests
         env:
-          PYTEST_KUBERAY_VERSIONS: "1.0.0,1.1.0"  # will run tests for all these KubeRay versions
+          PYTEST_KUBERAY_VERSIONS: "1.1.0,1.2.2"  # will run tests for all these KubeRay versions
         run: uv run pytest -v .
 
   lint:
@@ -64,7 +65,6 @@ jobs:
         os:
           - Ubuntu
         py:
-#          - "3.12"
           - "3.11"
           - "3.10"
           - "3.9"
