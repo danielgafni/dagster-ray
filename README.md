@@ -14,6 +14,8 @@
 
 `dagster-ray` allows creating Ray clusters and running distributed computations from Dagster code. Features include:
 
+- `ray_execturo` - an Executor which runs Dagster steps a jobs submitted to a Ray cluster.
+
 - `PipesRayJobClient`, a [Dagster Pipes](https://docs.dagster.io/concepts/dagster-pipes) client for launching and monitoring `RayJob` resources in Kubernetes via [KubeRay](https://github.com/ray-project/kuberay). Most suitable for submitting long-running jobs (via external Python scripts) with no direct Ray access from Dagster code. Allows receiving rich logs, events and metadata from the job. Implemented for the `KubeRay` backend.
 
 - `RayResource`, a resource representing a Ray cluster. Interactions are performed in client mode (requires stable persistent connection), so it's most suitable for relatively short jobs. Provide direct Ray access from the Dagster Python process. It has implementations for `KubeRay` and local (mostly for testing) backends. `dagster_ray.RayResource` defines the common interface shared by all backends and can be used for backend-agnostic type annotations.
