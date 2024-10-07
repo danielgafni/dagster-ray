@@ -50,7 +50,17 @@ jobs:
         with:
           start: false
           driver: docker
+<<<<<<< HEAD
           #- uses: mxschmitt/action-tmate@v3
+||||||| parent of 7b79d20 (:rocket: add ray_executor)
+      - name: Install dependencies
+        run: poetry install --all-extras --sync
+=======
+      - name: Install dependencies
+        run: poetry install --all-extras --sync
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
+>>>>>>> 7b79d20 (:rocket: add ray_executor)
       - name: Run tests
         env:
           PYTEST_KUBERAY_VERSIONS: "1.1.0,1.2.2"  # will run tests for all these KubeRay versions
