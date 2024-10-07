@@ -39,42 +39,6 @@ To install with extra dependencies for a particular backend (like `kuberay`), ru
 pip install 'dagster-ray[kuberay]'
 ```
 
-# Executor
-
-> [!WARNING]
-> The `ray_executor` is a work in progress
-
-The `ray_executor` can be used to execute Dagster steps on an existing remote Ray cluster.
-The executor submits steps as Ray jobs. They are started directly in the Ray cluster. Example:
-
-
-```python
-from dagster import job, op
-from dagster_ray import ray_executor
-
-
-@op(
-    tags={
-        "dagster-ray/config": {
-            "num_cpus": 8,
-            "num_gpus": 2,
-            "runtime_env": {"pip": {"packages": ["torch"]}},
-        }
-    }
-)
-def my_op():
-    import torch
-
-    return torch.tensor([42])
-
-
-@job(executor_def=ray_executor)
-def my_job():
-    return my_op()
-```
-
-Fields in the `dagster-ray/config` tag **replace** corresponding fields in the Executor config.
-
 # Backends
 
 ## KubeRay
@@ -324,7 +288,8 @@ definitions = Definitions(
 )
 ```
 
-
+# Executor
+WIP
 
 # Development
 
