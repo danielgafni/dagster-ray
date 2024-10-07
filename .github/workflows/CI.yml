@@ -95,6 +95,8 @@ jobs:
     if: contains(github.ref, 'refs/tags/')
     name: Publish to PyPI
     runs-on: ubuntu-latest
+    environment:
+      name: release
     steps:
       - name: Setup Python
         uses: actions/setup-python@v2
@@ -107,7 +109,7 @@ jobs:
           enable-cache: true
       - name: Set up Python ${{ matrix.py }}
         run: uv python install
+      - name: Generate Version
+        run: uv run hatch version $(dunamai from any --style pep440)
       - name: Publish to PyPI
-        env:
-          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: uv publish

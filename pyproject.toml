@@ -3,7 +3,6 @@
 name = "dagster-ray"
 urls = { repository = "https://github.com/danielgafni/dagster-ray" }
 description = "Dagster integration library for Ray"
-version = "0.0.0"
 authors = [
     {name = "Daniel Gafni", email = "danielgafni16@gmail.com"},
 ]
@@ -33,6 +32,8 @@ dependencies = [
     "tenacity>=8.0.0"
 ]
 
+dynamic = ["version"]
+
 [project.optional-dependencies]
 executor = [
     "ray[client]"
@@ -55,12 +56,17 @@ dev-dependencies = [
     "pytest-kubernetes<1.0.0,>=0.3.1",
     "blacken-docs<2.0.0,>=1.16.0",
     "ray[client]>=2.7.0",
+    "hatch>=1.12.0",
+    "dunamai>=1.22.0",
 ]
 
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "dagster_ray/_version.py"
 
 [tool.pytest.ini_options]
 addopts = "-vvv --capture=no --log-disable=faker"
