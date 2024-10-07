@@ -14,6 +14,8 @@
 
 `dagster-ray` allows creating Ray clusters and running distributed computations from Dagster code. Features include:
 
+- `ray_execturo` - an Executor which runs Dagster steps a jobs submitted to a Ray cluster.
+
 - `PipesRayJobClient`, a [Dagster Pipes](https://docs.dagster.io/concepts/dagster-pipes) client for launching and monitoring `RayJob` resources in Kubernetes via [KubeRay](https://github.com/ray-project/kuberay). Most suitable for submitting long-running jobs (via external Python scripts) with no direct Ray access from Dagster code. Allows receiving rich logs, events and metadata from the job. Implemented for the `KubeRay` backend.
 
 - `RayResource`, a resource representing a Ray cluster. Interactions are performed in client mode (requires stable persistent connection), so it's most suitable for relatively short jobs. Provide direct Ray access from the Dagster Python process. It has implementations for `KubeRay` and local (mostly for testing) backends. `dagster_ray.RayResource` defines the common interface shared by all backends and can be used for backend-agnostic type annotations.
@@ -38,6 +40,42 @@ To install with extra dependencies for a particular backend (like `kuberay`), ru
 ```shell
 pip install 'dagster-ray[kuberay]'
 ```
+
+# Executor
+
+> [!WARNING]
+> The `ray_executor` is a work in progress
+
+The `ray_executor` can be used to execute Dagster steps on an existing remote Ray cluster.
+The executor submits steps as Ray jobs. They are started directly in the Ray cluster. Example:
+
+
+```python
+from dagster import job, op
+from dagster_ray import ray_executor
+
+
+@op(
+    tags={
+        "dagster-ray/config": {
+            "num_cpus": 8,
+            "num_gpus": 2,
+            "runtime_env": {"pip": {"packages": ["torch"]}},
+        }
+    }
+)
+def my_op():
+    import torch
+
+    return torch.tensor([42])
+
+
+@job(executor_def=ray_executor)
+def my_job():
+    return my_op()
+```
+
+Fields in the `dagster-ray/config` tag **replace** corresponding fields in the Executor config.
 
 # Backends
 
@@ -288,8 +326,7 @@ definitions = Definitions(
 )
 ```
 
-# Executor
-WIP
+
 
 # Development
 

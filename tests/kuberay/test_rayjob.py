@@ -72,11 +72,13 @@ def pipes_rayjob_client(k8s_with_kuberay: AClusterManager):
 def test_rayjob_pipes(pipes_rayjob_client: PipesRayJobClient, dagster_ray_image: str, capsys):
     @asset
     def my_asset(context: AssetExecutionContext, pipes_rayjob_client: PipesRayJobClient):
-        return pipes_rayjob_client.run(
+        result = pipes_rayjob_client.run(
             context=context,
             ray_job=RAY_JOB,
             extras={"foo": "bar"},
         ).get_materialize_result()
+
+        return result
 
     with instance_for_test() as instance:
         result = materialize(
