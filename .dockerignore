@@ -2,6 +2,7 @@
 *
 !dagster_ray
 !tests
+!examples
 !pyproject.toml
 !uv.lock
 !README.md
