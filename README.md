@@ -16,7 +16,7 @@
 
 - `RayRunLauncher` - a `RunLauncher` which submits Dagster runs as isolated Ray jobs (in cluster mode) to a Ray cluster.
 
-- `ray_executor` - an `Executor` which submits invididual Dagster steps as isolated Ray jobs (in cluster mode) to a Ray cluster.
+- `ray_executor` - an `Executor` which submits individual Dagster steps as isolated Ray jobs (in cluster mode) to a Ray cluster.
 
 - `PipesKubeRayJobClient`, a [Dagster Pipes](https://docs.dagster.io/concepts/dagster-pipes) client for launching and monitoring [KubeRay](https://github.com/ray-project/kuberay)'s `RayJob` CR in Kubernetes. Typically used with external Pythons scripts. Allows receiving rich logs, events and metadata from the job.
 
@@ -246,7 +246,7 @@ pipes_rayjob_client = PipesKubeRayJobClient(..., port_forward=not in_k8s)
 
 #### `KubeRayCluster`
 
-`KubeRayCluster` can be used for running Ray computations on Kubernetes in client (interactive) mode. Requies stable persistent connection through the duration of the Dagster step.
+`KubeRayCluster` can be used for running Ray computations on Kubernetes in client (interactive) mode. Requires stable persistent connection through the duration of the Dagster step.
 
 When added as resource dependency to an `@op/@asset`, the `KubeRayCluster`:
  - Starts a dedicated `RayCluster` for it
@@ -268,7 +268,7 @@ import ray
 
 @asset
 def my_asset(
-    ray_cluster: RayResource,  # RayResource is a backeand-agnostic type annotation
+    ray_cluster: RayResource,  # RayResource is a backend-agnostic type annotation
 ):
     return ray.get(ray.put(42))  # interact with the Ray cluster!
 
