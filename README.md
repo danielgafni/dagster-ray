@@ -14,9 +14,11 @@
 
 `dagster-ray` allows creating Ray clusters and running distributed computations from Dagster code. Features include:
 
-- `ray_execturo` - an Executor which runs Dagster steps a jobs submitted to a Ray cluster.
+- `RayRunLauncher` - a RunLauncher which runs Dagster runs as Ray jobs (cluster mode) submitted to an existing Ray cluster.
 
-- `PipesRayJobClient`, a [Dagster Pipes](https://docs.dagster.io/concepts/dagster-pipes) client for launching and monitoring `RayJob` resources in Kubernetes via [KubeRay](https://github.com/ray-project/kuberay). Most suitable for submitting long-running jobs (via external Python scripts) with no direct Ray access from Dagster code. Allows receiving rich logs, events and metadata from the job. Implemented for the `KubeRay` backend.
+- `ray_executor` - an Executor which runs individual Dagster steps as separate Ray jobs (cluster mode) submitted to an existing Ray cluster.
+
+- `PipesKubeRayJobClient`, a [Dagster Pipes](https://docs.dagster.io/concepts/dagster-pipes) client for launching and monitoring `RayJob` resources in Kubernetes via [KubeRay](https://github.com/ray-project/kuberay). Executes external Pythons cripts. Allows receiving rich logs, events and metadata from the job.
 
 - `RayResource`, a resource representing a Ray cluster. Interactions are performed in client mode (requires stable persistent connection), so it's most suitable for relatively short jobs. Provide direct Ray access from the Dagster Python process. It has implementations for `KubeRay` and local (mostly for testing) backends. `dagster_ray.RayResource` defines the common interface shared by all backends and can be used for backend-agnostic type annotations.
 
@@ -29,6 +31,23 @@ Documentation can be found below.
 > [!NOTE]
 > This project is in early development. APIs are unstable and can change at any time. Contributions are very welcome! See the [Development](#development) section below.
 
+# Feature Matrix
+
+There are different options available for running Dagster code on Ray. The following table summarizes the features of each option:
+
+| Feature | `RayRunLauncher` | `ray_executor` | `PipesKubeRayJobClient` | `KubeRayCluster` |
+| --- | --- | --- | --- | --- |
+| Creates Ray cluster | ❌ | ❌ | ✅ | ✅ |
+| Executes in cluster mode | ✅ | ✅ | ✅ | ❌ |
+| For long-running jobs | ✅ | ✅ | ✅ | ❌ |
+| Enabled per-asset  | ❌ | ❌ | ✅ | ✅ |
+| Configurable per-asset | ❌ | ✅ | ✅ | ✅ |
+| Automatically runs asset/op body | ✅ | ✅ | ❌ | ❌ |
+
+# Examples
+
+See the [examples](examples) directory.
+
 # Installation
 
 ```shell
@@ -40,6 +59,42 @@ To install with extra dependencies for a particular backend (like `kuberay`), ru
 ```shell
 pip install 'dagster-ray[kuberay]'
 ```
+
+# RunLauncher
+
+> [!WARNING]
+> The `RayRunLauncher` is a work in progress
+
+The `RayRunLauncher` can be configured via `dagster.yaml`:
+
+```yaml
+run_launcher:
+  module: dagster_ray
+  class: RayRunLauncher
+  config:
+    num_cpus: 1
+    num_gpus: 0
+```
+
+Individual Runs can override Ray configuration:
+
+
+```python
+from dagster import job
+
+
+@job(
+    tags={
+        "dagster-ray/config": {
+            "num_cpus": 16,
+            "num_gpus": 1,
+        }
+    }
+)
+def my_job():
+    return my_op()
+```
+
 
 # Executor
 
@@ -86,27 +141,29 @@ This backend requires a Kubernetes cluster with `KubeRay Operator` installed.
 Integrates with [Dagster+](https://dagster.io/plus) by injecting environment variables such as `DAGSTER_CLOUD_DEPLOYMENT_NAME` and tags such as `dagster/user` into default configuration values and Kubernetes labels.
 
 To run `ray` code in client mode (from the Dagster Python process directly), use the `KubeRayClient` resource (see the [KubeRayCluster](#KubeRayCluster) section).
-To run `ray` code in job mode, use the `PipesRayJobClient` with Dagster Pipes (see the [Pipes](#pipes) section).
+To run `ray` code in job mode, use the `PipesKubeRayJobClient` with Dagster Pipes (see the [Pipes](#pipes) section).
 
 The public objects can be imported from `dagster_ray.kuberay` module.
 
 ### Pipes
 
-`dagster-ray` provides the `PipesRayJobClient` which can be used to execute remote Ray jobs on Kubernetes and receive Dagster events and logs from them.
+`dagster-ray` provides the `PipesKubeRayJobClient` which can be used to execute remote Ray jobs on Kubernetes and receive Dagster events and logs from them.
 [RayJob](https://docs.ray.io/en/latest/cluster/kubernetes/getting-started/rayjob-quick-start.html) will manage the lifecycle of the underlying `RayCluster`, which will be cleaned up after the specified entrypoint exits. Doesn't require a persistent connection to the Ray cluster.
 
 Examples:
 
-In Dagster code, import `PipesRayJobClient` and invoke it inside an `@op` or an `@asset`:
+In Dagster code, import `PipesKubeRayJobClient` and invoke it inside an `@op` or an `@asset`:
 
 ```python
 from dagster import AssetExecutionContext, Definitions, asset
 
-from dagster_ray.kuberay import PipesRayJobClient
+from dagster_ray.kuberay import PipesKubeRayJobClient
 
 
 @asset
-def my_asset(context: AssetExecutionContext, pipes_rayjob_client: PipesRayJobClient):
+def my_asset(
+    context: AssetExecutionContext, pipes_rayjob_client: PipesKubeRayJobClient
+):
     pipes_rayjob_client.run(
         context=context,
         ray_job={
@@ -130,7 +187,7 @@ def my_asset(context: AssetExecutionContext, pipes_rayjob_client: PipesRayJobCli
 
 
 definitions = Definitions(
-    resources={"pipes_rayjob_client": PipesRayJobClient()}, assets=[my_asset]
+    resources={"pipes_rayjob_client": PipesKubeRayJobClient()}, assets=[my_asset]
 )
 ```
 
@@ -157,16 +214,16 @@ import yaml
 ray_job = {"spec": {"runtimeEnvYaml": yaml.safe_dump({"pip": ["dagster-pipes"]})}}
 ```
 
-Events emitted by the Ray job will be captured by `PipesRayJobClient` and will become available in the Dagster event log. Standard output and standard error streams will be forwarded to the standard output of the Dagster process.
+Events emitted by the Ray job will be captured by `PipesKubeRayJobClient` and will become available in the Dagster event log. Standard output and standard error streams will be forwarded to the standard output of the Dagster process.
 
 **Running locally**
 
-When running locally, the `port_forward` option has to be set to `True` in the `PipesRayJobClient` resource in order to interact with the Ray job. For convenience, it can be set automatically with:
+When running locally, the `port_forward` option has to be set to `True` in the `PipesKubeRayJobClient` resource in order to interact with the Ray job. For convenience, it can be set automatically with:
 
 ```python
 from dagster_ray.kuberay.configs import in_k8s
 
-pipes_rayjob_client = PipesRayJobClient(..., port_forward=not in_k8s)
+pipes_rayjob_client = PipesKubeRayJobClient(..., port_forward=not in_k8s)
 ```
 
 ### Resources

@@ -1,4 +1,5 @@
 import logging
+from typing import Iterator
 
 import pytest
 from _pytest.tmpdir import TempPathFactory
@@ -10,3 +11,14 @@ logging.getLogger("alembic").setLevel(logging.WARNING)
 @pytest.fixture
 def dagster_instance(tmp_path_factory: TempPathFactory) -> DagsterInstance:
     return DagsterInstance.ephemeral(tempdir=str(tmp_path_factory.mktemp("dagster_home")))
+
+
+@pytest.fixture
+def local_ray_address() -> Iterator[str]:
+    import ray
+
+    context = ray.init()
+
+    yield "auto"
+
+    context.disconnect()
