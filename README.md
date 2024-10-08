@@ -12,15 +12,15 @@
 
 [Ray](https://github.com/ray-project/ray) integration for [Dagster](https://github.com/dagster-io/dagster).
 
-`dagster-ray` allows creating Ray clusters and running distributed computations from Dagster code. Features include:
+`dagster-ray` allows creating Ray clusters and running distributed computations from Dagster code. It includes:
 
-- `RayRunLauncher` - a RunLauncher which runs Dagster runs as Ray jobs (cluster mode) submitted to an existing Ray cluster.
+- `RayRunLauncher` - a `RunLauncher` which submits Dagster runs as isolated Ray jobs (in cluster mode) to a Ray cluster.
 
-- `ray_executor` - an Executor which runs individual Dagster steps as separate Ray jobs (cluster mode) submitted to an existing Ray cluster.
+- `ray_executor` - an `Executor` which submits invididual Dagster steps as isolated Ray jobs (in cluster mode) to a Ray cluster.
 
-- `PipesKubeRayJobClient`, a [Dagster Pipes](https://docs.dagster.io/concepts/dagster-pipes) client for launching and monitoring `RayJob` resources in Kubernetes via [KubeRay](https://github.com/ray-project/kuberay). Executes external Pythons cripts. Allows receiving rich logs, events and metadata from the job.
+- `PipesKubeRayJobClient`, a [Dagster Pipes](https://docs.dagster.io/concepts/dagster-pipes) client for launching and monitoring [KubeRay](https://github.com/ray-project/kuberay)'s `RayJob` CR in Kubernetes. Typically used with external Pythons scripts. Allows receiving rich logs, events and metadata from the job.
 
-- `RayResource`, a resource representing a Ray cluster. Interactions are performed in client mode (requires stable persistent connection), so it's most suitable for relatively short jobs. Provide direct Ray access from the Dagster Python process. It has implementations for `KubeRay` and local (mostly for testing) backends. `dagster_ray.RayResource` defines the common interface shared by all backends and can be used for backend-agnostic type annotations.
+- `RayResource`, a resource representing a Ray cluster. Interactions with Ray are performed in **client mode** (requires stable persistent connection), so it's most suitable for relatively short-lived jobs. It has implementations for `KubeRay` and local (mostly for testing) backends. `dagster_ray.RayResource` defines the common interface shared by all backends and can be used for backend-agnostic type annotations.
 
 - Miscellaneous utilities like `@op`, `@job` and `@schedule` for managing `KubeRay` clusters
 
@@ -38,11 +38,11 @@ There are different options available for running Dagster code on Ray. The follo
 | Feature | `RayRunLauncher` | `ray_executor` | `PipesKubeRayJobClient` | `KubeRayCluster` |
 | --- | --- | --- | --- | --- |
 | Creates Ray cluster | ❌ | ❌ | ✅ | ✅ |
-| Executes in cluster mode | ✅ | ✅ | ✅ | ❌ |
+| Cluster mode | ✅ | ✅ | ✅ | ❌ |
 | For long-running jobs | ✅ | ✅ | ✅ | ❌ |
 | Enabled per-asset  | ❌ | ❌ | ✅ | ✅ |
 | Configurable per-asset | ❌ | ✅ | ✅ | ✅ |
-| Automatically runs asset/op body | ✅ | ✅ | ❌ | ❌ |
+| Runs asset/op body on Ray | ✅ | ✅ | ❌ | ❌ |
 
 # Examples
 
@@ -65,6 +65,10 @@ pip install 'dagster-ray[kuberay]'
 > [!WARNING]
 > The `RayRunLauncher` is a work in progress
 
+```shell
+pip install dagster-ray[run_launcher]
+```
+
 The `RayRunLauncher` can be configured via `dagster.yaml`:
 
 ```yaml
@@ -76,7 +80,7 @@ run_launcher:
     num_gpus: 0
 ```
 
-Individual Runs can override Ray configuration:
+Individual Runs can **override** Ray configuration:
 
 
 ```python
@@ -101,6 +105,10 @@ def my_job():
 > [!WARNING]
 > The `ray_executor` is a work in progress
 
+```shell
+pip install dagster-ray[executor]
+```
+
 The `ray_executor` can be used to execute Dagster steps on an existing remote Ray cluster.
 The executor submits steps as Ray jobs. They are started directly in the Ray cluster. Example:
 
@@ -122,19 +130,27 @@ from dagster_ray import ray_executor
 def my_op():
     import torch
 
-    return torch.tensor([42])
+    # your expensive computation here
+
+    result = ...
+
+    return result
 
 
-@job(executor_def=ray_executor)
+@job(executor_def=ray_executor.configured({"ray": {"num_cpus": 1}}))
 def my_job():
     return my_op()
 ```
 
-Fields in the `dagster-ray/config` tag **replace** corresponding fields in the Executor config.
+Fields in the `dagster-ray/config` tag **override** corresponding fields in the Executor config.
 
 # Backends
 
 ## KubeRay
+
+```shell
+pip install dagster-ray[kuberay]
+```
 
 This backend requires a Kubernetes cluster with `KubeRay Operator` installed.
 
@@ -382,8 +398,6 @@ definitions = Definitions(
     assets=[my_asset],
 )
 ```
-
-
 
 # Development
 

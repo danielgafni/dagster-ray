@@ -35,6 +35,9 @@ dependencies = [
 dynamic = ["version"]
 
 [project.optional-dependencies]
+run_launcher = [
+    "ray[client]"
+]
 executor = [
     "ray[client]"
 ]
