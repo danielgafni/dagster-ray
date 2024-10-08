@@ -674,6 +674,9 @@ kuberay = [
     { name = "kubernetes" },
     { name = "pyyaml" },
 ]
+run-launcher = [
+    { name = "ray", extra = ["client"] },
+]
 
 [package.dev-dependencies]
 dev = [
@@ -700,6 +703,7 @@ requires-dist = [
     { name = "pyyaml", specifier = ">=4.0.0" },
     { name = "pyyaml", marker = "extra == 'kuberay'" },
     { name = "ray", extras = ["client"], marker = "extra == 'executor'" },
+    { name = "ray", extras = ["client"], marker = "extra == 'run-launcher'" },
     { name = "tenacity", specifier = ">=8.0.0" },
 ]
 
