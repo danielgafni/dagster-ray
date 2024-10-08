@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Mapping, Optional
 
 from dagster import Config
 from pydantic import Field
@@ -16,7 +16,7 @@ class RayExecutionConfig(Config):
     resources: Optional[Dict[str, float]] = Field(default=None, description="Custom resources to allocate.")
 
     @classmethod
-    def from_tags(cls, tags: Dict[str, str]) -> RayExecutionConfig:
+    def from_tags(cls, tags: Mapping[str, str]) -> RayExecutionConfig:
         if USER_DEFINED_RAY_KEY in tags:
             return cls.parse_raw(tags[USER_DEFINED_RAY_KEY])
         else:
@@ -24,19 +24,19 @@ class RayExecutionConfig(Config):
 
 
 class RayJobSubmissionClientConfig(Config):
-    address: str = Field(..., description="The address of the Ray cluster to connect to.")
+    address: str = Field(default=None, description="The address of the Ray cluster to connect to.")
     metadata: Optional[Dict[str, Any]] = Field(
         default=None,
         description="""Arbitrary metadata to store along with all jobs. New metadata
             specified per job will be merged with the global metadata provided here
             via a simple dict update.""",
     )
-    headers: Optional[Dict[str, str]] = Field(
+    headers: Optional[Dict[str, Any]] = Field(
         default=None,
         description="""Headers to use when sending requests to the HTTP job server, used
             for cases like authentication to a remote cluster.""",
     )
-    cookies: Optional[Dict[str, str]] = Field(
+    cookies: Optional[Dict[str, Any]] = Field(
         default=None, description="Cookies to use when sending requests to the HTTP job server."
     )
 

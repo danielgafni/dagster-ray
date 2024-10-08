@@ -11,7 +11,7 @@ from dagster._core.instance_for_test import instance_for_test
 from pytest_kubernetes.providers import AClusterManager
 
 from dagster_ray.kuberay.client import RayJobClient
-from dagster_ray.kuberay.pipes import PipesRayJobClient
+from dagster_ray.kuberay.pipes import PipesKubeRayJobClient
 
 RAY_JOB = {
     "apiVersion": "ray.io/v1",
@@ -61,7 +61,7 @@ RAY_JOB = {
 
 @pytest.fixture(scope="session")
 def pipes_rayjob_client(k8s_with_kuberay: AClusterManager):
-    return PipesRayJobClient(
+    return PipesKubeRayJobClient(
         client=RayJobClient(
             config_file=str(k8s_with_kuberay.kubeconfig),
         ),
@@ -69,9 +69,9 @@ def pipes_rayjob_client(k8s_with_kuberay: AClusterManager):
     )
 
 
-def test_rayjob_pipes(pipes_rayjob_client: PipesRayJobClient, dagster_ray_image: str, capsys):
+def test_rayjob_pipes(pipes_rayjob_client: PipesKubeRayJobClient, dagster_ray_image: str, capsys):
     @asset
-    def my_asset(context: AssetExecutionContext, pipes_rayjob_client: PipesRayJobClient):
+    def my_asset(context: AssetExecutionContext, pipes_rayjob_client: PipesKubeRayJobClient):
         result = pipes_rayjob_client.run(
             context=context,
             ray_job=RAY_JOB,

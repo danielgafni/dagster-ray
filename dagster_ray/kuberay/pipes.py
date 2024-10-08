@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 
 
 @experimental
-class PipesRayJobClient(PipesClient, TreatAsResourceParam):
+class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
     """A pipes client for running ``RayJob`` on Kubernetes.
 
     Args:

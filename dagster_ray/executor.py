@@ -20,18 +20,20 @@ from dagster._core.executor.step_delegating import (
     StepHandlerContext,
 )
 from dagster._utils.merger import merge_dicts
-from dagster_k8s.job import (
-    get_k8s_job_name,
-)
-from dagster_k8s.launcher import K8sRunLauncher
+from pydantic import Field
 
 from dagster_ray.config import RayExecutionConfig, RayJobSubmissionClientConfig
+from dagster_ray.kuberay.resources import get_k8s_object_name
+from dagster_ray.run_launcher import RayRunLauncher
 
 if TYPE_CHECKING:
-    pass
+    from ray.job_submission import JobSubmissionClient
 
 
-class RayExecutorConfig(RayExecutionConfig, RayJobSubmissionClientConfig): ...
+class RayExecutorConfig(RayExecutionConfig, RayJobSubmissionClientConfig):
+    address: Optional[str] = Field(default=None, description="The address of the Ray cluster to connect to.")  # type: ignore
+    # sorry for the long name, but it has to be very clear what this is doing
+    inherit_job_submission_client_from_ray_run_launcher: bool = True
 
 
 _RAY_CONFIG_SCHEMA = RayExecutorConfig.to_config_schema().as_field()
@@ -51,18 +53,33 @@ def ray_executor(init_context: InitExecutorContext) -> Executor:
     """Executes steps by submitting them as Ray jobs.
 
     The steps are started inside the Ray cluster directly.
+    When used together with the `RayRunLauncher`, the executor can inherit the job submission client configuration.
+    This behavior can be disabled by setting `inherit_job_submission_client_from_ray_run_launcher` to `False`.
     """
-    # TODO: some RunLauncher config values can be automatically passed to the executor
-    run_launcher = (  # noqa
-        init_context.instance.run_launcher if isinstance(init_context.instance.run_launcher, K8sRunLauncher) else None
-    )
+    from ray.job_submission import JobSubmissionClient
 
     exc_cfg = init_context.executor_config
-
     ray_cfg = RayExecutorConfig(**exc_cfg["ray"])  # type: ignore
 
+    if ray_cfg.inherit_job_submission_client_from_ray_run_launcher and isinstance(
+        init_context.instance.run_launcher, RayRunLauncher
+    ):
+        # TODO: some RunLauncher config values can be automatically passed to the executor
+        client = init_context.instance.run_launcher.client
+    else:
+        client = JobSubmissionClient(
+            ray_cfg.address, metadata=ray_cfg.metadata, headers=ray_cfg.headers, cookies=ray_cfg.cookies
+        )
+
     return StepDelegatingExecutor(
-        RayStepHandler(address=ray_cfg.address, runtime_env=ray_cfg.runtime_env),
+        RayStepHandler(
+            client=client,
+            runtime_env=ray_cfg.runtime_env,
+            num_cpus=ray_cfg.num_cpus,
+            num_gpus=ray_cfg.num_gpus,
+            memory=ray_cfg.memory,
+            resources=ray_cfg.resources,
+        ),
         retries=RetryMode.from_config(exc_cfg["retries"]),  # type: ignore
         max_concurrent=check.opt_int_elem(exc_cfg, "max_concurrent"),
         tag_concurrency_limits=check.opt_list_elem(exc_cfg, "tag_concurrency_limits"),
@@ -77,21 +94,16 @@ class RayStepHandler(StepHandler):
 
     def __init__(
         self,
-        address: str,
-        runtime_env: Optional[Dict[str, Any]] = None,
-        num_cpus: Optional[int] = None,
-        num_gpus: Optional[int] = None,
-        memory: Optional[int] = None,
-        resources: Optional[Dict[str, float]] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-        headers: Optional[Dict[str, str]] = None,
-        cookies: Optional[Dict[str, str]] = None,
+        client: "JobSubmissionClient",
+        runtime_env: Optional[Dict[str, Any]],
+        num_cpus: Optional[int],
+        num_gpus: Optional[int],
+        memory: Optional[int],
+        resources: Optional[Dict[str, float]],
     ):
         super().__init__()
 
-        from ray.job_submission import JobSubmissionClient
-
-        self.client = JobSubmissionClient(address, metadata=metadata, headers=headers, cookies=cookies)
+        self.client = client
         self.runtime_env = runtime_env or {}
         self.num_cpus = num_cpus
         self.num_gpus = num_gpus
@@ -106,7 +118,7 @@ class RayStepHandler(StepHandler):
     def _get_ray_job_submission_id(self, step_handler_context: StepHandlerContext):
         step_key = self._get_step_key(step_handler_context)
 
-        name_key = get_k8s_job_name(
+        name_key = get_k8s_object_name(
             step_handler_context.execute_step_args.run_id,
             step_key,
         )
