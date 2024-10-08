@@ -96,8 +96,8 @@ class RayStepHandler(StepHandler):
         self,
         client: "JobSubmissionClient",
         runtime_env: Optional[Dict[str, Any]],
-        num_cpus: Optional[int],
-        num_gpus: Optional[int],
+        num_cpus: Optional[float],
+        num_gpus: Optional[float],
         memory: Optional[int],
         resources: Optional[Dict[str, float]],
     ):
@@ -221,7 +221,7 @@ class RayStepHandler(StepHandler):
 
         yield DagsterEvent.engine_event(
             step_handler_context.get_step_context(step_key),
-            message=f"Deleting Ray job {submission_id} for step",
+            message=f"Stopping Ray job {submission_id} for step",
             event_specific_data=EngineEventData(),
         )
 
