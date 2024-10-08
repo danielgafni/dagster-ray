@@ -8,10 +8,11 @@ The `RunLauncher` is configured in [dagster.yaml](dagster.yaml).
 ray start --head
 ```
 
-2. Start Dagster:
+2. Start Dagster in the context of this example directory:
 
 ```shell
-dagster dev -w examples/run_launcher/workspace.yaml
+cd examples/run_launcher_and_executor
+dagster dev
 ```
 
 3. From the UI, run the example job and observe how:

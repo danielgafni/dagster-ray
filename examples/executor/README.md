@@ -6,10 +6,11 @@
 ray start --head
 ```
 
-2. Start Dagster:
+2. Start Dagster in the context of this example directory:
 
 ```shell
-dagster dev -w examples/executor/workspace.yaml
+cd examples/executor/workspace.yaml
+dagster dev
 ```
 
 3. From the UI, run the example job and observe how the steps are executed in separate Ray jobs in parallel.
