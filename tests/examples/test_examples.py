@@ -10,7 +10,6 @@ EXAMPLES_DIR = Path(__file__).parent.parent.parent / "examples"
 
 RUN_LAUNCHER_EXAMPLE_DIR = EXAMPLES_DIR / "run_launcher"
 EXECUTOR_EXAMPLE_DIR = EXAMPLES_DIR / "executor"
-
 RUN_LAUNCHER_AND_EXECUTOR_EXAMPLE_DIR = EXAMPLES_DIR / "run_launcher_and_executor"
 
 
@@ -25,9 +24,10 @@ def test_ray_run_launcher(local_ray_address: str, example_dir: Path, tmp_path_fa
     shutil.copy(example_dir / "dagster.yaml", dagster_home / "dagster.yaml")
 
     # TODO: rewrite this test in Dagster's Python API instead of calling the CLI
+    # the CLI command doesn't actually use the RunLauncher!
 
     subprocess.run(
-        f"""cd {example_dir} && {sys.executable} -m dagster job execute -d {example_dir} -m definitions -j my_job
+        f"""cd {example_dir} && {sys.executable} -m dagster job execute -f {example_dir / 'definitions.py'} -j my_job
         """,
         check=True,
         shell=True,

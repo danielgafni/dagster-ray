@@ -10,8 +10,8 @@ USER_DEFINED_RAY_KEY = "dagster-ray/config"
 
 class RayExecutionConfig(Config):
     runtime_env: Optional[Dict[str, Any]] = Field(default=None, description="The runtime environment to use.")
-    num_cpus: Optional[int] = Field(default=None, description="The number of CPUs to allocate.")
-    num_gpus: Optional[int] = Field(default=None, description="The number of GPUs to allocate.")
+    num_cpus: Optional[float] = Field(default=None, description="The number of CPUs to allocate.")
+    num_gpus: Optional[float] = Field(default=None, description="The number of GPUs to allocate.")
     memory: Optional[int] = Field(default=None, description="The amount of memory in bytes to allocate.")
     resources: Optional[Dict[str, float]] = Field(default=None, description="Custom resources to allocate.")
 

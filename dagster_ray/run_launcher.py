@@ -1,6 +1,6 @@
 import logging
 import sys
-from typing import Any, Dict, Optional, Sequence
+from typing import Any, Dict, Optional
 
 from dagster import _check as check
 from dagster._cli.api import ExecuteRunArgs  # type: ignore
@@ -103,16 +103,22 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
         submission_id = get_job_submission_id_from_run_id(run.run_id)
         job_origin = check.not_none(run.job_code_origin)
 
-        args = ExecuteRunArgs(
-            job_origin=job_origin,
-            run_id=run.run_id,
-            instance_ref=self._instance.get_ref(),
-            set_exit_code_on_failure=True,
-        ).get_command_args()
+        args = list(
+            ExecuteRunArgs(
+                job_origin=job_origin,
+                run_id=run.run_id,
+                instance_ref=self._instance.get_ref(),
+                set_exit_code_on_failure=True,
+            ).get_command_args()
+        )
 
-        self._launch_ray_job(submission_id, args, run)
+        # wrap the json in quotes to prevent erros with shell commands
+        args[-1] = "'" + args[-1] + "'"
 
-    def _launch_ray_job(self, submission_id: str, args: Sequence[str], run: DagsterRun):
+        self._launch_ray_job(submission_id, " ".join(args), run)
+
+    def _launch_ray_job(self, submission_id: str, entrypoint: str, run: DagsterRun):
+        # note: entrypoint is a shell command
         job_origin = check.not_none(run.job_code_origin)
 
         labels = {
@@ -153,7 +159,7 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
 
         self.client.submit_job(
             submission_id=submission_id,
-            entrypoint=" ".join(args),
+            entrypoint=entrypoint,
             runtime_env=runtime_env,
             entrypoint_num_cpus=num_cpus,
             entrypoint_num_gpus=num_gpus,
@@ -175,14 +181,19 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
         )
         job_origin = check.not_none(run.job_code_origin)
 
-        args = ResumeRunArgs(
-            job_origin=job_origin,
-            run_id=run.run_id,
-            instance_ref=self._instance.get_ref(),
-            set_exit_code_on_failure=True,
-        ).get_command_args()
+        args = list(
+            ResumeRunArgs(
+                job_origin=job_origin,
+                run_id=run.run_id,
+                instance_ref=self._instance.get_ref(),
+                set_exit_code_on_failure=True,
+            ).get_command_args()
+        )
 
-        self._launch_ray_job(submission_id, args, run)
+        # wrap the json in quotes to prevent erros with shell commands
+        args[-1] = "'" + args[-1] + "'"
+
+        self._launch_ray_job(submission_id, " ".join(args), run)
 
     def terminate(self, run_id: str) -> bool:
         check.str_param(run_id, "run_id")
@@ -259,6 +270,11 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
         elif status == JobStatus.FAILED:
             job_details = self.client.get_job_info(submission_id)
             return CheckRunHealthResult(WorkerStatus.FAILED, f"Ray job failed. Message: {job_details.message}")
+        elif status == JobStatus.STOPPED:
+            job_details = self.client.get_job_info(submission_id)
+            return CheckRunHealthResult(
+                WorkerStatus.FAILED, f"Ray job has been stopped externally. Message: {job_details.message}"
+            )
         elif status == JobStatus.SUCCEEDED:
             return CheckRunHealthResult(WorkerStatus.SUCCESS)
         elif status in {JobStatus.RUNNING, JobStatus.PENDING}:
