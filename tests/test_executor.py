@@ -51,17 +51,6 @@ def my_failing_job():
 
 
 @pytest.fixture
-def local_ray_address() -> Iterator[str]:
-    import ray
-
-    context = ray.init()
-
-    yield "auto"
-
-    context.disconnect()
-
-
-@pytest.fixture
 def dagster_instance() -> Iterator[DagsterInstance]:
     with instance_for_test() as instance:
         yield instance
