@@ -10,6 +10,7 @@ from dagster import (
     reconstructable,
 )
 
+from dagster_ray import RayIOManager
 from dagster_ray.executor import ray_executor
 
 
@@ -69,6 +70,32 @@ def dagster_instance() -> Iterator[DagsterInstance]:
 def test_ray_executor(local_ray_address: str, dagster_instance: DagsterInstance):
     result = execute_job(
         job=reconstructable(my_job),
+        instance=dagster_instance,
+        run_config={
+            "execution": {
+                "config": {
+                    "ray": {"address": local_ray_address},
+                }
+            }
+        },
+    )
+
+    assert result.success, result.get_step_failure_events()[0].event_specific_data
+
+
+ray_io_manager = RayIOManager()
+
+
+@job(executor_def=ray_executor, resource_defs={"io_manager": ray_io_manager})
+def my_job_with_ray_io_manager():
+    return_two_result = return_two()
+    return_one_result = return_one()
+    sum_one_and_two(return_one_result, return_two_result)
+
+
+def test_ray_executor_with_ray_io_manager(local_ray_address: str, dagster_instance: DagsterInstance):
+    result = execute_job(
+        job=reconstructable(my_job_with_ray_io_manager),
         instance=dagster_instance,
         run_config={
             "execution": {

@@ -18,6 +18,8 @@
 
 - `ray_executor` - an `Executor` which submits individual Dagster steps as isolated Ray jobs (in cluster mode) to a Ray cluster.
 
+- `RayIOManager` - an `IOManager` which allows storing and retrieving intermediate values in Ray's object store. Ideal in conjunction with `RayRunLauncher` and `ray_executor`.
+
 - `PipesKubeRayJobClient`, a [Dagster Pipes](https://docs.dagster.io/concepts/dagster-pipes) client for launching and monitoring [KubeRay](https://github.com/ray-project/kuberay)'s `RayJob` CR in Kubernetes. Typically used with external Pythons scripts. Allows receiving rich logs, events and metadata from the job.
 
 - `RayResource`, a resource representing a Ray cluster. Interactions with Ray are performed in **client mode** (requires stable persistent connection), so it's most suitable for relatively short-lived jobs. It has implementations for `KubeRay` and local (mostly for testing) backends. `dagster_ray.RayResource` defines the common interface shared by all backends and can be used for backend-agnostic type annotations.
@@ -99,7 +101,6 @@ def my_job():
     return my_op()
 ```
 
-
 # Executor
 
 > [!WARNING]
@@ -143,6 +144,89 @@ def my_job():
 ```
 
 Fields in the `dagster-ray/config` tag **override** corresponding fields in the Executor config.
+
+
+## IOManager
+
+`RayIOManager` allows storing and retrieving intermediate values in Ray's object store. It can be used in conjunction with `RayRunLauncher` and `ray_executor` to store and retrieve intermediate values in a Ray cluster.
+
+It works by storing Dagster step keys in a global Ray actor. This actor contains a mapping between step keys and Ray `ObjectRef`s. It can be used with any pickable Python objects.
+
+
+
+
+```python
+from dagster import asset, Definitions
+from dagster_ray import RayIOManager
+
+
+@asset(io_manager_key="ray_io_manager")
+def upstream() -> int:
+    return 42
+
+
+@asset
+def downstream(upstream: int):
+    return 0
+
+
+definitions = Definitions(
+    assets=[upstream, downstream], resources={"ray_io_manager": RayIOManager()}
+)
+```
+
+It supports partitioned assets.
+
+
+```python
+from dagster import (
+    asset,
+    Definitions,
+    StaticPartitionsDefinition,
+    AssetExecutionContext,
+)
+from dagster_ray import RayIOManager
+
+
+partitions_def = StaticPartitionsDefinition(["a", "b", "c"])
+
+
+@asset(io_manager_key="ray_io_manager", partitions_def=partitions_def)
+def upstream(context: AssetExecutionContext):
+    return context.partition_key
+
+
+@asset(partitions_def=partitions_def)
+def downstream(context: AssetExecutionContext, upstream: str) -> None:
+    assert context.partition_key == upstream
+```
+
+
+It supports partition mappings. When loading **multiple** upstream partitions, they should be annotated with a `Dict[str, ...]`, `dict[str, ...]`, or `Mapping[str, ...]` type hint.
+
+
+```python
+from dagster import (
+    asset,
+    Definitions,
+    StaticPartitionsDefinition,
+    AssetExecutionContext,
+)
+from dagster_ray import RayIOManager
+
+
+partitions_def = StaticPartitionsDefinition(["A", "B", "C"])
+
+
+@asset(io_manager_key="ray_io_manager", partitions_def=partitions_def)
+def upstream(context: AssetExecutionContext):
+    return context.partition_key.lower()
+
+
+@asset
+def downstream_unpartitioned(upstream: Dict[str, str]) -> None:
+    assert upstream == {"A": "a", "B": "b", "C": "c"}
+```
 
 # Backends
 
