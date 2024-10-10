@@ -17,7 +17,7 @@ def dagster_instance(tmp_path_factory: TempPathFactory) -> DagsterInstance:
 def local_ray_address() -> Iterator[str]:
     import ray
 
-    context = ray.init()
+    context = ray.init(runtime_env={"env_vars": {"RAY_ENABLE_RECORD_ACTOR_TASK_LOGGING": "1"}})
 
     yield "auto"
 
