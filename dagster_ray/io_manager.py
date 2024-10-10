@@ -64,8 +64,8 @@ class RayIOManager(ConfigurableIOManager, ConfigurableResource):
     def handle_output(self, context: OutputContext, obj):
         import ray
 
-        # if self.address:  # TODO: should this really be done here?
-        #     ray.init(self.address, ignore_reinit_error=True)
+        if self.address:  # TODO: should this really be done here?
+            ray.init(self.address, ignore_reinit_error=True)
 
         object_map = RayObjectMap.get_or_create()
 
@@ -83,8 +83,8 @@ class RayIOManager(ConfigurableIOManager, ConfigurableResource):
     def load_input(self, context: InputContext):
         import ray
 
-        # if self.address:  # TODO: should this really be done here?
-        #     ray.init(self.address, ignore_reinit_error=True)
+        if self.address:  # TODO: should this really be done here?
+            ray.init(self.address, ignore_reinit_error=True)
 
         object_map = RayObjectMap.get_or_create()
 
