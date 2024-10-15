@@ -45,7 +45,7 @@ There are different options available for running Dagster code on Ray. The follo
 | Enabled per-asset  | ❌ | ❌ | ✅ | ✅ |
 | Configurable per-asset | ❌ | ✅ | ✅ | ✅ |
 | Runs asset/op body on Ray | ✅ | ✅ | ❌ | ❌ |
-| Requires configuring Dagster in the Ray cluster | ❌ | ❌ | ✅ | ✅ |
+| Requires configuring Dagster in the Ray cluster | ✅ | ✅ | ❌ | ❌ |
 
 # Examples
 
