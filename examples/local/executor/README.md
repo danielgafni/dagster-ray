@@ -9,7 +9,7 @@ ray start --head
 2. Start Dagster in the context of this example directory:
 
 ```shell
-cd examples/executor/workspace.yaml
+cd examples/local/executor
 dagster dev
 ```
 

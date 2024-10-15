@@ -1,7 +1,0 @@
-run_launcher:
-  module: dagster_ray
-  class: RayRunLauncher
-  config:
-    address: auto
-telemetry:
-  enabled: false

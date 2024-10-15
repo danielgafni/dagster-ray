@@ -25,12 +25,17 @@ from pydantic import Field
 from dagster_ray.config import RayExecutionConfig, RayJobSubmissionClientConfig
 from dagster_ray.kuberay.resources import get_k8s_object_name
 from dagster_ray.run_launcher import RayRunLauncher
+from dagster_ray.utils import resolve_env_vars_list
 
 if TYPE_CHECKING:
     from ray.job_submission import JobSubmissionClient
 
 
 class RayExecutorConfig(RayExecutionConfig, RayJobSubmissionClientConfig):
+    env_vars: Optional[List[str]] = Field(
+        default=None,
+        description="A list of environment variables to inject into the Job. Each can be of the form KEY=VALUE or just KEY (in which case the value will be pulled from the current process).",
+    )
     address: Optional[str] = Field(default=None, description="The address of the Ray cluster to connect to.")  # type: ignore
     # sorry for the long name, but it has to be very clear what this is doing
     inherit_job_submission_client_from_ray_run_launcher: bool = True
@@ -74,6 +79,7 @@ def ray_executor(init_context: InitExecutorContext) -> Executor:
     return StepDelegatingExecutor(
         RayStepHandler(
             client=client,
+            env_vars=ray_cfg.env_vars,
             runtime_env=ray_cfg.runtime_env,
             num_cpus=ray_cfg.num_cpus,
             num_gpus=ray_cfg.num_gpus,
@@ -95,6 +101,7 @@ class RayStepHandler(StepHandler):
     def __init__(
         self,
         client: "JobSubmissionClient",
+        env_vars: Optional[List[str]],
         runtime_env: Optional[Dict[str, Any]],
         num_cpus: Optional[float],
         num_gpus: Optional[float],
@@ -104,6 +111,7 @@ class RayStepHandler(StepHandler):
         super().__init__()
 
         self.client = client
+        self.env_vars = env_vars or []
         self.runtime_env = runtime_env or {}
         self.num_cpus = num_cpus
         self.num_gpus = num_gpus
@@ -148,6 +156,7 @@ class RayStepHandler(StepHandler):
 
         user_provided_config = RayExecutionConfig.from_tags({**step_handler_context.step_tags[step_key]})
 
+        # note! ray modifies the user-provided runtime_env, so we copy it
         runtime_env = (user_provided_config.runtime_env or self.runtime_env).copy()
 
         dagster_env_vars = {
@@ -157,6 +166,8 @@ class RayStepHandler(StepHandler):
         }
 
         runtime_env["env_vars"] = {**dagster_env_vars, **runtime_env.get("env_vars", {})}  # type: ignore
+
+        runtime_env["env_vars"].update(resolve_env_vars_list(self.env_vars))
 
         num_cpus = self.num_cpus or user_provided_config.num_cpus
         num_gpus = self.num_gpus or user_provided_config.num_gpus

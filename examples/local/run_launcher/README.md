@@ -11,7 +11,7 @@ ray start --head
 2. Start Dagster in the context of this example directory:
 
 ```shell
-cd examples/run_launcher
+cd examples/local/run_launcher
 dagster dev
 ```
 

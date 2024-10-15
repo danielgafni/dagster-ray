@@ -1,6 +1,6 @@
 import logging
 import sys
-from typing import Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from dagster import _check as check
 from dagster._cli.api import ExecuteRunArgs  # type: ignore
@@ -12,15 +12,24 @@ from dagster._core.storage.dagster_run import DagsterRun, DagsterRunStatus
 from dagster._grpc.types import ResumeRunArgs
 from dagster._serdes import ConfigurableClass, ConfigurableClassData
 from dagster._utils.error import serializable_error_info_from_exc_info
+from pydantic import Field
 
 from dagster_ray.config import RayExecutionConfig, RayJobSubmissionClientConfig
+from dagster_ray.utils import resolve_env_vars_list
+
+if TYPE_CHECKING:
+    from ray.job_submission import JobSubmissionClient
 
 
 def get_job_submission_id_from_run_id(run_id: str, resume_attempt_number=None):
     return f"dagster-run-{run_id}" + ("" if not resume_attempt_number else f"-{resume_attempt_number}")
 
 
-class RayLauncherConfig(RayExecutionConfig, RayJobSubmissionClientConfig): ...
+class RayLauncherConfig(RayExecutionConfig, RayJobSubmissionClientConfig):
+    env_vars: Optional[List[str]] = Field(
+        default=None,
+        description="A list of environment variables to inject into the Job. Each can be of the form KEY=VALUE or just KEY (in which case the value will be pulled from the current process).",
+    )
 
 
 class RayRunLauncher(RunLauncher, ConfigurableClass):
@@ -30,6 +39,7 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
         metadata: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, Any]] = None,
         cookies: Optional[Dict[str, Any]] = None,
+        env_vars: Optional[List[str]] = None,
         runtime_env: Optional[Dict[str, Any]] = None,
         num_cpus: Optional[int] = None,
         num_gpus: Optional[int] = None,
@@ -55,17 +65,13 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
         Fields such as `num_cpus` set via `dagster-ray/config` Run tag will override the yaml configuration.
 
         """
-
-        from ray.job_submission import JobSubmissionClient
-
         self._inst_data = check.opt_inst_param(inst_data, "inst_data", ConfigurableClassData)
-
-        self.client = JobSubmissionClient(address, metadata=metadata, headers=headers, cookies=cookies)
 
         self.address = address
         self.metadata = metadata
         self.headers = headers
         self.cookies = cookies
+        self.env_vars = env_vars
         self.runtime_env = runtime_env
         self.num_cpus = num_cpus
         self.num_gpus = num_gpus
@@ -75,16 +81,22 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
         super().__init__()
 
     @property
+    def client(self) -> "JobSubmissionClient":  # note: this must be a property
+        from ray.job_submission import JobSubmissionClient
+
+        return JobSubmissionClient(self.address, metadata=self.metadata, headers=self.headers, cookies=self.cookies)
+
+    @property
     def inst_data(self) -> Optional[ConfigurableClassData]:
         return self._inst_data
 
     @classmethod
     def config_type(cls) -> UserConfigSchema:
-        return RayLauncherConfig.to_fields_dict()
+        return {"ray": RayLauncherConfig.to_config_schema().as_field()}
 
     @classmethod
     def from_config_value(cls, inst_data, config_value):
-        return cls(inst_data=inst_data, **config_value)
+        return cls(inst_data=inst_data, **config_value["ray"])
 
     @property
     def supports_resume_run(self):
@@ -132,13 +144,16 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
 
         cfg_from_tags = RayLauncherConfig.from_tags(run.tags)
 
-        runtime_env = cfg_from_tags.runtime_env or self.runtime_env or {}
+        env_vars = cfg_from_tags.env_vars or self.env_vars or []
+        # note! ray modifies the user-provided runtime_env, so we copy it
+        runtime_env = (cfg_from_tags.runtime_env or self.runtime_env or {}).copy()
         num_cpus = cfg_from_tags.num_cpus or self.num_cpus
         num_gpus = cfg_from_tags.num_gpus or self.num_gpus
         memory = cfg_from_tags.memory or self.memory
         resources = cfg_from_tags.resources or self.resources
 
         runtime_env["env_vars"] = runtime_env.get("env_vars", {})
+        runtime_env["env_vars"].update(resolve_env_vars_list(env_vars))
         runtime_env["env_vars"].update(
             {
                 "DAGSTER_RUN_JOB_NAME": job_origin.job_name,

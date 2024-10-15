@@ -4,10 +4,9 @@ import random
 import re
 import string
 import sys
-from typing import Any, Dict, Generator, Optional, cast
+from typing import TYPE_CHECKING, Any, Dict, Generator, Optional, cast
 
 import dagster._check as check
-import kubernetes
 from dagster import ConfigurableResource, InitResourceContext
 from dagster._annotations import experimental
 from pydantic import Field, PrivateAttr
@@ -30,6 +29,9 @@ from ray._private.worker import BaseContext as RayBaseContext  # noqa
 from dagster_ray._base.resources import BaseRayResource
 from dagster_ray.kuberay.client.base import load_kubeconfig
 
+if TYPE_CHECKING:
+    import kubernetes
+
 
 @experimental
 class RayClusterClientResource(ConfigurableResource):
@@ -37,8 +39,8 @@ class RayClusterClientResource(ConfigurableResource):
     kubeconfig_file: Optional[str] = None
 
     _raycluster_client: RayClusterClient = PrivateAttr()
-    _k8s_api: kubernetes.client.CustomObjectsApi = PrivateAttr()
-    _k8s_core_api: kubernetes.client.CoreV1Api = PrivateAttr()
+    _k8s_api: "kubernetes.client.CustomObjectsApi" = PrivateAttr()
+    _k8s_core_api: "kubernetes.client.CoreV1Api" = PrivateAttr()
 
     @property
     def client(self) -> RayClusterClient:
@@ -47,18 +49,20 @@ class RayClusterClientResource(ConfigurableResource):
         return self._raycluster_client
 
     @property
-    def k8s(self) -> kubernetes.client.CustomObjectsApi:
+    def k8s(self) -> "kubernetes.client.CustomObjectsApi":
         if self._k8s_api is None:
             raise ValueError(f"{self.__class__.__name__} not initialized")
         return self._k8s_api
 
     @property
-    def k8s_core(self) -> kubernetes.client.CoreV1Api:
+    def k8s_core(self) -> "kubernetes.client.CoreV1Api":
         if self._k8s_core_api is None:
             raise ValueError(f"{self.__class__.__name__} not initialized")
         return self._k8s_core_api
 
     def setup_for_execution(self, context: InitResourceContext) -> None:
+        import kubernetes
+
         load_kubeconfig(context=self.kube_context, config_file=self.kubeconfig_file)
 
         self._raycluster_client = RayClusterClient(context=self.kube_context, config_file=self.kubeconfig_file)
@@ -218,6 +222,8 @@ class KubeRayCluster(BaseRayResource):
         }
 
     def _wait_raycluster_ready(self):
+        import kubernetes
+
         self.client.client.wait_until_ready(self.cluster_name, namespace=self.namespace, timeout=self.timeout)
 
         # the above code only checks for RayCluster creation

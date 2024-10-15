@@ -1,0 +1,11 @@
+run_launcher:
+  module: dagster_ray
+  class: RayRunLauncher
+  config:
+    ray:
+      runtime_env:
+        working_dir: /home/dan/code/github/danielgafni/dagster-ray/examples/local/run_launcher
+      address: auto
+      num_cpus: 1
+telemetry:
+  enabled: false

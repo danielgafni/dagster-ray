@@ -6,11 +6,12 @@ from pathlib import Path
 import pytest
 
 EXAMPLES_DIR = Path(__file__).parent.parent.parent / "examples"
+LOCAL_EXAMPLES_DIR = EXAMPLES_DIR / "local"
 
 
-RUN_LAUNCHER_EXAMPLE_DIR = EXAMPLES_DIR / "run_launcher"
-EXECUTOR_EXAMPLE_DIR = EXAMPLES_DIR / "executor"
-RUN_LAUNCHER_AND_EXECUTOR_EXAMPLE_DIR = EXAMPLES_DIR / "run_launcher_and_executor"
+RUN_LAUNCHER_EXAMPLE_DIR = LOCAL_EXAMPLES_DIR / "run_launcher"
+EXECUTOR_EXAMPLE_DIR = LOCAL_EXAMPLES_DIR / "executor"
+RUN_LAUNCHER_AND_EXECUTOR_EXAMPLE_DIR = LOCAL_EXAMPLES_DIR / "run_launcher_and_executor"
 
 
 @pytest.mark.parametrize(
