@@ -1,10 +1,8 @@
 import time
 from typing import TYPE_CHECKING, Any, Dict, Optional
 
-from kubernetes import client
-from kubernetes.client import ApiException
-
 if TYPE_CHECKING:
+    from kubernetes import client
     from kubernetes.client.models.v1_endpoints import V1Endpoints
 
 
@@ -27,8 +25,10 @@ class BaseKubeRayClient:
         version: str,
         kind: str,
         plural: str,
-        api_client: Optional[client.ApiClient] = None,
+        api_client: Optional["client.ApiClient"] = None,
     ):
+        from kubernetes import client
+
         self.group = group
         self.version = version
         self.kind = kind
@@ -38,6 +38,8 @@ class BaseKubeRayClient:
         self._core_v1_api = client.CoreV1Api(api_client=api_client)
 
     def wait_for_service_endpoints(self, service_name: str, namespace: str, poll_interval: int = 5, timeout: int = 60):
+        from kubernetes.client import ApiException
+
         start_time = time.time()
 
         while True:
@@ -62,6 +64,8 @@ class BaseKubeRayClient:
             time.sleep(poll_interval)
 
     def get_status(self, name: str, namespace: str, timeout: int = 60, poll_interval: int = 5) -> Dict[str, Any]:
+        from kubernetes.client import ApiException
+
         while timeout > 0:
             try:
                 resource: Any = self._api.get_namespaced_custom_object_status(
@@ -83,6 +87,8 @@ class BaseKubeRayClient:
         raise TimeoutError(f"Timed out waiting for status of {self.kind} {name} in namespace {namespace}")
 
     def list(self, namespace: str, label_selector: str = "", async_req: bool = False) -> Dict[str, Any]:
+        from kubernetes.client import ApiException
+
         try:
             resource: Any = self._api.list_namespaced_custom_object(
                 group=self.group,
@@ -103,6 +109,8 @@ class BaseKubeRayClient:
             raise
 
     def get(self, name: str, namespace: str) -> Dict[str, Any]:
+        from kubernetes.client import ApiException
+
         try:
             resource: Any = self._api.get_namespaced_custom_object(
                 group=self.group,

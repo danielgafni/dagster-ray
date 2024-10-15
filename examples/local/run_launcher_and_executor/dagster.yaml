@@ -2,7 +2,8 @@ run_launcher:
   module: dagster_ray
   class: RayRunLauncher
   config:
-    address: auto
-    num_cpus: 1
+    ray:
+      num_cpus: 1
+      address: auto
 telemetry:
   enabled: false

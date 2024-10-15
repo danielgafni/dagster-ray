@@ -26,10 +26,8 @@ classifiers = [
 ]
 
 dependencies = [
-    "pyyaml>=4.0.0",
-    "tenacity>=8.0.0",
     "dagster>=1.8.0",
-    "tenacity>=8.0.0"
+    "tenacity>=8.0.0",
 ]
 
 dynamic = ["version"]
@@ -41,10 +39,14 @@ run_launcher = [
 executor = [
     "ray[client]"
 ]
+pipes = [
+    "ray[client]"
+]
 kuberay = [
     "pyyaml",
     "kubernetes>=20.0.0",
     "dagster-k8s>=0.19.0",
+    "pyyaml>=4.0.0",
 ]
 
 [tool.uv]
@@ -62,6 +64,7 @@ dev-dependencies = [
     "hatch>=1.12.0",
     "dunamai>=1.22.0",
     "pip>=24.2",
+    "ipython>=8.12.3",
 ]
 
 
@@ -112,7 +115,7 @@ known-first-party = ["dagster_ray", "tests"]
 [tool.ruff.lint.flake8-tidy-imports]
 # Disallow all relative imports.
 ban-relative-imports = "all"
-banned-module-level-imports = ["ray"]
+banned-module-level-imports = ["ray", "kubernetes", "torch"]
 
 [tool.pyright]
 reportPropertyTypeMismatch = true

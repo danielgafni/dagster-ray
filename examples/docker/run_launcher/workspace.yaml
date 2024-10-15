@@ -1,0 +1,5 @@
+load_from:
+  - grpc_server:
+      host: code-location
+      port: 4266
+      location_name: "example"

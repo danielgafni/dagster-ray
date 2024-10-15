@@ -1,0 +1,122 @@
+services:
+  ray-head:
+    build:
+      context: ../../../
+      dockerfile: examples/docker/run_launcher/Dockerfile
+    command: ["ray", "start", "--block", "--head", "--dashboard-host", "0.0.0.0"]
+    ports:
+      - "8265:8265"
+    volumes:
+      - ./dagster.yaml:/dagster_home/dagster.yaml
+      - ./workspace.yaml:/dagster_home/workspace.yaml
+      - /tmp/io_manager_storage:/tmp/io_manager_storage
+    networks:
+      - db
+
+  ray-worker:
+    build:
+      context: ../../../
+      dockerfile: examples/docker/run_launcher/Dockerfile
+    command: ["ray", "start", "--block", "--address", "ray-head:6379"]
+    volumes:
+      - ./dagster.yaml:/dagster_home/dagster.yaml
+      - ./workspace.yaml:/dagster_home/workspace.yaml
+      - /tmp/io_manager_storage:/tmp/io_manager_storage
+    depends_on:
+      - ray-head
+    networks:
+      - db
+    deploy:
+      mode: replicated
+      replicas: 2
+
+  # This service runs the postgres DB used by dagster for run storage, schedule storage,
+  # and event log storage.
+  postgres:
+    image: postgres:11
+    environment:
+      POSTGRES_USER: "postgres_user"
+      POSTGRES_PASSWORD: "postgres_password"
+      POSTGRES_DB: "postgres_db"
+    networks:
+      - db
+
+  code-location:
+    build:
+      context: ../../../
+      dockerfile: examples/docker/run_launcher/Dockerfile
+    restart: always
+    environment:
+      DAGSTER_POSTGRES_USER: "postgres_user"
+      DAGSTER_POSTGRES_PASSWORD: "postgres_password"
+      DAGSTER_POSTGRES_DB: "postgres_db"
+    command:
+      - dagster
+      - api
+      - grpc
+      - --python-file
+      - /dagster_home/definitions.py
+      - --host
+      - 0.0.0.0
+      - --port
+      - "4266"
+    volumes:
+      - .:/dagster_home
+    networks:
+      - db
+
+  webserver:
+    build:
+      context: ../../../
+      dockerfile: examples/docker/run_launcher/Dockerfile
+    entrypoint:
+      - dagster-webserver
+      - -h
+      - "0.0.0.0"
+      - -p
+      - "3000"
+      - -w
+      - workspace.yaml
+    expose:
+      - "3000"
+    ports:
+      - "3000:3000"
+    environment:
+      DAGSTER_POSTGRES_USER: "postgres_user"
+      DAGSTER_POSTGRES_PASSWORD: "postgres_password"
+      DAGSTER_POSTGRES_DB: "postgres_db"
+    volumes: # Make docker client accessible so we can terminate containers from the webserver
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/io_manager_storage:/tmp/io_manager_storage
+    networks:
+      - db
+    depends_on:
+      - postgres
+      - code-location
+
+  daemon:
+    build:
+      context: ../../../
+      dockerfile: examples/docker/run_launcher/Dockerfile
+    entrypoint:
+      - dagster-daemon
+      - run
+    restart: on-failure
+    environment:
+      DAGSTER_POSTGRES_USER: "postgres_user"
+      DAGSTER_POSTGRES_PASSWORD: "postgres_password"
+      DAGSTER_POSTGRES_DB: "postgres_db"
+    volumes: # Make docker client accessible so we can launch containers using host docker
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/io_manager_storage:/tmp/io_manager_storage
+      - .:/dagster_home
+    networks:
+      - db
+    depends_on:
+      - postgres
+      - code-location
+
+networks:
+  db:
+    driver: bridge
+    name: db

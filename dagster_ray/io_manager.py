@@ -78,7 +78,7 @@ class RayIOManager(ConfigurableIOManager, ConfigurableResource):
 
         object_map.set.remote(storage_key, ref)
 
-        context.log.debug(f"Stored object with key {storage_key} as {ref}")
+        context.log.debug(f"[RayIOManager] Stored object with key {storage_key} as {ref}")
 
     def load_input(self, context: InputContext):
         import ray
@@ -100,11 +100,11 @@ class RayIOManager(ConfigurableIOManager, ConfigurableResource):
         else:
             storage_key = self._get_single_key(context)
 
-        context.log.debug(f"Loading object with key {storage_key}")
+        context.log.debug(f"[RayIOManager] Loading object with key {storage_key}")
 
         ref = object_map.get.remote(storage_key)
 
-        assert ref is not None, f"Object with key {storage_key} not found in RayObjectMap"
+        assert ref is not None, f"[RayIOManager] Object with key {storage_key} not found in RayObjectMap"
 
         return ray.get(ref)
 
@@ -120,4 +120,6 @@ class RayIOManager(ConfigurableIOManager, ConfigurableResource):
                 partition_key: "/".join(asset_path + [partition_key]) for partition_key in context.asset_partition_keys
             }
         else:
-            raise RuntimeError("This method can only be called with an InputContext that has multiple partitions")
+            raise RuntimeError(
+                "[RayIOManager] This method can only be called with an InputContext that has multiple partitions"
+            )

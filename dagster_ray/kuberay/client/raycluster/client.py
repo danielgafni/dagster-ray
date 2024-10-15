@@ -17,7 +17,6 @@ from typing import (
     cast,
 )
 
-from kubernetes import watch
 from typing_extensions import NotRequired
 
 from dagster_ray.kuberay.client.base import BaseKubeRayClient
@@ -104,6 +103,8 @@ class RayClusterClient(BaseKubeRayClient):
         timeout: int,
         image: Optional[str] = None,
     ) -> Tuple[str, Dict[str, str]]:
+        from kubernetes import watch
+
         """
         If ready, returns service ip address and a dictionary of ports.
         Dictionary keys: ["client", "dashboard", "metrics", "redis", "serve"]

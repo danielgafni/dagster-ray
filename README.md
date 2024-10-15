@@ -45,6 +45,7 @@ There are different options available for running Dagster code on Ray. The follo
 | Enabled per-asset  | ❌ | ❌ | ✅ | ✅ |
 | Configurable per-asset | ❌ | ✅ | ✅ | ✅ |
 | Runs asset/op body on Ray | ✅ | ✅ | ❌ | ❌ |
+| Requires configuring Dagster in the Ray cluster | ❌ | ❌ | ✅ | ✅ |
 
 # Examples
 
@@ -78,8 +79,9 @@ run_launcher:
   module: dagster_ray
   class: RayRunLauncher
   config:
-    num_cpus: 1
-    num_gpus: 0
+    ray:
+      num_cpus: 1
+      num_gpus: 0
 ```
 
 Individual Runs can **override** Ray configuration:
