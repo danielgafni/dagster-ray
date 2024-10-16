@@ -1,3 +1,4 @@
+import os
 from typing import TYPE_CHECKING, Any, Dict, Iterator, List, Optional, cast
 
 from dagster import (
@@ -66,10 +67,24 @@ def ray_executor(init_context: InitExecutorContext) -> Executor:
     exc_cfg = init_context.executor_config
     ray_cfg = RayExecutorConfig(**exc_cfg["ray"])  # type: ignore
 
-    if ray_cfg.inherit_job_submission_client_from_ray_run_launcher and isinstance(
-        init_context.instance.run_launcher, RayRunLauncher
-    ):
-        # TODO: some RunLauncher config values can be automatically passed to the executor
+    runtime_env = ray_cfg.runtime_env or {}
+
+    if isinstance(init_context.instance.run_launcher, RayRunLauncher):
+        runtime_env["env_vars"] = {
+            **runtime_env.get("env_vars", {}),
+            **init_context.instance.run_launcher.runtime_env.get("env_vars", {}),
+        }
+
+        if init_context.instance.run_launcher.runtime_env.get("working_dir") is not None:
+            # TODO: some RunLauncher config values can be automatically passed to the executor
+
+            if not runtime_env.get("working_dir"):
+                # pass the working dir from the RunLauncher to the executor
+                # since it was set, we are already running in this directory
+                # so we can simply use os.getcwd() to get it
+                runtime_env["working_dir"] = os.getcwd()
+
+    if ray_cfg.inherit_job_submission_client_from_ray_run_launcher:
         client = init_context.instance.run_launcher.client
     else:
         client = JobSubmissionClient(
@@ -80,7 +95,7 @@ def ray_executor(init_context: InitExecutorContext) -> Executor:
         RayStepHandler(
             client=client,
             env_vars=ray_cfg.env_vars,
-            runtime_env=ray_cfg.runtime_env,
+            runtime_env=runtime_env,
             num_cpus=ray_cfg.num_cpus,
             num_gpus=ray_cfg.num_gpus,
             memory=ray_cfg.memory,
@@ -183,10 +198,18 @@ class RayStepHandler(StepHandler):
             },
         )
 
+        args = step_handler_context.execute_step_args.get_command_args()
+
+        print(args[-1])
+
+        args[-1] = "'" + args[-1] + "'"
+
+        dagster_cmd = " ".join(args)
+
+        entrypoint = f"export PYTHONPATH=$PWD:$PYTHONPATH && echo $PYTHONPATH && python -c 'import example; print(example.__file__)' && {dagster_cmd}"
+
         self.client.submit_job(
-            entrypoint=" ".join(
-                step_handler_context.execute_step_args.get_command_args(skip_serialized_namedtuple=True)
-            ),
+            entrypoint=entrypoint,
             submission_id=submission_id,
             metadata=labels,
             runtime_env=runtime_env,
