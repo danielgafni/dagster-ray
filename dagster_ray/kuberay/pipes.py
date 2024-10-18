@@ -19,7 +19,7 @@ from dagster_pipes import PipesExtras
 from dagster_ray._base.utils import get_dagster_tags
 from dagster_ray.kuberay.client import RayJobClient
 from dagster_ray.kuberay.client.rayjob.client import RayJobStatus
-from dagster_ray.pipes import PipesRayJobSubmissionClientMessageReader
+from dagster_ray.pipes import PipesRayJobMessageReader, generate_job_id
 
 if TYPE_CHECKING:
     from ray.job_submission import JobSubmissionClient
@@ -33,7 +33,7 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
         context_injector (Optional[PipesContextInjector]): A context injector to use to inject
             context into the ``RayJob``. Defaults to :py:class:`PipesEnvContextInjector`.
         message_reader (Optional[PipesMessageReader]): A message reader to use to read messages
-            from the glue job run. Defaults to :py:class:`PipesRayJobSubmissionClientMessageReader`.
+            from the glue job run. Defaults to :py:class:`PipesRayJobMessageReader`.
         client (Optional[boto3.client]): The Kubernetes API client.
         forward_termination (bool): Whether to cancel the `RayJob` job run when the Dagster process receives a termination signal.
         timeout (int): Timeout for various internal interactions with the Kubernetes RayJob.
@@ -55,7 +55,7 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
         self.client: RayJobClient = client or RayJobClient()
 
         self._context_injector = context_injector or PipesEnvContextInjector()
-        self._message_reader = message_reader or PipesRayJobSubmissionClientMessageReader()
+        self._message_reader = message_reader or PipesRayJobMessageReader()
 
         self.forward_termination = check.bool_param(forward_termination, "forward_termination")
         self.timeout = check.int_param(timeout, "timeout")
@@ -130,7 +130,7 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
         ray_job["metadata"] = ray_job.get("metadata", {})
         ray_job["metadata"]["labels"] = ray_job["metadata"].get("labels", {})
 
-        ray_job["metadata"]["name"] = ray_job["metadata"].get("name", f"dg-{context.run.run_id[:8]}")
+        ray_job["metadata"]["name"] = ray_job["metadata"].get("name", f"pipes-{generate_job_id()}")
         ray_job["metadata"]["labels"].update(self.get_dagster_tags(context))
 
         # update env vars in runtimeEnv
@@ -179,7 +179,7 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
     def _read_messages(self, context: OpExecutionContext, start_response: Dict[str, Any]) -> None:
         status = cast(RayJobStatus, start_response["status"])
 
-        if isinstance(self._message_reader, PipesRayJobSubmissionClientMessageReader):
+        if isinstance(self._message_reader, PipesRayJobMessageReader):
             # starts a thread
             self._message_reader.consume_job_logs(
                 # TODO: investigate why some messages aren't being handled with blocking=False

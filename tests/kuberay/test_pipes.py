@@ -22,7 +22,7 @@ RAY_JOB = {
     },
     "spec": {
         "activeDeadlineSeconds": 10800,
-        "entrypoint": "python /src/tests/kuberay/scripts/remote_job.py",
+        "entrypoint": "python /src/tests/scripts/remote_job.py",
         "entrypointNumCpus": 0.1,
         "rayClusterSpec": {
             "autoscalerOptions": {
