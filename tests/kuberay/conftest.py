@@ -1,23 +1,20 @@
 import os
-import socket
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import Generator
+from typing import Any, Dict, Generator, Iterator, List, Tuple
 
 import pytest
 import pytest_cases
+from kubernetes import config  # noqa: TID253
 from pytest_kubernetes.options import ClusterOptions
 from pytest_kubernetes.providers import AClusterManager, select_provider_manager
 
+from dagster_ray.kuberay.client import RayClusterClient
+from dagster_ray.kuberay.configs import DEFAULT_HEAD_GROUP_SPEC, DEFAULT_WORKER_GROUP_SPECS
 from tests import ROOT_DIR
-
-
-def get_random_free_port():
-    sock = socket.socket()
-    sock.bind(("", 0))
-    return sock.getsockname()[1]
+from tests.kuberay.utils import NAMESPACE, get_random_free_port
 
 
 @pytest.fixture(scope="session")
@@ -72,8 +69,6 @@ KUBERNETES_VERSION = os.getenv("PYTEST_KUBERNETES_VERSION", "1.31.0")
 
 KUBERAY_VERSIONS = os.getenv("PYTEST_KUBERAY_VERSIONS", "1.2.2").split(",")
 
-NAMESPACE = "ray"
-
 
 @pytest_cases.fixture(scope="session")
 @pytest.mark.parametrize("kuberay_version", KUBERAY_VERSIONS)
@@ -123,3 +118,69 @@ def k8s_with_kuberay(
 
     yield k8s
     k8s.delete()
+
+
+@pytest.fixture(scope="session")
+def head_group_spec(dagster_ray_image: str) -> Dict[str, Any]:
+    head_group_spec = DEFAULT_HEAD_GROUP_SPEC.copy()
+    head_group_spec["serviceType"] = "LoadBalancer"
+    head_group_spec["template"]["spec"]["containers"][0]["image"] = dagster_ray_image
+    head_group_spec["template"]["spec"]["containers"][0]["imagePullPolicy"] = "IfNotPresent"
+    return head_group_spec
+
+
+@pytest.fixture(scope="session")
+def worker_group_specs(dagster_ray_image: str) -> List[Dict[str, Any]]:
+    worker_group_specs = DEFAULT_WORKER_GROUP_SPECS.copy()
+    worker_group_specs[0]["template"]["spec"]["containers"][0]["image"] = dagster_ray_image
+    worker_group_specs[0]["template"]["spec"]["containers"][0]["imagePullPolicy"] = "IfNotPresent"
+    return worker_group_specs
+
+
+PERSISTENT_RAY_CLUSTER_NAME = "persistent-ray-cluster"
+
+
+@pytest.fixture(scope="session")
+def k8s_with_raycluster(
+    k8s_with_kuberay: AClusterManager,
+    head_group_spec: Dict[str, Any],
+    worker_group_specs: List[Dict[str, Any]],
+) -> Iterator[Tuple[dict[str, int], AClusterManager]]:
+    # create a RayCluster
+    config.load_kube_config(str(k8s_with_kuberay.kubeconfig))
+
+    client = RayClusterClient(
+        config_file=str(k8s_with_kuberay.kubeconfig),
+    )
+
+    client.create(
+        body={
+            "metadata": {"name": PERSISTENT_RAY_CLUSTER_NAME},
+            "spec": {
+                "headGroupSpec": head_group_spec,
+                "workerGroupSpecs": worker_group_specs,
+            },
+        },
+        namespace=NAMESPACE,
+    )
+
+    redis_port = get_random_free_port()
+    dashboard_port = get_random_free_port()
+
+    with k8s_with_kuberay.port_forwarding(
+        target=f"svc/{PERSISTENT_RAY_CLUSTER_NAME}-head-svc",
+        source_port=redis_port,
+        target_port=10001,
+        namespace=NAMESPACE,
+    ), k8s_with_kuberay.port_forwarding(
+        target=f"svc/{PERSISTENT_RAY_CLUSTER_NAME}-head-svc",
+        source_port=dashboard_port,
+        target_port=8265,
+        namespace=NAMESPACE,
+    ):
+        yield {"redis": redis_port, "dashboard": dashboard_port}, k8s_with_kuberay
+
+    client.delete(
+        name=PERSISTENT_RAY_CLUSTER_NAME,
+        namespace=NAMESPACE,
+    )
