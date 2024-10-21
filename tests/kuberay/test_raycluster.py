@@ -10,7 +10,7 @@ from dagster_ray import RayResource
 from dagster_ray.kuberay import KubeRayCluster, RayClusterClientResource, RayClusterConfig, cleanup_kuberay_clusters
 from dagster_ray.kuberay.client import RayClusterClient
 from dagster_ray.kuberay.ops import CleanupKuberayClustersConfig
-from tests.kuberay.conftest import NAMESPACE, get_random_free_port
+from tests.kuberay.utils import NAMESPACE, get_random_free_port
 
 
 @pytest.fixture(scope="session")

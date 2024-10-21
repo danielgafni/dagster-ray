@@ -14,7 +14,7 @@ from pytest_kubernetes.providers import AClusterManager, select_provider_manager
 from dagster_ray.kuberay.client import RayClusterClient
 from dagster_ray.kuberay.configs import DEFAULT_HEAD_GROUP_SPEC, DEFAULT_WORKER_GROUP_SPECS
 from tests import ROOT_DIR
-from tests.kuberay.utils import NAMESPACE, get_random_free_port
+from tests.kuberay.utils import NAMESPACE
 
 
 @pytest.fixture(scope="session")
@@ -28,6 +28,9 @@ PYTEST_DAGSTER_RAY_IMAGE = os.getenv("PYTEST_DAGSTER_RAY_IMAGE")
 
 @pytest.fixture(scope="session")
 def dagster_ray_image():
+    import dagster
+    import ray
+
     """
     Either returns the image name from the environment variable PYTEST_DAGSTER_RAY_IMAGE
     or builds the image and returns it
@@ -36,7 +39,11 @@ def dagster_ray_image():
     if PYTEST_DAGSTER_RAY_IMAGE is None:
         # build the local image
         python_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
-        image = f"local/dagster-ray:py-{python_version}"
+        ray_version = ray.__version__
+        dagster_version = dagster.__version__
+
+        image = f"local/dagster-ray:py-{python_version}-{ray_version}-{dagster_version}"
+
         subprocess.run(
             [
                 "docker",
@@ -47,6 +54,10 @@ def dagster_ray_image():
                 "BUILD_DEPENDENCIES=dev",
                 "--build-arg",
                 f"PYTHON_VERSION={python_version}",
+                "--build-arg",
+                f"RAY_VERSION={ray_version}",
+                "--build-arg",
+                f"DAGSTER_VERSION={dagster_version}",
                 "-t",
                 image,
                 str(ROOT_DIR),
@@ -145,7 +156,7 @@ def k8s_with_raycluster(
     k8s_with_kuberay: AClusterManager,
     head_group_spec: Dict[str, Any],
     worker_group_specs: List[Dict[str, Any]],
-) -> Iterator[Tuple[dict[str, int], AClusterManager]]:
+) -> Iterator[Tuple[dict[str, str], AClusterManager]]:
     # create a RayCluster
     config.load_kube_config(str(k8s_with_kuberay.kubeconfig))
 
@@ -155,6 +166,8 @@ def k8s_with_raycluster(
 
     client.create(
         body={
+            "kind": "RayCluster",
+            "apiVersion": "ray.io/v1",
             "metadata": {"name": PERSISTENT_RAY_CLUSTER_NAME},
             "spec": {
                 "headGroupSpec": head_group_spec,
@@ -164,21 +177,22 @@ def k8s_with_raycluster(
         namespace=NAMESPACE,
     )
 
-    redis_port = get_random_free_port()
-    dashboard_port = get_random_free_port()
+    client.wait_until_ready(
+        name=PERSISTENT_RAY_CLUSTER_NAME,
+        namespace=NAMESPACE,
+        timeout=600,
+    )
 
-    with k8s_with_kuberay.port_forwarding(
-        target=f"svc/{PERSISTENT_RAY_CLUSTER_NAME}-head-svc",
-        source_port=redis_port,
-        target_port=10001,
+    with client.port_forward(
+        name=PERSISTENT_RAY_CLUSTER_NAME,
         namespace=NAMESPACE,
-    ), k8s_with_kuberay.port_forwarding(
-        target=f"svc/{PERSISTENT_RAY_CLUSTER_NAME}-head-svc",
-        source_port=dashboard_port,
-        target_port=8265,
-        namespace=NAMESPACE,
-    ):
-        yield {"redis": redis_port, "dashboard": dashboard_port}, k8s_with_kuberay
+        local_dashboard_port=0,
+        local_gcs_port=0,
+    ) as (dashboard_port, redis_port):
+        yield (
+            {"gcs": f"ray://localhost:{redis_port}", "dashboard": f"http://localhost:{dashboard_port}"},
+            k8s_with_kuberay,
+        )
 
     client.delete(
         name=PERSISTENT_RAY_CLUSTER_NAME,

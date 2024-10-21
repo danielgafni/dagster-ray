@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, Any, Dict, Iterator, List, Optional, cast
 
+import dagster
 from dagster import (
     _check as check,
 )
@@ -19,7 +20,9 @@ from dagster._core.executor.step_delegating import (
     StepHandler,
     StepHandlerContext,
 )
+from dagster._core.remote_representation.origin import RemoteJobOrigin
 from dagster._utils.merger import merge_dicts
+from packaging.version import Version
 from pydantic import Field
 
 from dagster_ray.config import RayExecutionConfig, RayJobSubmissionClientConfig
@@ -149,10 +152,16 @@ class RayStepHandler(StepHandler):
             "dagster/op": step_key,
             "dagster/run-id": step_handler_context.execute_step_args.run_id,
         }
-        if run.external_job_origin:
-            labels["dagster/code-location"] = (
-                run.external_job_origin.repository_origin.code_location_origin.location_name
-            )
+
+        if Version(dagster.__version__) >= Version("1.8.12"):
+            remote_job_origin = run.remote_job_origin  # type: ignore
+        else:
+            remote_job_origin = run.external_job_origin  # type: ignore
+
+        remote_job_origin = cast(Optional[RemoteJobOrigin], remote_job_origin)
+
+        if remote_job_origin:
+            labels["dagster/code-location"] = remote_job_origin.repository_origin.code_location_origin.location_name
 
         user_provided_config = RayExecutionConfig.from_tags({**step_handler_context.step_tags[step_key]})
 

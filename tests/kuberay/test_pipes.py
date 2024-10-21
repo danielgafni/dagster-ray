@@ -15,7 +15,8 @@ from ray.job_submission import JobSubmissionClient  # noqa: TID253
 from dagster_ray import PipesRayJobClient
 from dagster_ray.kuberay.client import RayJobClient
 from dagster_ray.kuberay.pipes import PipesKubeRayJobClient
-from tests.test_pipes import LOCAL_SCRIPT_PATH
+
+ENTRYPOINT = "python /src/tests/scripts/remote_job.py"
 
 RAY_JOB = {
     "apiVersion": "ray.io/v1",
@@ -26,7 +27,7 @@ RAY_JOB = {
     },
     "spec": {
         "activeDeadlineSeconds": 10800,
-        "entrypoint": "python /src/tests/scripts/remote_job.py",
+        "entrypoint": ENTRYPOINT,
         "entrypointNumCpus": 0.1,
         "rayClusterSpec": {
             "autoscalerOptions": {
@@ -118,11 +119,11 @@ def test_rayjob_pipes(pipes_kube_rayjob_client: PipesKubeRayJobClient, dagster_r
 
 
 @pytest.fixture(scope="session")
-def pipes_ray_job_client(k8s_with_raycluster: Tuple[dict[str, int], AClusterManager]):
-    ports, k8s = k8s_with_raycluster
+def pipes_ray_job_client(k8s_with_raycluster: Tuple[dict[str, str], AClusterManager]):
+    hosts, k8s = k8s_with_raycluster
     return PipesRayJobClient(
         client=JobSubmissionClient(
-            address=f"https://localhost:{ports['dashboard']}",
+            address=hosts["dashboard"],
         )
     )
 
@@ -132,7 +133,7 @@ def test_ray_job_pipes(pipes_ray_job_client: PipesRayJobClient, capsys):
     def my_asset(context: AssetExecutionContext, pipes_ray_job_client: PipesRayJobClient):
         result = pipes_ray_job_client.run(
             context=context,
-            submit_job_params={"entrypoint": f"{sys.executable} {LOCAL_SCRIPT_PATH}"},
+            submit_job_params={"entrypoint": ENTRYPOINT, "entrypoint_num_cpus": 0.1},
             extras={"foo": "bar"},
         ).get_materialize_result()
 
