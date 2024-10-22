@@ -10,6 +10,7 @@ import pytest_cases
 from kubernetes import config  # noqa: TID253
 from pytest_kubernetes.options import ClusterOptions
 from pytest_kubernetes.providers import AClusterManager, select_provider_manager
+from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from dagster_ray.kuberay.client import RayClusterClient
 from dagster_ray.kuberay.configs import DEFAULT_HEAD_GROUP_SPEC, DEFAULT_WORKER_GROUP_SPECS
@@ -27,6 +28,10 @@ PYTEST_DAGSTER_RAY_IMAGE = os.getenv("PYTEST_DAGSTER_RAY_IMAGE")
 
 
 @pytest.fixture(scope="session")
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_random_exponential(multiplier=1, max=10),
+)
 def dagster_ray_image():
     import dagster
     import ray
