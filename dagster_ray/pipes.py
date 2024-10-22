@@ -173,7 +173,6 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
         forward_termination (bool): Whether to cancel the `RayJob` job run when the Dagster process receives a termination signal.
         timeout (int): Timeout for various internal interactions with the Kubernetes RayJob.
         poll_interval (int): Interval at which to poll the Kubernetes for status updates.
-        port_forward (bool): Whether to use Kubernetes port-forwarding to connect to the KubeRay cluster.
         Is useful when running in a local environment.
     """
 
@@ -185,7 +184,6 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
         forward_termination: bool = True,
         timeout: int = 600,
         poll_interval: int = 5,
-        port_forward: bool = False,
     ):
         self.client = client
         self._context_injector = context_injector or PipesEnvContextInjector()
@@ -194,7 +192,6 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
         self.forward_termination = check.bool_param(forward_termination, "forward_termination")
         self.timeout = check.int_param(timeout, "timeout")
         self.poll_interval = check.int_param(poll_interval, "poll_interval")
-        self.port_forward = check.bool_param(port_forward, "port_forward")
 
         self._job_submission_client: Optional["JobSubmissionClient"] = None
 
@@ -213,7 +210,6 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
             ray_job (Dict[str, Any]): RayJob specification. `API reference <https://ray-project.github.io/kuberay/reference/api/#rayjob>`_.
             extras (Optional[Dict[str, Any]]): Additional information to pass to the Pipes session.
         """
-        from ray.job_submission import JobStatus
 
         with open_pipes_session(
             context=context,
@@ -227,11 +223,7 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
 
             try:
                 self._read_messages(context, job_id)
-                status = self._wait_for_completion(context, job_id)
-
-                if status in {JobStatus.FAILED, JobStatus.STOPPED}:
-                    raise RuntimeError(f"RayJob {job_id} failed with status {status}")
-
+                self._wait_for_completion(context, job_id)
                 return PipesClientCompletedInvocation(session)
 
             except DagsterExecutionInterruptedError:
@@ -284,12 +276,20 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
             )
 
     def _wait_for_completion(self, context: OpExecutionContext, job_id: str) -> "JobStatus":
+        from ray.job_submission import JobStatus
+
         context.log.info(f"[pipes] Waiting for RayJob {job_id} to complete...")
 
         while True:
             status = self.client.get_job_status(job_id)
 
             if status.is_terminal():
+                if status in {JobStatus.FAILED, JobStatus.STOPPED}:
+                    job_details = self.client.get_job_info(job_id)
+                    raise RuntimeError(
+                        f"[pipes] RayJob {job_id} failed with status {status}. Message:\n{job_details.message}"
+                    )
+
                 return status
 
             time.sleep(self.poll_interval)

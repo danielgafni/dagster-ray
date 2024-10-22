@@ -14,7 +14,7 @@ COPY --from=bitnami/kubectl:1.30.3 /opt/bitnami/kubectl/bin/kubectl /usr/local/b
 
 # install uv (https://github.com/astral-sh/uv)
 # docs for using uv with Docker: https://docs.astral.sh/uv/guides/integration/docker/
-COPY --from=ghcr.io/astral-sh/uv:0.4.18 /uv /bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.4.25 /uv /bin/uv
 
 ENV UV_PROJECT_ENVIRONMENT=/usr/local/
 ENV DAGSTER_HOME=/opt/dagster/dagster_home
@@ -27,12 +27,12 @@ WORKDIR /src
 COPY pyproject.toml uv.lock  ./
 
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --all-extras --no-dev --no-install-project
+    uv sync --frozen --all-extras --no-dev --no-install-project --inexact
 
 FROM base-prod AS base-dev
 
 # Node.js is needed for pyright in CI
-ARG NODE_VERSION=20.7.0
+ARG NODE_VERSION=23.0.0
 ARG NODE_PACKAGE=node-v$NODE_VERSION-linux-x64
 ARG NODE_HOME=/opt/$NODE_PACKAGE
 ENV NODE_PATH $NODE_HOME/lib/node_modules
@@ -40,6 +40,16 @@ ENV PATH $NODE_HOME/bin:$PATH
 RUN --mount=type=cache,target=/cache/downloads \
     curl https://nodejs.org/dist/v$NODE_VERSION/$NODE_PACKAGE.tar.gz -o /cache/downloads/$NODE_PACKAGE.tar.gz \
     && tar -xzC /opt/ -f /cache/downloads/$NODE_PACKAGE.tar.gz
+
+
+RUN mkdir dagster_ray && touch dagster_ray/__init__.py && touch README.md
+COPY dagster_ray/_version.py dagster_ray/_version.py
+
+# Install specific Dagster and Ray versions (for integration tests)
+ARG RAY_VERSION=2.35.0
+ARG DAGSTER_VERSION=1.8.12
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv add --no-sync "ray[all]==$RAY_VERSION" "dagster==$DAGSTER_VERSION"
 
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --all-extras --no-install-project
@@ -51,4 +61,4 @@ FROM base-${BUILD_DEPENDENCIES} AS final
 COPY . .
 
 # finally install all our code
-RUN uv sync --frozen --all-extras
+RUN uv sync --frozen --all-extras --inexact

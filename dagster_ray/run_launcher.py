@@ -1,17 +1,20 @@
 import logging
 import sys
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, cast
 
+import dagster
 from dagster import _check as check
 from dagster._cli.api import ExecuteRunArgs  # type: ignore
 from dagster._config.config_schema import UserConfigSchema
 from dagster._core.events import EngineEventData
 from dagster._core.launcher import LaunchRunContext, ResumeRunContext, RunLauncher
 from dagster._core.launcher.base import CheckRunHealthResult, WorkerStatus
+from dagster._core.remote_representation.origin import RemoteJobOrigin
 from dagster._core.storage.dagster_run import DagsterRun, DagsterRunStatus
 from dagster._grpc.types import ResumeRunArgs
 from dagster._serdes import ConfigurableClass, ConfigurableClassData
 from dagster._utils.error import serializable_error_info_from_exc_info
+from packaging.version import Version
 from pydantic import Field
 
 from dagster_ray.config import RayExecutionConfig, RayJobSubmissionClientConfig
@@ -137,10 +140,16 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
             "dagster/job": job_origin.job_name,
             "dagster/run-id": run.run_id,
         }
-        if run.external_job_origin:
-            labels["dagster/code-location"] = (
-                run.external_job_origin.repository_origin.code_location_origin.location_name
-            )
+
+        if Version(dagster.__version__) >= Version("1.8.12"):
+            remote_job_origin = run.remote_job_origin  # type: ignore
+        else:
+            remote_job_origin = run.external_job_origin  # type: ignore
+
+        remote_job_origin = cast(Optional[RemoteJobOrigin], remote_job_origin)
+
+        if remote_job_origin:
+            labels["dagster/code-location"] = remote_job_origin.repository_origin.code_location_origin.location_name
 
         cfg_from_tags = RayLauncherConfig.from_tags(run.tags)
 

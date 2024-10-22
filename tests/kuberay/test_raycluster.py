@@ -9,26 +9,8 @@ from pytest_kubernetes.providers import AClusterManager
 from dagster_ray import RayResource
 from dagster_ray.kuberay import KubeRayCluster, RayClusterClientResource, RayClusterConfig, cleanup_kuberay_clusters
 from dagster_ray.kuberay.client import RayClusterClient
-from dagster_ray.kuberay.configs import DEFAULT_HEAD_GROUP_SPEC, DEFAULT_WORKER_GROUP_SPECS
 from dagster_ray.kuberay.ops import CleanupKuberayClustersConfig
-from tests.kuberay.conftest import NAMESPACE, get_random_free_port
-
-
-@pytest.fixture(scope="session")
-def head_group_spec(dagster_ray_image: str) -> Dict[str, Any]:
-    head_group_spec = DEFAULT_HEAD_GROUP_SPEC.copy()
-    head_group_spec["serviceType"] = "LoadBalancer"
-    head_group_spec["template"]["spec"]["containers"][0]["image"] = dagster_ray_image
-    head_group_spec["template"]["spec"]["containers"][0]["imagePullPolicy"] = "IfNotPresent"
-    return head_group_spec
-
-
-@pytest.fixture(scope="session")
-def worker_group_specs(dagster_ray_image: str) -> List[Dict[str, Any]]:
-    worker_group_specs = DEFAULT_WORKER_GROUP_SPECS.copy()
-    worker_group_specs[0]["template"]["spec"]["containers"][0]["image"] = dagster_ray_image
-    worker_group_specs[0]["template"]["spec"]["containers"][0]["imagePullPolicy"] = "IfNotPresent"
-    return worker_group_specs
+from tests.kuberay.utils import NAMESPACE, get_random_free_port
 
 
 @pytest.fixture(scope="session")

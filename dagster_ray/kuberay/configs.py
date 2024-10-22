@@ -30,14 +30,14 @@ DEFAULT_HEAD_GROUP_SPEC = {
             "containers": [
                 {
                     "volumeMounts": [
-                        # {"mountPath": "/tmp/ray", "name": "log-volume"},
+                        {"mountPath": "/tmp/ray", "name": "ray-logs"},
                     ],
                     "name": "head",
                     "imagePullPolicy": "Always",
                 },
             ],
             "volumes": [
-                {"name": "log-volume", "emptyDir": {}},
+                {"name": "ray-logs", "emptyDir": {}},
             ],
             "affinity": {},
             "tolerations": [],
@@ -58,15 +58,13 @@ DEFAULT_WORKER_GROUP_SPECS = [
                 "imagePullSecrets": [],
                 "containers": [
                     {
-                        "volumeMounts": [
-                            #  {"mountPath": "/tmp/ray", "name": "log-volume"}
-                        ],
+                        "volumeMounts": [{"mountPath": "/tmp/ray", "name": "ray-logs"}],
                         "name": "worker",
                         "imagePullPolicy": "Always",
                     }
                 ],
                 "volumes": [
-                    {"name": "log-volume", "emptyDir": {}},
+                    {"name": "ray-logs", "emptyDir": {}},
                 ],
                 "affinity": {},
                 "tolerations": [],

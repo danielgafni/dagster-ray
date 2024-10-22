@@ -379,9 +379,9 @@ from dagster_ray.kuberay import PipesKubeRayJobClient
 
 @asset
 def my_asset(
-    context: AssetExecutionContext, pipes_rayjob_client: PipesKubeRayJobClient
+    context: AssetExecutionContext, pipes_kube_rayjob_client: PipesKubeRayJobClient
 ):
-    pipes_rayjob_client.run(
+    pipes_kube_rayjob_client.run(
         context=context,
         ray_job={
             # RayJob manifest goes here
@@ -404,7 +404,7 @@ def my_asset(
 
 
 definitions = Definitions(
-    resources={"pipes_rayjob_client": PipesKubeRayJobClient()}, assets=[my_asset]
+    resources={"pipes_kube_rayjob_client": PipesKubeRayJobClient()}, assets=[my_asset]
 )
 ```
 
@@ -440,7 +440,7 @@ When running locally, the `port_forward` option has to be set to `True` in the `
 ```python
 from dagster_ray.kuberay.configs import in_k8s
 
-pipes_rayjob_client = PipesKubeRayJobClient(..., port_forward=not in_k8s)
+pipes_kube_rayjob_client = PipesKubeRayJobClient(..., port_forward=not in_k8s)
 ```
 
 ## Resources

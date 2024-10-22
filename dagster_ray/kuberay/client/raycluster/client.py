@@ -24,6 +24,7 @@ from dagster_ray.kuberay.client.base import BaseKubeRayClient
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
+    from kubernetes.client import ApiClient
     from ray.job_submission import JobSubmissionClient
 
 
@@ -77,13 +78,13 @@ class RayClusterStatus(TypedDict):
 
 
 class RayClusterClient(BaseKubeRayClient):
-    def __init__(self, config_file: Optional[str] = None, context: Optional[str] = None) -> None:
-        super().__init__(
-            group=GROUP,
-            version=VERSION,
-            kind=KIND,
-            plural=PLURAL,
-        )
+    def __init__(
+        self,
+        config_file: Optional[str] = None,
+        context: Optional[str] = None,
+        api_client: Optional["ApiClient"] = None,
+    ) -> None:
+        super().__init__(group=GROUP, version=VERSION, kind=KIND, plural=PLURAL, api_client=api_client)
 
         # these are only used because of kubectl port-forward CLI command
         # TODO: remove kubectl usage and remove these attributes

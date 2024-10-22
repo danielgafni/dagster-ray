@@ -1,11 +1,14 @@
 import logging
 import time
-from typing import Iterator, Literal, Optional, TypedDict, cast
+from typing import TYPE_CHECKING, Iterator, Literal, Optional, TypedDict, cast
 
 from typing_extensions import NotRequired
 
 from dagster_ray.kuberay.client.base import BaseKubeRayClient, load_kubeconfig
 from dagster_ray.kuberay.client.raycluster import RayClusterClient, RayClusterStatus
+
+if TYPE_CHECKING:
+    from kubernetes.client import ApiClient
 
 GROUP = "ray.io"
 VERSION = "v1"
@@ -29,19 +32,19 @@ class RayJobStatus(TypedDict):
 
 
 class RayJobClient(BaseKubeRayClient):
-    def __init__(self, config_file: Optional[str] = None, context: Optional[str] = None) -> None:
+    def __init__(
+        self,
+        config_file: Optional[str] = None,
+        context: Optional[str] = None,
+        api_client: Optional["ApiClient"] = None,
+    ) -> None:
         # this call must happen BEFORE creating K8s apis
         load_kubeconfig(config_file=config_file, context=context)
 
         self.config_file = config_file
         self.context = context
 
-        super().__init__(
-            group=GROUP,
-            version=VERSION,
-            kind=KIND,
-            plural=PLURAL,
-        )
+        super().__init__(group=GROUP, version=VERSION, kind=KIND, plural=PLURAL, api_client=api_client)
 
     def get_status(self, name: str, namespace: str, timeout: int = 60, poll_interval: int = 5) -> RayJobStatus:  # type: ignore
         return cast(
