@@ -27,7 +27,7 @@ jobs:
         os:
           - Ubuntu
         py:
-          # - "3.12"
+          - "3.12"
           - "3.11"
           - "3.10"
           - "3.9"
@@ -58,7 +58,7 @@ jobs:
         run: uv python install ${{ matrix.py }} && uv python pin ${{ matrix.py }} && uv venv --python ${{ matrix.py }}
       - name: Override ray==${{ matrix.ray }} dagster==${{ matrix.dagster }}
         id: override
-        run: uv add --no-sync "ray[all]==${{ matrix.ray }}" "dagster==${{ matrix.dagster }}" || echo SKIP=1 >> $GITHUB_OUTPUT
+        run: (python scripts/check_deps.py --python ${{ matrix.py }} --dagster ${{ matrix.dagster }} --ray ${{ matrix.ray }} && uv add --no-sync "ray[all]==${{ matrix.ray }}" "dagster==${{ matrix.dagster }}") || echo SKIP=1 >> $GITHUB_OUTPUT
       - name: Install dependencies
         run: uv sync --all-extras --dev
         if: ${{ steps.override.outputs.SKIP != '1' }}
