@@ -12,13 +12,13 @@
 
 [Ray](https://github.com/ray-project/ray) integration for [Dagster](https://github.com/dagster-io/dagster).
 
-`dagster-ray` allows creating Ray clusters and running distributed computations from Dagster code. It includes:
+`dagster-ray` allows orchestrating distributed Ray compute from Dagster pipelines. It includes:
 
 - `RayRunLauncher` - a `RunLauncher` which submits Dagster runs as isolated Ray jobs (in cluster mode) to a Ray cluster.
 
 - `ray_executor` - an `Executor` which submits individual Dagster steps as isolated Ray jobs (in cluster mode) to a Ray cluster.
 
-- `RayIOManager` - an `IOManager` which allows storing and retrieving intermediate values in Ray's object store. Ideal in conjunction with `RayRunLauncher` and `ray_executor`.
+- `RayIOManager` - an `IOManager` which stores intermediate values in Ray's object store. Ideal in conjunction with `RayRunLauncher` and `ray_executor`.
 
 - `PipesRayjobClient`, a [Dagster Pipes](https://docs.dagster.io/concepts/dagster-pipes) client for launching and monitoring Ray jobs on remote clusters. Typically used with external Pythons scripts. Allows receiving rich logs, events and metadata from the job. Doesn't handle cluster management, can be used with any Ray cluster.
 
