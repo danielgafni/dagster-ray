@@ -1,6 +1,6 @@
 import logging
 import time
-from typing import TYPE_CHECKING, Iterator, Literal, Optional, TypedDict, cast
+from typing import TYPE_CHECKING, Iterator, Literal, Optional, TypedDict
 
 from typing_extensions import NotRequired
 
@@ -31,7 +31,7 @@ class RayJobStatus(TypedDict):
     message: NotRequired[str]
 
 
-class RayJobClient(BaseKubeRayClient):
+class RayJobClient(BaseKubeRayClient[RayJobStatus]):
     def __init__(
         self,
         config_file: Optional[str] = None,
@@ -45,12 +45,6 @@ class RayJobClient(BaseKubeRayClient):
         self.context = context
 
         super().__init__(group=GROUP, version=VERSION, kind=KIND, plural=PLURAL, api_client=api_client)
-
-    def get_status(self, name: str, namespace: str, timeout: int = 60, poll_interval: int = 5) -> RayJobStatus:  # type: ignore
-        return cast(
-            RayJobStatus,
-            super().get_status(name=name, namespace=namespace, timeout=timeout, poll_interval=poll_interval),
-        )
 
     def get_ray_cluster_name(self, name: str, namespace: str) -> str:
         return self.get_status(name, namespace)["rayClusterName"]
@@ -66,7 +60,7 @@ class RayJobClient(BaseKubeRayClient):
         self,
         name: str,
         namespace: str,
-        timeout: int = 300,
+        timeout: int = 600,
         poll_interval: int = 5,
     ) -> bool:
         start_time = time.time()
@@ -103,7 +97,7 @@ class RayJobClient(BaseKubeRayClient):
         self,
         name: str,
         namespace: str,
-        timeout: int = 300,
+        timeout: int = 600,
         poll_interval: int = 10,
     ):
         start_time = time.time()

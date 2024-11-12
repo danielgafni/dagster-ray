@@ -1,5 +1,5 @@
 import time
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict, Generic, Optional, TypeVar
 
 if TYPE_CHECKING:
     from kubernetes import client
@@ -18,7 +18,10 @@ def load_kubeconfig(context: Optional[str] = None, config_file: Optional[str] = 
             pass
 
 
-class BaseKubeRayClient:
+T_Status = TypeVar("T_Status")
+
+
+class BaseKubeRayClient(Generic[T_Status]):
     def __init__(
         self,
         group: str,
@@ -37,7 +40,7 @@ class BaseKubeRayClient:
         self._api = client.CustomObjectsApi(api_client=api_client)
         self._core_v1_api = client.CoreV1Api(api_client=api_client)
 
-    def wait_for_service_endpoints(self, service_name: str, namespace: str, poll_interval: int = 5, timeout: int = 60):
+    def wait_for_service_endpoints(self, service_name: str, namespace: str, poll_interval: int = 5, timeout: int = 600):
         from kubernetes.client import ApiException
 
         start_time = time.time()
@@ -63,7 +66,7 @@ class BaseKubeRayClient:
 
             time.sleep(poll_interval)
 
-    def get_status(self, name: str, namespace: str, timeout: int = 60, poll_interval: int = 5) -> Dict[str, Any]:
+    def get_status(self, name: str, namespace: str, timeout: int = 60, poll_interval: int = 5) -> T_Status:
         from kubernetes.client import ApiException
 
         while timeout > 0:

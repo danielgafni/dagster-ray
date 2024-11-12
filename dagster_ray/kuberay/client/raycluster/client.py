@@ -77,7 +77,7 @@ class RayClusterStatus(TypedDict):
     state: NotRequired[str]
 
 
-class RayClusterClient(BaseKubeRayClient):
+class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
     def __init__(
         self,
         config_file: Optional[str] = None,
@@ -90,12 +90,6 @@ class RayClusterClient(BaseKubeRayClient):
         # TODO: remove kubectl usage and remove these attributes
         self.config_file = config_file
         self.context = context
-
-    def get_status(self, name: str, namespace: str, timeout: int = 60, poll_interval: int = 5) -> RayClusterStatus:  # type: ignore
-        return cast(
-            RayClusterStatus,
-            super().get_status(name=name, namespace=namespace, timeout=timeout, poll_interval=poll_interval),
-        )
 
     def wait_until_ready(
         self,
