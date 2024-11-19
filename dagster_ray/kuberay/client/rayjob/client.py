@@ -62,6 +62,8 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
         namespace: str,
         timeout: int = 600,
         poll_interval: int = 5,
+        terminate_on_timeout: bool = True,
+        port_forward: bool = False,
     ) -> bool:
         start_time = time.time()
 
@@ -74,9 +76,17 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
                 raise RuntimeError(f"RayJob {namespace}/{name} deployment failed. Status:\n{status}")
 
             if time.time() - start_time > timeout:
-                raise TimeoutError(
-                    f"Timed out waiting for RayJob {namespace}/{name} deployment to become available. Status:\n{status}"
-                )
+                if terminate_on_timeout:
+                    logger.warning(f"Terminating RayJob {namespace}/{name} because of timeout {timeout}s")
+                    try:
+                        self.terminate(name, namespace, port_forward=port_forward)
+                    except Exception as e:
+                        logger.warning(
+                            f"Failed to gracefully terminate RayJob {namespace}/{name}: {e}, will delete it instead."
+                        )
+                        self.delete(name, namespace)
+
+                raise TimeoutError(f"Timed out waiting for RayJob {namespace}/{name} to start. Status:\n{status}")
 
             time.sleep(poll_interval)
 
