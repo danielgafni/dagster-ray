@@ -35,7 +35,8 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
         message_reader (Optional[PipesMessageReader]): A message reader to use to read messages
             from the glue job run. Defaults to :py:class:`PipesRayJobMessageReader`.
         client (Optional[boto3.client]): The Kubernetes API client.
-        forward_termination (bool): Whether to cancel the `RayJob` job run when the Dagster process receives a termination signal.
+        forward_termination (bool): Whether to terminate the Ray job when the Dagster process receives a termination signal,
+            or if the startup timeout is reached. Defaults to ``True``.
         timeout (int): Timeout for various internal interactions with the Kubernetes RayJob.
         poll_interval (int): Interval at which to poll the Kubernetes for status updates.
         port_forward (bool): Whether to use Kubernetes port-forwarding to connect to the KubeRay cluster.
@@ -169,6 +170,8 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
             namespace=namespace,
             timeout=self.timeout,
             poll_interval=self.poll_interval,
+            terminate_on_timeout=self.forward_termination,
+            port_forward=self.port_forward,
         )
 
         return self.client.get(
