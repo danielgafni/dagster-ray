@@ -89,8 +89,8 @@ class RayJobConfig(Config):
     entrypoint_memory: float
     entrypoint_num_gpus: int
     suspend: bool = False
-    annotations: Optional[dict[str, str]] = None
-    labels: Optional[dict[str, str]] = None
+    annotations: Optional[Dict[str, str]] = None
+    labels: Optional[Dict[str, str]] = None
     shutdown_after_job_finishes: bool = True
     ttl_seconds_after_finished: int = 60 * 10  # 10 minutes
     active_deadline_seconds: int = 60 * 60 * 24  # 24 hours
