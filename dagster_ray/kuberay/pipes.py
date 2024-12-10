@@ -68,7 +68,7 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
     @property
     def job_submission_client(self) -> "JobSubmissionClient":
         if self._job_submission_client is None:
-            raise DagsterInvariantViolationError("JobSubmissionClient is not available inside the run method.")
+            raise DagsterInvariantViolationError("JobSubmissionClient is only available inside the run method.")
         else:
             return self._job_submission_client
 
