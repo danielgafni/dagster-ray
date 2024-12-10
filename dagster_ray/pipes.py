@@ -165,11 +165,11 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
     Starts the job directly on the Ray cluster and reads the logs from the job.
 
     Args:
+        client (JobSubmissionClient): The Ray job submission client
         context_injector (Optional[PipesContextInjector]): A context injector to use to inject
             context into the Ray job. Defaults to :py:class:`PipesEnvContextInjector`.
         message_reader (Optional[PipesMessageReader]): A message reader to use to read messages
             from the glue job run. Defaults to :py:class:`PipesRayJobMessageReader`.
-        client (Optional[boto3.client]): The Kubernetes API client.
         forward_termination (bool): Whether to cancel the `RayJob` job run when the Dagster process receives a termination signal.
         timeout (int): Timeout for various internal interactions with the Kubernetes RayJob.
         poll_interval (int): Interval at which to poll the Kubernetes for status updates.
