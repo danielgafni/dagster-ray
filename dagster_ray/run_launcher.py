@@ -1,3 +1,4 @@
+import json
 import logging
 import sys
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, cast
@@ -127,12 +128,9 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
             ).get_command_args()
         )
 
-        # wrap the json in quotes to prevent erros with shell commands
-        args[-1] = "'" + args[-1] + "'"
+        self._launch_ray_job(submission_id, args, run)
 
-        self._launch_ray_job(submission_id, " ".join(args), run)
-
-    def _launch_ray_job(self, submission_id: str, entrypoint: str, run: DagsterRun):
+    def _launch_ray_job(self, submission_id: str, args: List[str], run: DagsterRun):
         # note: entrypoint is a shell command
         job_origin = check.not_none(run.job_code_origin)
 
@@ -169,8 +167,32 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
             }
         )
 
+        json_data = json.loads(args[-1])
+
+        if (
+            json_data.get("pipeline_origin", {})
+            .get("repository_origin", {})
+            .get("code_pointer", {})
+            .get("working_directory")
+            is not None
+            and self.runtime_env.get("working_dir") is not None
+        ):
+            # remove dagster working_dir
+            # it will pick up $PWD in this case
+            del json_data["pipeline_origin"]["repository_origin"]["code_pointer"]["working_directory"]
+
+        args[-1] = json.dumps(json_data)
+
+        # wrap with quotes to avoid issues with shells
+        args[-1] = "'" + args[-1] + "'"
+
+        dagster_cmd = " ".join(args)
+
+        # FIXME: Dagster is not picking up Definition from $PWD
+        entrypoint = f"export PYTHONPATH=$PWD:$PYTHONPATH && {dagster_cmd}"
+
         self._instance.report_engine_event(
-            "Creating Ray run job",
+            "Creating Ray job for the run",
             run,
             EngineEventData(
                 {
@@ -214,10 +236,7 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
             ).get_command_args()
         )
 
-        # wrap the json in quotes to prevent erros with shell commands
-        args[-1] = "'" + args[-1] + "'"
-
-        self._launch_ray_job(submission_id, " ".join(args), run)
+        self._launch_ray_job(submission_id, args, run)
 
     def terminate(self, run_id: str) -> bool:
         check.str_param(run_id, "run_id")
@@ -288,7 +307,7 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
         # something went wrong
         if run.status in (DagsterRunStatus.STARTED, DagsterRunStatus.CANCELING) and status.is_terminal():
             return CheckRunHealthResult(
-                WorkerStatus.FAILED, f"Run has not completed but Ray job has is in status: {status}"
+                WorkerStatus.FAILED, f"Dagster run has not completed but Ray job has is in status: {status}"
             )
 
         elif status == JobStatus.FAILED:
