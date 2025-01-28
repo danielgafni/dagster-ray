@@ -9,26 +9,28 @@ services:
     volumes:
       - ./dagster.yaml:/dagster_home/dagster.yaml
       - ./workspace.yaml:/dagster_home/workspace.yaml
-      - /tmp/io_manager_storage:/tmp/io_manager_storage
+      - storage:/storage
+      - logs:/logs
     networks:
       - db
 
-  ray-worker:
-    build:
-      context: ../../../
-      dockerfile: examples/docker/run_launcher/Dockerfile
-    command: ["ray", "start", "--block", "--address", "ray-head:6379"]
-    volumes:
-      - ./dagster.yaml:/dagster_home/dagster.yaml
-      - ./workspace.yaml:/dagster_home/workspace.yaml
-      - /tmp/io_manager_storage:/tmp/io_manager_storage
-    depends_on:
-      - ray-head
-    networks:
-      - db
-    deploy:
-      mode: replicated
-      replicas: 2
+  # ray-worker:
+  #   build:
+  #     context: ../../../
+  #     dockerfile: examples/docker/run_launcher/Dockerfile
+  #   command: ["ray", "start", "--block", "--address", "ray-head:6379"]
+  #   volumes:
+  #     - ./dagster.yaml:/dagster_home/dagster.yaml
+  #     - ./workspace.yaml:/dagster_home/workspace.yaml
+  #     - storage:/storage
+  #     - logs:/logs
+  #   depends_on:
+  #     - ray-head
+  #   networks:
+  #     - db
+  #   deploy:
+  #     mode: replicated
+  #     replicas: 2
 
   # This service runs the postgres DB used by dagster for run storage, schedule storage,
   # and event log storage.
@@ -52,16 +54,16 @@ services:
       DAGSTER_POSTGRES_DB: "postgres_db"
     command:
       - dagster
-      - api
-      - grpc
-      - --python-file
-      - /dagster_home/definitions.py
+      - code-server
+      - start
       - --host
-      - 0.0.0.0
+      - "0.0.0.0"
       - --port
       - "4266"
+      - --package-name
+      - example
     volumes:
-      - .:/dagster_home
+      - ./example:/dagster_home/example
     networks:
       - db
 
@@ -69,14 +71,14 @@ services:
     build:
       context: ../../../
       dockerfile: examples/docker/run_launcher/Dockerfile
-    entrypoint:
+    command:
       - dagster-webserver
       - -h
       - "0.0.0.0"
       - -p
       - "3000"
       - -w
-      - workspace.yaml
+      - /dagster_home/workspace.yaml
     expose:
       - "3000"
     ports:
@@ -87,7 +89,9 @@ services:
       DAGSTER_POSTGRES_DB: "postgres_db"
     volumes: # Make docker client accessible so we can terminate containers from the webserver
       - /var/run/docker.sock:/var/run/docker.sock
-      - /tmp/io_manager_storage:/tmp/io_manager_storage
+      - storage:/storage
+      - logs:/logs
+      - ./example:/dagster_home/example
     networks:
       - db
     depends_on:
@@ -98,9 +102,11 @@ services:
     build:
       context: ../../../
       dockerfile: examples/docker/run_launcher/Dockerfile
-    entrypoint:
+    command:
       - dagster-daemon
       - run
+      - -w
+      - /dagster_home/workspace.yaml
     restart: on-failure
     environment:
       DAGSTER_POSTGRES_USER: "postgres_user"
@@ -108,8 +114,9 @@ services:
       DAGSTER_POSTGRES_DB: "postgres_db"
     volumes: # Make docker client accessible so we can launch containers using host docker
       - /var/run/docker.sock:/var/run/docker.sock
-      - /tmp/io_manager_storage:/tmp/io_manager_storage
-      - .:/dagster_home
+      - ./example:/dagster_home/example
+      - storage:/storage
+      - logs:/logs
     networks:
       - db
     depends_on:
@@ -120,3 +127,7 @@ networks:
   db:
     driver: bridge
     name: db
+
+volumes:
+  logs:
+  storage:

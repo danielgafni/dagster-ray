@@ -1,0 +1,18 @@
+[project]
+name = "example"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.8.1"
+dependencies = [
+    "dagster",
+    "dagster-graphql",
+    "dagster-webserver",
+    "dagster-postgres",
+    "dagster-docker",
+    "dagster-k8s",
+    "ray[all]"
+]
+
+[tool.dagster]
+module_name = "example.definitions"
