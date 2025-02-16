@@ -3,9 +3,9 @@ from dagster import AssetExecutionContext, StaticPartitionsDefinition, asset, ma
 from dagster_ray import RayIOManager
 
 
-def test_ray_io_manager():
+def test_ray_io_manager() -> None:
     @asset
-    def upstream():
+    def upstream() -> int:
         return 1
 
     @asset
@@ -18,7 +18,7 @@ def test_ray_io_manager():
     )
 
 
-def test_ray_io_manager_partitioned():
+def test_ray_io_manager_partitioned() -> None:
     partitions_def = StaticPartitionsDefinition(partition_keys=["A", "B", "C"])
 
     @asset(partitions_def=partitions_def)
@@ -37,7 +37,7 @@ def test_ray_io_manager_partitioned():
         )
 
 
-def test_ray_io_manager_partition_mapping():
+def test_ray_io_manager_partition_mapping() -> None:
     partitions_def = StaticPartitionsDefinition(partition_keys=["A", "B", "C"])
 
     @asset(partitions_def=partitions_def)
@@ -52,5 +52,6 @@ def test_ray_io_manager_partition_mapping():
         materialize([upsteram_partitioned], resources={"io_manager": RayIOManager()}, partition_key=partition_key)
 
     materialize(
-        [upsteram_partitioned.to_source_asset(), downstream_non_partitioned], resources={"io_manager": RayIOManager()}
+        [upsteram_partitioned.to_source_asset(), downstream_non_partitioned],
+        resources={"io_manager": RayIOManager()},
     )

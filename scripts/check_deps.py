@@ -13,12 +13,13 @@ def check_python_312(
     python: Version,
     dagster: Version,
     ray: Version,
-):
+) -> None:
     if python >= Version("3.12") and ray < Version("2.37.0"):
-        raise RuntimeError("Ray version must be >=2.37.0 for Python >=3.12")
+        msg = "Ray version must be >=2.37.0 for Python >=3.12"
+        raise RuntimeError(msg)
 
 
-def main():
+def main() -> None:
     args = parser.parse_args()
     check_python_312(
         python=args.python,

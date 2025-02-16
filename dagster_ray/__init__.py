@@ -9,11 +9,11 @@ RayResource = BaseRayResource
 
 
 __all__ = [
+    "LocalRay",
+    "PipesRayJobClient",
+    "PipesRayJobMessageReader",
+    "RayIOManager",
     "RayResource",
     "RayRunLauncher",
-    "RayIOManager",
     "ray_executor",
-    "PipesRayJobMessageReader",
-    "PipesRayJobClient",
-    "LocalRay",
 ]

@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-from collections.abc import Mapping
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from dagster import Config
 from pydantic import Field
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
 USER_DEFINED_RAY_KEY = "dagster-ray/config"
 
@@ -20,8 +22,7 @@ class RayExecutionConfig(Config):
     def from_tags(cls, tags: Mapping[str, str]) -> RayExecutionConfig:
         if USER_DEFINED_RAY_KEY in tags:
             return cls.parse_raw(tags[USER_DEFINED_RAY_KEY])
-        else:
-            return cls()
+        return cls()
 
 
 class RayJobSubmissionClientConfig(Config):
@@ -38,7 +39,8 @@ class RayJobSubmissionClientConfig(Config):
             for cases like authentication to a remote cluster.""",
     )
     cookies: dict[str, Any] | None = Field(
-        default=None, description="Cookies to use when sending requests to the HTTP job server."
+        default=None,
+        description="Cookies to use when sending requests to the HTTP job server.",
     )
 
 
@@ -56,7 +58,7 @@ class RayDataExecutionOptions(Config):
     verbose_progress: bool = True
     use_polars: bool = True
 
-    def apply(self):
+    def apply(self) -> None:
         import ray
         from ray.data import ExecutionResources
 
@@ -71,11 +73,11 @@ class RayDataExecutionOptions(Config):
         ctx.verbose_progress = self.verbose_progress
         ctx.use_polars = self.use_polars
 
-    def apply_remote(self):
+    def apply_remote(self) -> None:
         import ray
 
         @ray.remote
-        def apply():
+        def apply() -> None:
             self.apply()
 
         ray.get(apply.remote())

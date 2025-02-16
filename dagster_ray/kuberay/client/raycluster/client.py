@@ -1,16 +1,15 @@
+from __future__ import annotations
+
 import logging
 import socket
 import subprocess
 import threading
 import time
-from collections.abc import Iterator
 from contextlib import contextmanager
-from io import FileIO
 from queue import Queue
 from typing import (
     TYPE_CHECKING,
     Any,
-    Optional,
     TypedDict,
     cast,
 )
@@ -22,6 +21,9 @@ from dagster_ray.kuberay.client.base import BaseKubeRayClient
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+    from io import FileIO
+
     from kubernetes.client import ApiClient
     from ray.job_submission import JobSubmissionClient
 
@@ -32,7 +34,7 @@ PLURAL = "rayclusters"
 KIND = "RayCluster"
 
 
-def enqueue_output(out: FileIO, queue: Queue, should_stop):
+def enqueue_output(out: FileIO, queue: Queue, should_stop) -> None:
     for line in iter(out.readline, b""):
         if should_stop():
             return
@@ -78,9 +80,9 @@ class RayClusterStatus(TypedDict):
 class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
     def __init__(
         self,
-        config_file: Optional[str] = None,
-        context: Optional[str] = None,
-        api_client: Optional["ApiClient"] = None,
+        config_file: str | None = None,
+        context: str | None = None,
+        api_client: ApiClient | None = None,
     ) -> None:
         super().__init__(group=GROUP, version=VERSION, kind=KIND, plural=PLURAL, api_client=api_client)
 
@@ -94,7 +96,7 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
         name: str,
         namespace: str,
         timeout: int,
-        image: Optional[str] = None,
+        image: str | None = None,
     ) -> tuple[str, dict[str, str]]:
         from kubernetes import watch
 
@@ -126,8 +128,9 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
             status: RayClusterStatus = item["status"]
 
             if status.get("state") == "failed":
-                raise Exception(
-                    f"RayCluster {namespace}/{name} failed to start. Reason:\n{status.get('reason')}\nMore details: `kubectl -n {namespace} describe RayCluster {name}`"
+                msg = f"RayCluster {namespace}/{name} failed to start. Reason:\n{status.get('reason')}\nMore details: `kubectl -n {namespace} describe RayCluster {name}`"  # noqa: E501
+                raise RuntimeError(
+                    msg,
                 )
 
             if (
@@ -137,22 +140,23 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
                 and status.get("head")
                 and status.get("endpoints", {}).get("dashboard")
             ):
-                if image is not None:
-                    if (
-                        item.get("spec")  # type: ignore
-                        and item["spec"]["headGroupSpec"]["template"]["spec"]["containers"][0]["image"]  # type: ignore
-                        != image
-                    ):
-                        continue
+                if image is not None and (
+                    item.get("spec")  # type: ignore
+                    and item["spec"]["headGroupSpec"]["template"]["spec"]["containers"][0]["image"]  # type: ignore
+                    != image
+                ):
+                    continue
                 w.stop()
                 logger.debug(f"RayCluster {namespace}/{name} is ready!")
                 return status["head"]["serviceIP"], status["endpoints"]  # type: ignore
 
             if time.time() - start_time > timeout:
                 w.stop()
-                raise TimeoutError(f"Timed out waiting for RayCluster {namespace}/{name} to be ready. Status: {status}")
+                msg = f"Timed out waiting for RayCluster {namespace}/{name} to be ready. Status: {status}"
+                raise TimeoutError(msg)
 
-        raise Exception("This code should be unreachable")
+        msg = "This code should be unreachable"
+        raise Exception(msg)
 
     @contextmanager
     def port_forward(
@@ -162,8 +166,7 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
         local_dashboard_port: int = 8265,
         local_gcs_port: int = 10001,
     ) -> Iterator[tuple[int, int]]:
-        """
-        Port forwards the Ray dashboard and GCS ports to localhost.
+        """Port forwards the Ray dashboard and GCS ports to localhost.
         Use 0 for local_dashboard_port and local_gcs_port to get random available ports.
         Returns the ports that the dashboard and GCS are forwarded to.
         """
@@ -176,7 +179,8 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
         service = f"{name}-head-svc"
 
         if not self.get_status(name, namespace):
-            raise RuntimeError(f"RayCluster {name} does not exist in namespace {namespace}")
+            msg = f"RayCluster {name} does not exist in namespace {namespace}"
+            raise RuntimeError(msg)
 
         self.wait_for_service_endpoints(service_name=service, namespace=namespace)
 
@@ -217,8 +221,9 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
 
             while True:
                 if process.poll() is not None:
+                    msg = f"port-forwarding command: `{' '.join(cmd)}` failed. Most likely ports {local_dashboard_port} or {local_gcs_port} are  already in use, or Kubernetes service {name}-head-svc does not exist in namespace {namespace}."  # noqa: E501
                     raise RuntimeError(
-                        f"port-forwarding command: `{' '.join(cmd)}` failed. Most likely ports {local_dashboard_port} or {local_gcs_port} are  already in use, or Kubernetes service {name}-head-svc does not exist in namespace {namespace}."
+                        msg,
                     )
 
                 line = queue.get()
@@ -227,7 +232,7 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
                     break
 
             logger.info(
-                f"Connecting to {namespace}/{name} via port-forwarding for ports {local_dashboard_port} and {local_gcs_port}..."
+                f"Connecting to {namespace}/{name} via port-forwarding for ports {local_dashboard_port} and {local_gcs_port}...",  # noqa: E501
             )
 
             yield local_dashboard_port, local_gcs_port
@@ -241,14 +246,19 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
 
     @contextmanager
     def job_submission_client(
-        self, name: str, namespace: str, port_forward: bool = False, timeout: int = 60
-    ) -> Iterator["JobSubmissionClient"]:
+        self,
+        name: str,
+        namespace: str,
+        port_forward: bool = False,
+        timeout: int = 60,
+    ) -> Iterator[JobSubmissionClient]:
+        """Returns a JobSubmissionClient object that can be used to interact with Ray jobs running
+            in the KubeRay cluster.
+        If port_forward is True, it will port forward the dashboard and GCS ports to localhost,
+            and should be used in a context manager.
+        If port_forward is False, the client will connect to the dashboard directly
+            (assuming the dashboard is accessible from the host).
         """
-        Returns a JobSubmissionClient object that can be used to interact with Ray jobs running in the KubeRay cluster.
-        If port_forward is True, it will port forward the dashboard and GCS ports to localhost, and should be used in a context manager.
-        If port_forward is False, the client will connect to the dashboard directly (assuming the dashboard is accessible from the host).
-        """
-
         from ray.job_submission import JobSubmissionClient
 
         if not port_forward:

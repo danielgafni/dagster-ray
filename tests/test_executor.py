@@ -34,7 +34,7 @@ def sum_one_and_two(a: int, b: int) -> int:
 
 
 @job(executor_def=ray_executor)
-def my_job():
+def my_job() -> None:
     return_two_result = return_two()
     return_one_result = return_one()
     sum_one_and_two(return_one_result, return_two_result)
@@ -42,11 +42,12 @@ def my_job():
 
 @op
 def failed_op() -> None:
-    raise RuntimeError("This op failed!")
+    msg = "This op failed!"
+    raise RuntimeError(msg)
 
 
 @job(executor_def=ray_executor)
-def my_failing_job():
+def my_failing_job() -> None:
     failed_op()
 
 
@@ -56,7 +57,7 @@ def dagster_instance() -> Iterator[DagsterInstance]:
         yield instance
 
 
-def test_ray_executor(local_ray_address: str, dagster_instance: DagsterInstance):
+def test_ray_executor(local_ray_address: str, dagster_instance: DagsterInstance) -> None:
     result = execute_job(
         job=reconstructable(my_job),
         instance=dagster_instance,
@@ -64,8 +65,8 @@ def test_ray_executor(local_ray_address: str, dagster_instance: DagsterInstance)
             "execution": {
                 "config": {
                     "ray": {"address": local_ray_address},
-                }
-            }
+                },
+            },
         },
     )
 
@@ -76,13 +77,13 @@ ray_io_manager = RayIOManager()
 
 
 @job(executor_def=ray_executor, resource_defs={"io_manager": ray_io_manager})
-def my_job_with_ray_io_manager():
+def my_job_with_ray_io_manager() -> None:
     return_two_result = return_two()
     return_one_result = return_one()
     sum_one_and_two(return_one_result, return_two_result)
 
 
-def test_ray_executor_with_ray_io_manager(local_ray_address: str, dagster_instance: DagsterInstance):
+def test_ray_executor_with_ray_io_manager(local_ray_address: str, dagster_instance: DagsterInstance) -> None:
     result = execute_job(
         job=reconstructable(my_job_with_ray_io_manager),
         instance=dagster_instance,
@@ -90,15 +91,15 @@ def test_ray_executor_with_ray_io_manager(local_ray_address: str, dagster_instan
             "execution": {
                 "config": {
                     "ray": {"address": local_ray_address},
-                }
-            }
+                },
+            },
         },
     )
 
     assert result.success, result.get_step_failure_events()[0].event_specific_data
 
 
-def test_ray_executor_local_failing(local_ray_address: str, dagster_instance: DagsterInstance):
+def test_ray_executor_local_failing(local_ray_address: str, dagster_instance: DagsterInstance) -> None:
     result = execute_job(
         job=reconstructable(my_failing_job),
         instance=dagster_instance,
@@ -106,8 +107,8 @@ def test_ray_executor_local_failing(local_ray_address: str, dagster_instance: Da
             "execution": {
                 "config": {
                     "ray": {"address": local_ray_address},
-                }
-            }
+                },
+            },
         },
     )
     assert result.get_failed_step_keys() == {"failed_op"}
@@ -116,7 +117,7 @@ def test_ray_executor_local_failing(local_ray_address: str, dagster_instance: Da
 RUNTIME_ENV = {"pip": ["polars"], "env_vars": {"FOO": "bar"}}
 
 
-def runtime_env_checks():
+def runtime_env_checks() -> None:
     import polars  # noqa  # type: ignore
     import os
 
@@ -124,16 +125,16 @@ def runtime_env_checks():
 
 
 @op
-def op_testing_runtime_env():
+def op_testing_runtime_env() -> None:
     runtime_env_checks()
 
 
 @job(executor_def=ray_executor)
-def job_testing_runtime_env():
+def job_testing_runtime_env() -> None:
     op_testing_runtime_env()
 
 
-def test_ray_executor_local_runtime_env(local_ray_address: str, dagster_instance: DagsterInstance):
+def test_ray_executor_local_runtime_env(local_ray_address: str, dagster_instance: DagsterInstance) -> None:
     # first test this runtime_env just with ray
 
     import ray
@@ -147,24 +148,26 @@ def test_ray_executor_local_runtime_env(local_ray_address: str, dagster_instance
             "execution": {
                 "config": {
                     "ray": {"address": local_ray_address, "runtime_env": RUNTIME_ENV},
-                }
-            }
+                },
+            },
         },
     )
     assert result.success, result.get_step_failure_events()[0].event_specific_data
 
 
 @op(tags={"dagster-ray/config": {"runtime_env": RUNTIME_ENV}})
-def op_with_user_provided_runtime_env():
+def op_with_user_provided_runtime_env() -> None:
     runtime_env_checks()
 
 
 @job(executor_def=ray_executor)
-def job_with_user_provided_runtime_env():
+def job_with_user_provided_runtime_env() -> None:
     op_with_user_provided_runtime_env()
 
 
-def test_ray_executor_local_user_provided_runtime_env(local_ray_address: str, dagster_instance: DagsterInstance):
+def test_ray_executor_local_user_provided_runtime_env(
+    local_ray_address: str, dagster_instance: DagsterInstance
+) -> None:
     # first test this runtime_env just with ray
 
     import ray
@@ -178,8 +181,8 @@ def test_ray_executor_local_user_provided_runtime_env(local_ray_address: str, da
             "execution": {
                 "config": {
                     "ray": {"address": local_ray_address},
-                }
-            }
+                },
+            },
         },
     )
     assert result.success, result.get_step_failure_events()[0].event_specific_data

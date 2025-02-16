@@ -20,18 +20,16 @@ def pipes_ray_job_client(local_ray_address: str) -> PipesRayJobClient:
     return PipesRayJobClient(client=JobSubmissionClient(address=local_ray_address))
 
 
-def test_ray_job_pipes(pipes_ray_job_client: PipesRayJobClient, capsys):
+def test_ray_job_pipes(pipes_ray_job_client: PipesRayJobClient, capsys) -> None:
     @asset
     def my_asset(context: AssetExecutionContext, pipes_ray_job_client: PipesRayJobClient):
-        result = pipes_ray_job_client.run(
+        return pipes_ray_job_client.run(
             context=context,
             submit_job_params={
                 "entrypoint": f"{sys.executable} {LOCAL_SCRIPT_PATH}",
             },
             extras={"foo": "bar"},
         ).get_materialize_result()
-
-        return result
 
     with instance_for_test() as instance:
         result = materialize(
@@ -42,9 +40,6 @@ def test_ray_job_pipes(pipes_ray_job_client: PipesRayJobClient, capsys):
 
         captured = capsys.readouterr()
 
-        print(captured.out)
-        print(captured.err, file=sys.stderr)
-
         mat_evts = result.get_asset_materialization_events()
 
         mat = instance.get_latest_materialization_event(my_asset.key)
@@ -54,7 +49,8 @@ def test_ray_job_pipes(pipes_ray_job_client: PipesRayJobClient, capsys):
 
         assert result.success
         assert mat
-        assert mat and mat.asset_materialization
+        assert mat
+        assert mat.asset_materialization
         assert mat.asset_materialization.metadata["some_metric"].value == 0
         assert mat.asset_materialization.tags
         assert mat.asset_materialization.tags[DATA_VERSION_TAG] == "alpha"

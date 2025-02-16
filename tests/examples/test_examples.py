@@ -15,9 +15,10 @@ RUN_LAUNCHER_AND_EXECUTOR_EXAMPLE_DIR = LOCAL_EXAMPLES_DIR / "run_launcher_and_e
 
 
 @pytest.mark.parametrize(
-    "example_dir", [RUN_LAUNCHER_EXAMPLE_DIR, EXECUTOR_EXAMPLE_DIR, RUN_LAUNCHER_AND_EXECUTOR_EXAMPLE_DIR]
+    "example_dir",
+    [RUN_LAUNCHER_EXAMPLE_DIR, EXECUTOR_EXAMPLE_DIR, RUN_LAUNCHER_AND_EXECUTOR_EXAMPLE_DIR],
 )
-def test_ray_run_launcher(local_ray_address: str, example_dir: Path, tmp_path_factory):
+def test_ray_run_launcher(local_ray_address: str, example_dir: Path, tmp_path_factory) -> None:
     dagster_home = tmp_path_factory.mktemp("dagster_home")
 
     # copy dagter.yaml from example_dir to dagster_home

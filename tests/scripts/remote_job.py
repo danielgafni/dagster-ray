@@ -1,5 +1,3 @@
-import sys
-
 from dagster_pipes import open_dagster_pipes
 
 with open_dagster_pipes() as pipes:
@@ -9,5 +7,3 @@ with open_dagster_pipes() as pipes:
         metadata={"some_metric": {"raw_value": 0, "type": "int"}},
         data_version="alpha",
     )
-    print("Hello from stdout!")
-    print("Hello from stderr!", file=sys.stderr)

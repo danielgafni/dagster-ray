@@ -1,5 +1,3 @@
-import sys
-
 import pytest
 import ray  # noqa: TID253
 from dagster import AssetExecutionContext, DagsterEventType, EventRecordsFilter, asset, materialize
@@ -46,7 +44,7 @@ RAY_JOB = {
                                 "imagePullPolicy": "IfNotPresent",
                                 "name": "ray-head",
                                 "securityContext": {"runAsUser": 0},
-                            }
+                            },
                         ],
                         # "serviceAccountName": "ray",
                         "volumes": [],
@@ -73,16 +71,14 @@ def pipes_kube_rayjob_client(k8s_with_kuberay: AClusterManager):
     )
 
 
-def test_rayjob_pipes(pipes_kube_rayjob_client: PipesKubeRayJobClient, dagster_ray_image: str, capsys):
+def test_rayjob_pipes(pipes_kube_rayjob_client: PipesKubeRayJobClient, dagster_ray_image: str, capsys) -> None:
     @asset
     def my_asset(context: AssetExecutionContext, pipes_kube_rayjob_client: PipesKubeRayJobClient):
-        result = pipes_kube_rayjob_client.run(
+        return pipes_kube_rayjob_client.run(
             context=context,
             ray_job=RAY_JOB,
             extras={"foo": "bar"},
         ).get_materialize_result()
-
-        return result
 
     with instance_for_test() as instance:
         result = materialize(
@@ -94,9 +90,6 @@ def test_rayjob_pipes(pipes_kube_rayjob_client: PipesKubeRayJobClient, dagster_r
 
         captured = capsys.readouterr()
 
-        print(captured.out)
-        print(captured.err, file=sys.stderr)
-
         mat_evts = result.get_asset_materialization_events()
 
         mat = instance.get_latest_materialization_event(my_asset.key)
@@ -106,7 +99,8 @@ def test_rayjob_pipes(pipes_kube_rayjob_client: PipesKubeRayJobClient, dagster_r
 
         assert result.success
         assert mat
-        assert mat and mat.asset_materialization
+        assert mat
+        assert mat.asset_materialization
         assert mat.asset_materialization.metadata["some_metric"].value == 0
         assert mat.asset_materialization.tags
         assert mat.asset_materialization.tags[DATA_VERSION_TAG] == "alpha"
@@ -123,20 +117,18 @@ def pipes_ray_job_client(k8s_with_raycluster: tuple[dict[str, str], AClusterMana
     return PipesRayJobClient(
         client=JobSubmissionClient(
             address=hosts["dashboard"],
-        )
+        ),
     )
 
 
-def test_ray_job_pipes(pipes_ray_job_client: PipesRayJobClient, capsys):
+def test_ray_job_pipes(pipes_ray_job_client: PipesRayJobClient, capsys) -> None:
     @asset
     def my_asset(context: AssetExecutionContext, pipes_ray_job_client: PipesRayJobClient):
-        result = pipes_ray_job_client.run(
+        return pipes_ray_job_client.run(
             context=context,
             submit_job_params={"entrypoint": ENTRYPOINT, "entrypoint_num_cpus": 0.1},
             extras={"foo": "bar"},
         ).get_materialize_result()
-
-        return result
 
     with instance_for_test() as instance:
         result = materialize(
@@ -147,9 +139,6 @@ def test_ray_job_pipes(pipes_ray_job_client: PipesRayJobClient, capsys):
 
         captured = capsys.readouterr()
 
-        print(captured.out)
-        print(captured.err, file=sys.stderr)
-
         mat_evts = result.get_asset_materialization_events()
 
         mat = instance.get_latest_materialization_event(my_asset.key)
@@ -159,7 +148,8 @@ def test_ray_job_pipes(pipes_ray_job_client: PipesRayJobClient, capsys):
 
         assert result.success
         assert mat
-        assert mat and mat.asset_materialization
+        assert mat
+        assert mat.asset_materialization
         assert mat.asset_materialization.metadata["some_metric"].value == 0
         assert mat.asset_materialization.tags
         assert mat.asset_materialization.tags[DATA_VERSION_TAG] == "alpha"

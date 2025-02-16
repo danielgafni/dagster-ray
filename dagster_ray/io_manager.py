@@ -1,9 +1,10 @@
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING
 
 from dagster import ConfigurableIOManager, InputContext, OutputContext
 
 DAGSTER_RAY_OBJECT_MAP_NAME = "DagsterRayObjectMap"
 DAGSTER_RAY_NAMESPACE = "dagster-ray"
+from __future__ import annotations
 
 # we need to create a global Ray actor which will store all the refs to all objcets
 
@@ -15,23 +16,23 @@ class RayObjectMap:
     # TODO: implement some eventual cleanup mechanism
     # idea: save creation timestamp and periodically check for old refs
     # or add some integration with the RunLauncher/Executor
-    def __init__(self):
+    def __init__(self) -> None:
         self._object_map: dict[str, ray.ObjectRef] = {}
 
-    def set(self, key: str, ref: "ray.ObjectRef"):
+    def set(self, key: str, ref: ray.ObjectRef) -> None:
         self._object_map[key] = ref
 
-    def get(self, key: str) -> Optional["ray.ObjectRef"]:
+    def get(self, key: str) -> ray.ObjectRef | None:
         return self._object_map.get(key)
 
-    def delete(self, key: str):
+    def delete(self, key: str) -> None:
         if key in self._object_map:
             del self._object_map[key]
 
     def keys(self):
         return self._object_map.keys()
 
-    def ping(self):
+    def ping(self) -> str:
         return "pong"
 
     @staticmethod
@@ -59,9 +60,9 @@ class RayObjectMap:
 
 
 class RayIOManager(ConfigurableIOManager):
-    address: Optional[str] = None
+    address: str | None = None
 
-    def handle_output(self, context: OutputContext, obj):
+    def handle_output(self, context: OutputContext, obj) -> None:
         import ray
 
         if self.address:  # TODO: should this really be done here?
@@ -95,10 +96,9 @@ class RayIOManager(ConfigurableIOManager):
             storage_keys = self._get_multiple_keys(context)
             refs = [object_map.get.remote(key) for key in storage_keys.values()]  # type: ignore
             values = ray.get(refs)
-            return {partition_key: value for partition_key, value in zip(storage_keys.keys(), values)}
+            return dict(zip(storage_keys.keys(), values))
 
-        else:
-            storage_key = self._get_single_key(context)
+        storage_key = self._get_single_key(context)
 
         context.log.debug(f"[RayIOManager] Loading object with key {storage_key}")
 
@@ -108,7 +108,7 @@ class RayIOManager(ConfigurableIOManager):
 
         return ray.get(ref)
 
-    def _get_single_key(self, context: Union[InputContext, OutputContext]) -> str:
+    def _get_single_key(self, context: InputContext | OutputContext) -> str:
         identifier = context.get_identifier() if not context.has_asset_key else context.get_asset_identifier()
         return "/".join(identifier)
 
@@ -117,9 +117,9 @@ class RayIOManager(ConfigurableIOManager):
             asset_path = list(context.asset_key.path)
 
             return {
-                partition_key: "/".join(asset_path + [partition_key]) for partition_key in context.asset_partition_keys
+                partition_key: "/".join([*asset_path, partition_key]) for partition_key in context.asset_partition_keys
             }
-        else:
-            raise RuntimeError(
-                "[RayIOManager] This method can only be called with an InputContext that has multiple partitions"
-            )
+        msg = "[RayIOManager] This method can only be called with an InputContext that has multiple partitions"
+        raise RuntimeError(
+            msg,
+        )

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import time
-from typing import TYPE_CHECKING, Any, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, Union, cast
 
 import dagster._check as check
 import yaml
@@ -12,9 +14,7 @@ from dagster._core.pipes.client import (
     PipesContextInjector,
     PipesMessageReader,
 )
-from dagster._core.pipes.context import PipesSession
 from dagster._core.pipes.utils import PipesEnvContextInjector, open_pipes_session
-from dagster_pipes import PipesExtras
 from typing_extensions import TypeAlias
 
 from dagster_ray._base.utils import get_dagster_tags
@@ -23,6 +23,8 @@ from dagster_ray.kuberay.client.rayjob.client import RayJobStatus
 from dagster_ray.pipes import PipesRayJobMessageReader, generate_job_id
 
 if TYPE_CHECKING:
+    from dagster._core.pipes.context import PipesSession
+    from dagster_pipes import PipesExtras
     from ray.job_submission import JobSubmissionClient
 
 OpOrAssetExecutionContext: TypeAlias = Union[OpExecutionContext, AssetExecutionContext]
@@ -38,24 +40,25 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
         message_reader (Optional[PipesMessageReader]): A message reader to use to read messages
             from the glue job run. Defaults to :py:class:`PipesRayJobMessageReader`.
         client (Optional[boto3.client]): The Kubernetes API client.
-        forward_termination (bool): Whether to terminate the Ray job when the Dagster process receives a termination signal,
-            or if the startup timeout is reached. Defaults to ``True``.
+        forward_termination (bool): Whether to terminate the Ray job when the Dagster process receives
+            a termination signal, or if the startup timeout is reached. Defaults to ``True``.
         timeout (int): Timeout for various internal interactions with the Kubernetes RayJob.
         poll_interval (int): Interval at which to poll the Kubernetes for status updates.
         port_forward (bool): Whether to use Kubernetes port-forwarding to connect to the KubeRay cluster.
         Is useful when running in a local environment.
+
     """
 
     def __init__(
         self,
-        client: Optional[RayJobClient] = None,
-        context_injector: Optional[PipesContextInjector] = None,
-        message_reader: Optional[PipesMessageReader] = None,
+        client: RayJobClient | None = None,
+        context_injector: PipesContextInjector | None = None,
+        message_reader: PipesMessageReader | None = None,
         forward_termination: bool = True,
         timeout: int = 600,
         poll_interval: int = 5,
         port_forward: bool = False,
-    ):
+    ) -> None:
         self.client: RayJobClient = client or RayJobClient()
 
         self._context_injector = context_injector or PipesEnvContextInjector()
@@ -66,29 +69,29 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
         self.poll_interval = check.int_param(poll_interval, "poll_interval")
         self.port_forward = check.bool_param(port_forward, "port_forward")
 
-        self._job_submission_client: Optional[JobSubmissionClient] = None
+        self._job_submission_client: JobSubmissionClient | None = None
 
     @property
-    def job_submission_client(self) -> "JobSubmissionClient":
+    def job_submission_client(self) -> JobSubmissionClient:
         if self._job_submission_client is None:
-            raise DagsterInvariantViolationError("JobSubmissionClient is only available inside the run method.")
-        else:
-            return self._job_submission_client
+            msg = "JobSubmissionClient is only available inside the run method."
+            raise DagsterInvariantViolationError(msg)
+        return self._job_submission_client
 
     def run(  # type: ignore
         self,
         *,
         context: OpOrAssetExecutionContext,
         ray_job: dict[str, Any],
-        extras: Optional[PipesExtras] = None,
+        extras: PipesExtras | None = None,
     ) -> PipesClientCompletedInvocation:
-        """
-        Execute a RayJob, enriched with the Pipes protocol.
+        """Execute a RayJob, enriched with the Pipes protocol.
 
         Args:
             context (OpExecutionContext): Current Dagster op or asset context.
             ray_job (Dict[str, Any]): RayJob specification. `API reference <https://ray-project.github.io/kuberay/reference/api/#rayjob>`_.
             extras (Optional[Dict[str, Any]]): Additional information to pass to the Pipes session.
+
         """
         with open_pipes_session(
             context=context,
@@ -117,17 +120,19 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
                 except DagsterExecutionInterruptedError:
                     if self.forward_termination:
                         context.log.warning(
-                            f"[pipes] Dagster process interrupted! Will terminate RayJob {namespace}/{name}."
+                            f"[pipes] Dagster process interrupted! Will terminate RayJob {namespace}/{name}.",
                         )
                         self._terminate(context, start_response)
                     raise
 
     def get_dagster_tags(self, context: OpOrAssetExecutionContext) -> dict[str, str]:
-        tags = get_dagster_tags(context)
-        return tags
+        return get_dagster_tags(context)
 
     def _enrich_ray_job(
-        self, context: OpOrAssetExecutionContext, session: PipesSession, ray_job: dict[str, Any]
+        self,
+        context: OpOrAssetExecutionContext,
+        session: PipesSession,
+        ray_job: dict[str, Any],
     ) -> dict[str, Any]:
         env_vars = session.get_bootstrap_env_vars()
 
@@ -213,12 +218,14 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
                     context.log.info(f"[pipes] RayJob {namespace}/{name} is complete!")
                     return status
                 elif job_status in ["STOPPED", "FAILED"]:
+                    msg = f"RayJob {namespace}/{name} status is {job_status}. Message:\n{status.get('message')}"
                     raise RuntimeError(
-                        f"RayJob {namespace}/{name} status is {job_status}. Message:\n{status.get('message')}"
+                        msg,
                     )
                 else:
+                    msg = f"RayJob {namespace}/{name} has an unknown status: {job_status}. Message:\n{status.get('message')}"  # noqa: E501
                     raise RuntimeError(
-                        f"RayJob {namespace}/{name} has an unknown status: {job_status}. Message:\n{status.get('message')}"
+                        msg,
                     )
 
             time.sleep(self.poll_interval)

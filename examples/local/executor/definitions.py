@@ -36,7 +36,7 @@ def sum_one_and_two(a: int, b: int) -> int:
 
 
 @job(executor_def=ray_executor)
-def my_job():
+def my_job() -> None:
     return_two_result = return_two()
     return_one_result = return_one()
     sum_one_and_two(return_one_result, return_two_result)

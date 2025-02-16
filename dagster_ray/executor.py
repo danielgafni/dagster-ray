@@ -1,4 +1,5 @@
-from collections.abc import Iterator
+from __future__ import annotations
+
 from typing import TYPE_CHECKING, Any, Optional, cast
 
 import dagster
@@ -13,8 +14,6 @@ from dagster._core.definitions.metadata import MetadataValue
 from dagster._core.events import DagsterEvent, EngineEventData
 from dagster._core.execution.retries import RetryMode, get_retries_config
 from dagster._core.execution.tags import get_tag_concurrency_limits_config
-from dagster._core.executor.base import Executor
-from dagster._core.executor.init import InitExecutorContext
 from dagster._core.executor.step_delegating import (
     CheckStepHealthResult,
     StepDelegatingExecutor,
@@ -32,15 +31,20 @@ from dagster_ray.run_launcher import RayRunLauncher
 from dagster_ray.utils import resolve_env_vars_list
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+
+    from dagster._core.executor.base import Executor
+    from dagster._core.executor.init import InitExecutorContext
     from ray.job_submission import JobSubmissionClient
 
 
 class RayExecutorConfig(RayExecutionConfig, RayJobSubmissionClientConfig):
-    env_vars: Optional[list[str]] = Field(
+    env_vars: list[str] | None = Field(
         default=None,
-        description="A list of environment variables to inject into the Job. Each can be of the form KEY=VALUE or just KEY (in which case the value will be pulled from the current process).",
+        description="""A list of environment variables to inject into the Job. Each can be of the form KEY=VALUE
+            or just KEY (in which case the value will be pulled from the current process).""",
     )
-    address: Optional[str] = Field(default=None, description="The address of the Ray cluster to connect to.")  # type: ignore
+    address: str | None = Field(default=None, description="The address of the Ray cluster to connect to.")  # type: ignore
     # sorry for the long name, but it has to be very clear what this is doing
     inherit_job_submission_client_from_ray_run_launcher: bool = True
 
@@ -71,13 +75,17 @@ def ray_executor(init_context: InitExecutorContext) -> Executor:
     ray_cfg = RayExecutorConfig(**exc_cfg["ray"])  # type: ignore
 
     if ray_cfg.inherit_job_submission_client_from_ray_run_launcher and isinstance(
-        init_context.instance.run_launcher, RayRunLauncher
+        init_context.instance.run_launcher,
+        RayRunLauncher,
     ):
         # TODO: some RunLauncher config values can be automatically passed to the executor
         client = init_context.instance.run_launcher.client
     else:
         client = JobSubmissionClient(
-            ray_cfg.address, metadata=ray_cfg.metadata, headers=ray_cfg.headers, cookies=ray_cfg.cookies
+            ray_cfg.address,
+            metadata=ray_cfg.metadata,
+            headers=ray_cfg.headers,
+            cookies=ray_cfg.cookies,
         )
 
     return StepDelegatingExecutor(
@@ -99,19 +107,19 @@ def ray_executor(init_context: InitExecutorContext) -> Executor:
 
 class RayStepHandler(StepHandler):
     @property
-    def name(self):
+    def name(self) -> str:
         return "RayStepHandler"
 
     def __init__(
         self,
-        client: "JobSubmissionClient",
-        env_vars: Optional[list[str]],
-        runtime_env: Optional[dict[str, Any]],
-        num_cpus: Optional[float],
-        num_gpus: Optional[float],
-        memory: Optional[int],
-        resources: Optional[dict[str, float]],
-    ):
+        client: JobSubmissionClient,
+        env_vars: list[str] | None,
+        runtime_env: dict[str, Any] | None,
+        num_cpus: float | None,
+        num_gpus: float | None,
+        memory: int | None,
+        resources: dict[str, float] | None,
+    ) -> None:
         super().__init__()
 
         self.client = client
@@ -127,7 +135,7 @@ class RayStepHandler(StepHandler):
         assert len(step_keys_to_execute) == 1, "Launching multiple steps is not currently supported"
         return step_keys_to_execute[0]
 
-    def _get_ray_job_submission_id(self, step_handler_context: StepHandlerContext):
+    def _get_ray_job_submission_id(self, step_handler_context: StepHandlerContext) -> str:
         step_key = self._get_step_key(step_handler_context)
 
         name_key = get_k8s_object_name(
@@ -195,7 +203,7 @@ class RayStepHandler(StepHandler):
 
         self.client.submit_job(
             entrypoint=" ".join(
-                step_handler_context.execute_step_args.get_command_args(skip_serialized_namedtuple=True)
+                step_handler_context.execute_step_args.get_command_args(skip_serialized_namedtuple=True),
             ),
             submission_id=submission_id,
             metadata=labels,
@@ -217,7 +225,7 @@ class RayStepHandler(StepHandler):
             status = self.client.get_job_status(submission_id)
         except RuntimeError:
             return CheckStepHealthResult.unhealthy(
-                reason=f"Ray job {submission_id} for step {step_key} could not be found."
+                reason=f"Ray job {submission_id} for step {step_key} could not be found.",
             )
 
         if status == JobStatus.FAILED:
