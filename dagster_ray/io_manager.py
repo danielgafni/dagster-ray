@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Dict, Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 from dagster import ConfigurableIOManager, InputContext, OutputContext
 
@@ -16,7 +16,7 @@ class RayObjectMap:
     # idea: save creation timestamp and periodically check for old refs
     # or add some integration with the RunLauncher/Executor
     def __init__(self):
-        self._object_map: Dict[str, "ray.ObjectRef"] = {}
+        self._object_map: dict[str, ray.ObjectRef] = {}
 
     def set(self, key: str, ref: "ray.ObjectRef"):
         self._object_map[key] = ref
@@ -112,7 +112,7 @@ class RayIOManager(ConfigurableIOManager):
         identifier = context.get_identifier() if not context.has_asset_key else context.get_asset_identifier()
         return "/".join(identifier)
 
-    def _get_multiple_keys(self, context: InputContext) -> Dict[str, str]:
+    def _get_multiple_keys(self, context: InputContext) -> dict[str, str]:
         if context.has_asset_key:
             asset_path = list(context.asset_key.path)
 

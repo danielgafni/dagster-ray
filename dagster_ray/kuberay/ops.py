@@ -1,5 +1,3 @@
-from typing import List
-
 from dagster import Config, DagsterRunStatus, OpExecutionContext, RunsFilter, op
 from pydantic import Field
 
@@ -9,7 +7,7 @@ from dagster_ray.kuberay.resources import RayClusterClientResource
 
 class DeleteKubeRayClustersConfig(Config):
     namespace: str = "kuberay"
-    cluster_names: List[str] = Field(default_factory=list, description="List of RayCluster names to delete")
+    cluster_names: list[str] = Field(default_factory=list, description="List of RayCluster names to delete")
 
 
 @op(description="Deletes RayCluster resources from Kubernetes", name="delete_kuberay_clusters")

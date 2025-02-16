@@ -3,16 +3,14 @@ import socket
 import subprocess
 import threading
 import time
+from collections.abc import Iterator
 from contextlib import contextmanager
 from io import FileIO
 from queue import Queue
 from typing import (
     TYPE_CHECKING,
     Any,
-    Dict,
-    Iterator,
     Optional,
-    Tuple,
     TypedDict,
     cast,
 )
@@ -97,7 +95,7 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
         namespace: str,
         timeout: int,
         image: Optional[str] = None,
-    ) -> Tuple[str, Dict[str, str]]:
+    ) -> tuple[str, dict[str, str]]:
         from kubernetes import watch
 
         """
@@ -120,7 +118,7 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
             namespace,
             self.plural,
         ):
-            item = cast(Dict[str, Any], event["raw_object"])  # type: ignore
+            item = cast(dict[str, Any], event["raw_object"])  # type: ignore
 
             if "status" not in item:
                 continue
@@ -163,7 +161,7 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
         namespace: str,
         local_dashboard_port: int = 8265,
         local_gcs_port: int = 10001,
-    ) -> Iterator[Tuple[int, int]]:
+    ) -> Iterator[tuple[int, int]]:
         """
         Port forwards the Ray dashboard and GCS ports to localhost.
         Use 0 for local_dashboard_port and local_gcs_port to get random available ports.

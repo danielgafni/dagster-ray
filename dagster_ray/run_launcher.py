@@ -1,6 +1,6 @@
 import logging
 import sys
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, cast
+from typing import TYPE_CHECKING, Any, Optional, cast
 
 import dagster
 from dagster import _check as check
@@ -29,7 +29,7 @@ def get_job_submission_id_from_run_id(run_id: str, resume_attempt_number=None):
 
 
 class RayLauncherConfig(RayExecutionConfig, RayJobSubmissionClientConfig):
-    env_vars: Optional[List[str]] = Field(
+    env_vars: Optional[list[str]] = Field(
         default=None,
         description="A list of environment variables to inject into the Job. Each can be of the form KEY=VALUE or just KEY (in which case the value will be pulled from the current process).",
     )
@@ -39,15 +39,15 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
     def __init__(
         self,
         address: str,
-        metadata: Optional[Dict[str, Any]] = None,
-        headers: Optional[Dict[str, Any]] = None,
-        cookies: Optional[Dict[str, Any]] = None,
-        env_vars: Optional[List[str]] = None,
-        runtime_env: Optional[Dict[str, Any]] = None,
+        metadata: Optional[dict[str, Any]] = None,
+        headers: Optional[dict[str, Any]] = None,
+        cookies: Optional[dict[str, Any]] = None,
+        env_vars: Optional[list[str]] = None,
+        runtime_env: Optional[dict[str, Any]] = None,
         num_cpus: Optional[int] = None,
         num_gpus: Optional[int] = None,
         memory: Optional[int] = None,
-        resources: Optional[Dict[str, float]] = None,
+        resources: Optional[dict[str, float]] = None,
         inst_data: Optional[ConfigurableClassData] = None,
     ):
         """RunLauncher that starts a Ray job (incluster mode) for each Dagster run.
