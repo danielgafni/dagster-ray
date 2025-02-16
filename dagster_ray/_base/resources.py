@@ -1,6 +1,6 @@
 import uuid
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Dict, Optional, Union, cast
+from typing import TYPE_CHECKING, Optional, Union, cast
 
 from dagster import AssetExecutionContext, ConfigurableResource, InitResourceContext, OpExecutionContext
 from pydantic import Field, PrivateAttr
@@ -83,7 +83,7 @@ class BaseRayResource(ConfigurableResource, ABC):
         context.log.info("Initialized Ray!")
         return cast("RayBaseContext", self._context)
 
-    def get_dagster_tags(self, context: InitResourceContext) -> Dict[str, str]:
+    def get_dagster_tags(self, context: InitResourceContext) -> dict[str, str]:
         tags = get_dagster_tags(context)
         return tags
 

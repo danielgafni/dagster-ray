@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Mapping, Optional
+from collections.abc import Mapping
+from typing import Any
 
 from dagster import Config
 from pydantic import Field
@@ -9,11 +10,11 @@ USER_DEFINED_RAY_KEY = "dagster-ray/config"
 
 
 class RayExecutionConfig(Config):
-    runtime_env: Optional[Dict[str, Any]] = Field(default=None, description="The runtime environment to use.")
-    num_cpus: Optional[float] = Field(default=None, description="The number of CPUs to allocate.")
-    num_gpus: Optional[float] = Field(default=None, description="The number of GPUs to allocate.")
-    memory: Optional[int] = Field(default=None, description="The amount of memory in bytes to allocate.")
-    resources: Optional[Dict[str, float]] = Field(default=None, description="Custom resources to allocate.")
+    runtime_env: dict[str, Any] | None = Field(default=None, description="The runtime environment to use.")
+    num_cpus: float | None = Field(default=None, description="The number of CPUs to allocate.")
+    num_gpus: float | None = Field(default=None, description="The number of GPUs to allocate.")
+    memory: int | None = Field(default=None, description="The amount of memory in bytes to allocate.")
+    resources: dict[str, float] | None = Field(default=None, description="Custom resources to allocate.")
 
     @classmethod
     def from_tags(cls, tags: Mapping[str, str]) -> RayExecutionConfig:
@@ -25,26 +26,26 @@ class RayExecutionConfig(Config):
 
 class RayJobSubmissionClientConfig(Config):
     address: str = Field(..., description="The address of the Ray cluster to connect to.")
-    metadata: Optional[Dict[str, Any]] = Field(
+    metadata: dict[str, Any] | None = Field(
         default=None,
         description="""Arbitrary metadata to store along with all jobs. New metadata
             specified per job will be merged with the global metadata provided here
             via a simple dict update.""",
     )
-    headers: Optional[Dict[str, Any]] = Field(
+    headers: dict[str, Any] | None = Field(
         default=None,
         description="""Headers to use when sending requests to the HTTP job server, used
             for cases like authentication to a remote cluster.""",
     )
-    cookies: Optional[Dict[str, Any]] = Field(
+    cookies: dict[str, Any] | None = Field(
         default=None, description="Cookies to use when sending requests to the HTTP job server."
     )
 
 
 class ExecutionOptionsConfig(Config):
-    cpu: Optional[int] = None
-    gpu: Optional[int] = None
-    object_store_memory: Optional[int] = None
+    cpu: int | None = None
+    gpu: int | None = None
+    object_store_memory: int | None = None
 
 
 class RayDataExecutionOptions(Config):

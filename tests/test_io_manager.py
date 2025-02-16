@@ -1,5 +1,3 @@
-from typing import Dict
-
 from dagster import AssetExecutionContext, StaticPartitionsDefinition, asset, materialize
 
 from dagster_ray import RayIOManager
@@ -47,7 +45,7 @@ def test_ray_io_manager_partition_mapping():
         return context.partition_key.lower()
 
     @asset
-    def downstream_non_partitioned(upsteram_partitioned: Dict[str, str]) -> None:
+    def downstream_non_partitioned(upsteram_partitioned: dict[str, str]) -> None:
         assert upsteram_partitioned == {"A": "a", "B": "b", "C": "c"}
 
     for partition_key in ["A", "B", "C"]:

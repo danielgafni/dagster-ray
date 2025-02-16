@@ -1,5 +1,5 @@
 import socket
-from typing import Any, Dict, List, cast
+from typing import Any, cast
 
 import pytest
 import ray  # noqa: TID253
@@ -17,8 +17,8 @@ from tests.kuberay.utils import NAMESPACE, get_random_free_port
 def ray_cluster_resource(
     k8s_with_kuberay: AClusterManager,
     dagster_ray_image: str,
-    head_group_spec: Dict[str, Any],
-    worker_group_specs: List[Dict[str, Any]],
+    head_group_spec: dict[str, Any],
+    worker_group_specs: list[dict[str, Any]],
 ) -> KubeRayCluster:
     redis_port = get_random_free_port()
 
@@ -41,8 +41,8 @@ def ray_cluster_resource(
 def ray_cluster_resource_skip_cleanup(
     k8s_with_kuberay: AClusterManager,
     dagster_ray_image: str,
-    head_group_spec: Dict[str, Any],
-    worker_group_specs: List[Dict[str, Any]],
+    head_group_spec: dict[str, Any],
+    worker_group_specs: list[dict[str, Any]],
 ) -> KubeRayCluster:
     redis_port = get_random_free_port()
 
