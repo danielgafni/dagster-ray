@@ -1,5 +1,5 @@
 import time
-from typing import TYPE_CHECKING, Any, Generic, Optional, TypeVar
+from typing import TYPE_CHECKING, Any, Dict, Generic, Optional, TypeVar
 
 if TYPE_CHECKING:
     from kubernetes import client
@@ -89,7 +89,7 @@ class BaseKubeRayClient(Generic[T_Status]):
 
         raise TimeoutError(f"Timed out waiting for status of {self.kind} {name} in namespace {namespace}")
 
-    def list(self, namespace: str, label_selector: str = "", async_req: bool = False) -> dict[str, Any]:
+    def list(self, namespace: str, label_selector: str = "", async_req: bool = False) -> Dict[str, Any]:
         from kubernetes.client import ApiException
 
         try:
@@ -111,7 +111,7 @@ class BaseKubeRayClient(Generic[T_Status]):
 
             raise
 
-    def get(self, name: str, namespace: str) -> dict[str, Any]:
+    def get(self, name: str, namespace: str) -> Dict[str, Any]:
         from kubernetes.client import ApiException
 
         try:

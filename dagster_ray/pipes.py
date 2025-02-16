@@ -2,9 +2,8 @@ import random
 import string
 import threading
 import time
-from collections.abc import Generator, Iterator
 from contextlib import contextmanager
-from typing import TYPE_CHECKING, Any, Optional, TypedDict, Union, cast
+from typing import TYPE_CHECKING, Any, Dict, Generator, Iterator, Optional, TypedDict, Union, cast
 
 import dagster._check as check
 from dagster import AssetExecutionContext, OpExecutionContext, PipesClient
@@ -43,7 +42,7 @@ class PipesRayJobMessageReader(PipesMessageReader):
     """
 
     def __init__(self):
-        self._handler: Optional[PipesMessageHandler] = None
+        self._handler: Optional["PipesMessageHandler"] = None
         self._thread: Optional[threading.Thread] = None
         self.session_closed = threading.Event()
 
@@ -136,24 +135,24 @@ def handle_job_logs(
 
 class SubmitJobParams(TypedDict):
     entrypoint: str
-    runtime_env: NotRequired[dict[str, Any]]
-    metadata: NotRequired[dict[str, str]]
+    runtime_env: NotRequired[Dict[str, Any]]
+    metadata: NotRequired[Dict[str, str]]
     submission_id: NotRequired[str]
     entrypoint_num_cpus: NotRequired[float]
     entrypoint_num_gpus: NotRequired[float]
     entrypoint_memory: NotRequired[int]
-    entrypoint_resources: NotRequired[dict[str, float]]
+    entrypoint_resources: NotRequired[Dict[str, float]]
 
 
 class EnrichedSubmitJobParams(TypedDict):
     entrypoint: str
-    runtime_env: dict[str, Any]
-    metadata: dict[str, str]
+    runtime_env: Dict[str, Any]
+    metadata: Dict[str, str]
     submission_id: str
     entrypoint_num_cpus: NotRequired[float]
     entrypoint_num_gpus: NotRequired[float]
     entrypoint_memory: NotRequired[int]
-    entrypoint_resources: NotRequired[dict[str, float]]
+    entrypoint_resources: NotRequired[Dict[str, float]]
 
 
 def generate_job_id() -> str:
@@ -197,7 +196,7 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
         self.timeout = check.int_param(timeout, "timeout")
         self.poll_interval = check.int_param(poll_interval, "poll_interval")
 
-        self._job_submission_client: Optional[JobSubmissionClient] = None
+        self._job_submission_client: Optional["JobSubmissionClient"] = None
 
     def run(  # type: ignore
         self,
@@ -236,7 +235,7 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
                     self._terminate(context, job_id)
                 raise
 
-    def get_dagster_tags(self, context: OpOrAssetExecutionContext) -> dict[str, str]:
+    def get_dagster_tags(self, context: OpOrAssetExecutionContext) -> Dict[str, str]:
         tags = get_dagster_tags(context)
         return tags
 

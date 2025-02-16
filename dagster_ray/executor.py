@@ -1,5 +1,4 @@
-from collections.abc import Iterator
-from typing import TYPE_CHECKING, Any, Optional, cast
+from typing import TYPE_CHECKING, Any, Dict, Iterator, List, Optional, cast
 
 import dagster
 from dagster import (
@@ -36,7 +35,7 @@ if TYPE_CHECKING:
 
 
 class RayExecutorConfig(RayExecutionConfig, RayJobSubmissionClientConfig):
-    env_vars: Optional[list[str]] = Field(
+    env_vars: Optional[List[str]] = Field(
         default=None,
         description="A list of environment variables to inject into the Job. Each can be of the form KEY=VALUE or just KEY (in which case the value will be pulled from the current process).",
     )
@@ -105,12 +104,12 @@ class RayStepHandler(StepHandler):
     def __init__(
         self,
         client: "JobSubmissionClient",
-        env_vars: Optional[list[str]],
-        runtime_env: Optional[dict[str, Any]],
+        env_vars: Optional[List[str]],
+        runtime_env: Optional[Dict[str, Any]],
         num_cpus: Optional[float],
         num_gpus: Optional[float],
         memory: Optional[int],
-        resources: Optional[dict[str, float]],
+        resources: Optional[Dict[str, float]],
     ):
         super().__init__()
 
@@ -123,7 +122,7 @@ class RayStepHandler(StepHandler):
         self.resources = resources
 
     def _get_step_key(self, step_handler_context: StepHandlerContext) -> str:
-        step_keys_to_execute = cast(list[str], step_handler_context.execute_step_args.step_keys_to_execute)
+        step_keys_to_execute = cast(List[str], step_handler_context.execute_step_args.step_keys_to_execute)
         assert len(step_keys_to_execute) == 1, "Launching multiple steps is not currently supported"
         return step_keys_to_execute[0]
 
@@ -138,9 +137,9 @@ class RayStepHandler(StepHandler):
         if step_handler_context.execute_step_args.known_state:
             retry_state = step_handler_context.execute_step_args.known_state.get_retry_state()
             if retry_state.get_attempt_count(step_key):
-                return f"dagster-step-{name_key}-{retry_state.get_attempt_count(step_key)}"
+                return "dagster-step-%s-%d" % (name_key, retry_state.get_attempt_count(step_key))
 
-        return f"dagster-step-{name_key}"
+        return "dagster-step-%s" % (name_key)
 
     def launch_step(self, step_handler_context: StepHandlerContext) -> Iterator[DagsterEvent]:
         step_key = self._get_step_key(step_handler_context)

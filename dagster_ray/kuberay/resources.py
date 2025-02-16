@@ -4,8 +4,7 @@ import random
 import re
 import string
 import sys
-from collections.abc import Generator
-from typing import TYPE_CHECKING, Any, Optional, cast
+from typing import TYPE_CHECKING, Any, Dict, Generator, Optional, cast
 
 import dagster._check as check
 from dagster import ConfigurableResource, InitResourceContext
@@ -108,7 +107,7 @@ class KubeRayCluster(BaseRayResource):
             raise ValueError(f"{self.__class__.__name__}not initialized")
         return self._cluster_name
 
-    def get_dagster_tags(self, context: InitResourceContext) -> dict[str, str]:
+    def get_dagster_tags(self, context: InitResourceContext) -> Dict[str, str]:
         tags = super().get_dagster_tags(context=context)
         tags.update({"dagster.io/cluster": self.cluster_name, "dagster.io/deployment": self.deployment_name})
         return tags
@@ -175,8 +174,8 @@ class KubeRayCluster(BaseRayResource):
     def _build_raycluster(
         self,
         image: str,
-        labels: Optional[dict[str, str]] = None,  # TODO: use in RayCluster labels
-    ) -> dict[str, Any]:
+        labels: Optional[Dict[str, str]] = None,  # TODO: use in RayCluster labels
+    ) -> Dict[str, Any]:
         """
         Builds a RayCluster from the provided configuration, while injecting custom image and labels (only known during resource setup)
         """
@@ -190,7 +189,7 @@ class KubeRayCluster(BaseRayResource):
         head_group_spec = self.ray_cluster.head_group_spec.copy()
         worker_group_specs = self.ray_cluster.worker_group_specs.copy()
 
-        def update_group_spec(group_spec: dict[str, Any]):
+        def update_group_spec(group_spec: Dict[str, Any]):
             # TODO: only inject if the container has a `dagster.io/inject-image` annotation or smth
             if group_spec["template"]["spec"]["containers"][0].get("image") is None:
                 group_spec["template"]["spec"]["containers"][0]["image"] = image

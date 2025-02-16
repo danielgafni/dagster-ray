@@ -1,5 +1,5 @@
 import time
-from typing import TYPE_CHECKING, Any, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union, cast
 
 import dagster._check as check
 import yaml
@@ -66,7 +66,7 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
         self.poll_interval = check.int_param(poll_interval, "poll_interval")
         self.port_forward = check.bool_param(port_forward, "port_forward")
 
-        self._job_submission_client: Optional[JobSubmissionClient] = None
+        self._job_submission_client: Optional["JobSubmissionClient"] = None
 
     @property
     def job_submission_client(self) -> "JobSubmissionClient":
@@ -79,7 +79,7 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
         self,
         *,
         context: OpOrAssetExecutionContext,
-        ray_job: dict[str, Any],
+        ray_job: Dict[str, Any],
         extras: Optional[PipesExtras] = None,
     ) -> PipesClientCompletedInvocation:
         """
@@ -122,13 +122,13 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
                         self._terminate(context, start_response)
                     raise
 
-    def get_dagster_tags(self, context: OpOrAssetExecutionContext) -> dict[str, str]:
+    def get_dagster_tags(self, context: OpOrAssetExecutionContext) -> Dict[str, str]:
         tags = get_dagster_tags(context)
         return tags
 
     def _enrich_ray_job(
-        self, context: OpOrAssetExecutionContext, session: PipesSession, ray_job: dict[str, Any]
-    ) -> dict[str, Any]:
+        self, context: OpOrAssetExecutionContext, session: PipesSession, ray_job: Dict[str, Any]
+    ) -> Dict[str, Any]:
         env_vars = session.get_bootstrap_env_vars()
 
         ray_job["metadata"] = ray_job.get("metadata", {})
@@ -157,7 +157,7 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
 
         return ray_job
 
-    def _start(self, context: OpOrAssetExecutionContext, ray_job: dict[str, Any]) -> dict[str, Any]:
+    def _start(self, context: OpOrAssetExecutionContext, ray_job: Dict[str, Any]) -> Dict[str, Any]:
         name = ray_job["metadata"]["name"]
         namespace = ray_job["metadata"]["namespace"]
 
@@ -182,7 +182,7 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
             name=ray_job["metadata"]["name"],
         )
 
-    def _read_messages(self, context: OpOrAssetExecutionContext, start_response: dict[str, Any]) -> None:
+    def _read_messages(self, context: OpOrAssetExecutionContext, start_response: Dict[str, Any]) -> None:
         status = cast(RayJobStatus, start_response["status"])
 
         if isinstance(self._message_reader, PipesRayJobMessageReader):
@@ -194,7 +194,7 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
                 blocking=True,
             )
 
-    def _wait_for_completion(self, context: OpOrAssetExecutionContext, start_response: dict[str, Any]) -> RayJobStatus:
+    def _wait_for_completion(self, context: OpOrAssetExecutionContext, start_response: Dict[str, Any]) -> RayJobStatus:
         context.log.info("[pipes] Waiting for RayJob to complete...")
 
         name = start_response["metadata"]["name"]
@@ -223,7 +223,7 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
 
             time.sleep(self.poll_interval)
 
-    def _terminate(self, context: OpOrAssetExecutionContext, start_response: dict[str, Any]) -> None:
+    def _terminate(self, context: OpOrAssetExecutionContext, start_response: Dict[str, Any]) -> None:
         name = start_response["metadata"]["name"]
         namespace = start_response["metadata"]["namespace"]
 

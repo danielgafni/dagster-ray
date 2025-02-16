@@ -2,9 +2,8 @@ import os
 import subprocess
 import sys
 import tempfile
-from collections.abc import Iterator
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict, Iterator, List, Tuple
 
 import pytest
 import pytest_cases
@@ -138,7 +137,7 @@ def k8s_with_kuberay(
 
 
 @pytest.fixture(scope="session")
-def head_group_spec(dagster_ray_image: str) -> dict[str, Any]:
+def head_group_spec(dagster_ray_image: str) -> Dict[str, Any]:
     head_group_spec = DEFAULT_HEAD_GROUP_SPEC.copy()
     head_group_spec["serviceType"] = "LoadBalancer"
     head_group_spec["template"]["spec"]["containers"][0]["image"] = dagster_ray_image
@@ -147,7 +146,7 @@ def head_group_spec(dagster_ray_image: str) -> dict[str, Any]:
 
 
 @pytest.fixture(scope="session")
-def worker_group_specs(dagster_ray_image: str) -> list[dict[str, Any]]:
+def worker_group_specs(dagster_ray_image: str) -> List[Dict[str, Any]]:
     worker_group_specs = DEFAULT_WORKER_GROUP_SPECS.copy()
     worker_group_specs[0]["template"]["spec"]["containers"][0]["image"] = dagster_ray_image
     worker_group_specs[0]["template"]["spec"]["containers"][0]["imagePullPolicy"] = "IfNotPresent"
@@ -160,9 +159,9 @@ PERSISTENT_RAY_CLUSTER_NAME = "persistent-ray-cluster"
 @pytest.fixture(scope="session")
 def k8s_with_raycluster(
     k8s_with_kuberay: AClusterManager,
-    head_group_spec: dict[str, Any],
-    worker_group_specs: list[dict[str, Any]],
-) -> Iterator[tuple[dict[str, str], AClusterManager]]:
+    head_group_spec: Dict[str, Any],
+    worker_group_specs: List[Dict[str, Any]],
+) -> Iterator[Tuple[dict[str, str], AClusterManager]]:
     # create a RayCluster
     config.load_kube_config(str(k8s_with_kuberay.kubeconfig))
 

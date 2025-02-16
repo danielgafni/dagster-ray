@@ -1,7 +1,6 @@
 import logging
 import time
-from collections.abc import Iterator
-from typing import TYPE_CHECKING, Literal, Optional, TypedDict
+from typing import TYPE_CHECKING, Iterator, Literal, Optional, TypedDict
 
 from typing_extensions import NotRequired
 

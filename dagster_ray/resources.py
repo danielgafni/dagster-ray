@@ -1,6 +1,6 @@
 import contextlib
 import sys
-from collections.abc import Generator
+from typing import Generator
 
 from dagster import InitResourceContext
 

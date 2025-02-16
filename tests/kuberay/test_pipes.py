@@ -1,4 +1,5 @@
 import sys
+from typing import Tuple
 
 import pytest
 import ray  # noqa: TID253
@@ -118,7 +119,7 @@ def test_rayjob_pipes(pipes_kube_rayjob_client: PipesKubeRayJobClient, dagster_r
 
 
 @pytest.fixture(scope="session")
-def pipes_ray_job_client(k8s_with_raycluster: tuple[dict[str, str], AClusterManager]):
+def pipes_ray_job_client(k8s_with_raycluster: Tuple[dict[str, str], AClusterManager]):
     hosts, k8s = k8s_with_raycluster
     return PipesRayJobClient(
         client=JobSubmissionClient(
