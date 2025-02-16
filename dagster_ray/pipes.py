@@ -3,10 +3,10 @@ import string
 import threading
 import time
 from contextlib import contextmanager
-from typing import TYPE_CHECKING, Any, Dict, Generator, Iterator, Optional, TypedDict, cast
+from typing import TYPE_CHECKING, Any, Dict, Generator, Iterator, Optional, TypedDict, Union, cast
 
 import dagster._check as check
-from dagster import OpExecutionContext, PipesClient
+from dagster import AssetExecutionContext, OpExecutionContext, PipesClient
 from dagster._annotations import experimental
 from dagster._core.definitions.resource_annotation import TreatAsResourceParam
 from dagster._core.errors import DagsterExecutionInterruptedError
@@ -23,7 +23,7 @@ from dagster._core.pipes.utils import (
     open_pipes_session,
 )
 from dagster_pipes import PipesDefaultMessageWriter, PipesExtras, PipesParams
-from typing_extensions import NotRequired
+from typing_extensions import NotRequired, TypeAlias
 
 from dagster_ray._base.utils import get_dagster_tags
 
@@ -31,10 +31,13 @@ if TYPE_CHECKING:
     from ray.job_submission import JobStatus, JobSubmissionClient
 
 
+OpOrAssetExecutionContext: TypeAlias = Union[OpExecutionContext, AssetExecutionContext]
+
+
 @experimental
 class PipesRayJobMessageReader(PipesMessageReader):
     """
-    Dagster Pipes message reader for recieving messages from a Ray job.
+    Dagster Pipes message reader for receiving messages from a Ray job.
     Will extract Dagster events and forward the rest to stdout.
     """
 
@@ -198,7 +201,7 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
     def run(  # type: ignore
         self,
         *,
-        context: OpExecutionContext,
+        context: OpOrAssetExecutionContext,
         submit_job_params: SubmitJobParams,
         extras: Optional[PipesExtras] = None,
     ) -> PipesClientCompletedInvocation:
@@ -232,12 +235,12 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
                     self._terminate(context, job_id)
                 raise
 
-    def get_dagster_tags(self, context: OpExecutionContext) -> Dict[str, str]:
+    def get_dagster_tags(self, context: OpOrAssetExecutionContext) -> Dict[str, str]:
         tags = get_dagster_tags(context)
         return tags
 
     def _enrich_submit_job_params(
-        self, context: OpExecutionContext, session: PipesSession, submit_job_params: SubmitJobParams
+        self, context: OpOrAssetExecutionContext, session: PipesSession, submit_job_params: SubmitJobParams
     ) -> EnrichedSubmitJobParams:
         runtime_env = submit_job_params.get("runtime_env", {})
         metadata = submit_job_params.get("metadata", {})
@@ -254,7 +257,7 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
 
         return cast(EnrichedSubmitJobParams, submit_job_params)
 
-    def _start(self, context: OpExecutionContext, submit_job_params: EnrichedSubmitJobParams) -> str:
+    def _start(self, context: OpOrAssetExecutionContext, submit_job_params: EnrichedSubmitJobParams) -> str:
         submission_id = submit_job_params["submission_id"]
 
         context.log.info(f"[pipes] Starting Ray job {submission_id}...")
@@ -265,7 +268,7 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
 
         return job_id
 
-    def _read_messages(self, context: OpExecutionContext, job_id: str) -> None:
+    def _read_messages(self, context: OpOrAssetExecutionContext, job_id: str) -> None:
         if isinstance(self._message_reader, PipesRayJobMessageReader):
             # starts a thread
             self._message_reader.consume_job_logs(
@@ -275,7 +278,7 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
                 blocking=True,
             )
 
-    def _wait_for_completion(self, context: OpExecutionContext, job_id: str) -> "JobStatus":
+    def _wait_for_completion(self, context: OpOrAssetExecutionContext, job_id: str) -> "JobStatus":
         from ray.job_submission import JobStatus
 
         context.log.info(f"[pipes] Waiting for RayJob {job_id} to complete...")
@@ -294,7 +297,7 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
 
             time.sleep(self.poll_interval)
 
-    def _terminate(self, context: OpExecutionContext, job_id: str) -> None:
+    def _terminate(self, context: OpOrAssetExecutionContext, job_id: str) -> None:
         context.log.info(f"[pipes] Terminating RayJob {job_id} ...")
         self.client.stop_job(job_id)
         context.log.info(f"[pipes] Ray job {job_id} terminated.")

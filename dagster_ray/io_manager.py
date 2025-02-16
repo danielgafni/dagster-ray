@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Dict, Optional, Union
 
-from dagster import ConfigurableIOManager, ConfigurableResource, InputContext, OutputContext
+from dagster import ConfigurableIOManager, InputContext, OutputContext
 
 DAGSTER_RAY_OBJECT_MAP_NAME = "DagsterRayObjectMap"
 DAGSTER_RAY_NAMESPACE = "dagster-ray"
@@ -53,12 +53,12 @@ class RayObjectMap:
         )
 
         # make sure the actor is created
-        ray.get(actor.ping.remote())
+        ray.get(actor.ping.remote())  # type: ignore
 
         return actor
 
 
-class RayIOManager(ConfigurableIOManager, ConfigurableResource):
+class RayIOManager(ConfigurableIOManager):
     address: Optional[str] = None
 
     def handle_output(self, context: OutputContext, obj):
@@ -76,7 +76,7 @@ class RayIOManager(ConfigurableIOManager, ConfigurableResource):
 
         ref = ray.put(obj, _owner=object_map)
 
-        object_map.set.remote(storage_key, ref)
+        object_map.set.remote(storage_key, ref)  # type: ignore
 
         context.log.debug(f"[RayIOManager] Stored object with key {storage_key} as {ref}")
 
@@ -93,7 +93,7 @@ class RayIOManager(ConfigurableIOManager, ConfigurableResource):
             # first, get the refs
 
             storage_keys = self._get_multiple_keys(context)
-            refs = [object_map.get.remote(key) for key in storage_keys.values()]
+            refs = [object_map.get.remote(key) for key in storage_keys.values()]  # type: ignore
             values = ray.get(refs)
             return {partition_key: value for partition_key, value in zip(storage_keys.keys(), values)}
 
@@ -102,7 +102,7 @@ class RayIOManager(ConfigurableIOManager, ConfigurableResource):
 
         context.log.debug(f"[RayIOManager] Loading object with key {storage_key}")
 
-        ref = object_map.get.remote(storage_key)
+        ref = object_map.get.remote(storage_key)  # type: ignore
 
         assert ref is not None, f"[RayIOManager] Object with key {storage_key} not found in RayObjectMap"
 

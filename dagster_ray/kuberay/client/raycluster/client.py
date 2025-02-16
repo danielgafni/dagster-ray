@@ -152,9 +152,7 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
 
             if time.time() - start_time > timeout:
                 w.stop()
-                raise TimeoutError(
-                    f"Timed out waiting for RayCluster {namespace}/{name} to be ready. " f"Status: {status}"
-                )
+                raise TimeoutError(f"Timed out waiting for RayCluster {namespace}/{name} to be ready. Status: {status}")
 
         raise Exception("This code should be unreachable")
 

@@ -2,19 +2,22 @@ import uuid
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Dict, Optional, Union, cast
 
-from dagster import ConfigurableResource, InitResourceContext, OpExecutionContext
+from dagster import AssetExecutionContext, ConfigurableResource, InitResourceContext, OpExecutionContext
 from pydantic import Field, PrivateAttr
 
 # yes, `python-client` is actually the KubeRay package name
 # https://github.com/ray-project/kuberay/issues/2078
 from requests.exceptions import ConnectionError
 from tenacity import retry, retry_if_exception_type, stop_after_delay
+from typing_extensions import TypeAlias
 
 from dagster_ray._base.utils import get_dagster_tags
 from dagster_ray.config import RayDataExecutionOptions
 
 if TYPE_CHECKING:
     from ray._private.worker import BaseContext as RayBaseContext  # noqa
+
+OpOrAssetExecutionContext: TypeAlias = Union[OpExecutionContext, AssetExecutionContext]
 
 
 class BaseRayResource(ConfigurableResource, ABC):
@@ -68,7 +71,7 @@ class BaseRayResource(ConfigurableResource, ABC):
         return ray.get_runtime_context().get_job_id()
 
     @retry(stop=stop_after_delay(120), retry=retry_if_exception_type(ConnectionError), reraise=True)
-    def init_ray(self, context: Union[OpExecutionContext, InitResourceContext]) -> "RayBaseContext":
+    def init_ray(self, context: Union[OpOrAssetExecutionContext, InitResourceContext]) -> "RayBaseContext":
         assert context.log is not None
 
         import ray

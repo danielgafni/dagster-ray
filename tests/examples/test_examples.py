@@ -28,7 +28,7 @@ def test_ray_run_launcher(local_ray_address: str, example_dir: Path, tmp_path_fa
     # the CLI command doesn't actually use the RunLauncher!
 
     subprocess.run(
-        f"""cd {example_dir} && {sys.executable} -m dagster job execute -f {example_dir / 'definitions.py'} -j my_job
+        f"""cd {example_dir} && {sys.executable} -m dagster job execute -f {example_dir / "definitions.py"} -j my_job
         """,
         check=True,
         shell=True,
