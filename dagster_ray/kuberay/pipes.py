@@ -1,9 +1,9 @@
 import time
-from typing import TYPE_CHECKING, Any, Dict, Optional, cast
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union, cast
 
 import dagster._check as check
 import yaml
-from dagster import DagsterInvariantViolationError, OpExecutionContext, PipesClient
+from dagster import AssetExecutionContext, DagsterInvariantViolationError, OpExecutionContext, PipesClient
 from dagster._annotations import experimental
 from dagster._core.definitions.resource_annotation import TreatAsResourceParam
 from dagster._core.errors import DagsterExecutionInterruptedError
@@ -15,6 +15,7 @@ from dagster._core.pipes.client import (
 from dagster._core.pipes.context import PipesSession
 from dagster._core.pipes.utils import PipesEnvContextInjector, open_pipes_session
 from dagster_pipes import PipesExtras
+from typing_extensions import TypeAlias
 
 from dagster_ray._base.utils import get_dagster_tags
 from dagster_ray.kuberay.client import RayJobClient
@@ -23,6 +24,8 @@ from dagster_ray.pipes import PipesRayJobMessageReader, generate_job_id
 
 if TYPE_CHECKING:
     from ray.job_submission import JobSubmissionClient
+
+OpOrAssetExecutionContext: TypeAlias = Union[OpExecutionContext, AssetExecutionContext]
 
 
 @experimental
@@ -75,7 +78,7 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
     def run(  # type: ignore
         self,
         *,
-        context: OpExecutionContext,
+        context: OpOrAssetExecutionContext,
         ray_job: Dict[str, Any],
         extras: Optional[PipesExtras] = None,
     ) -> PipesClientCompletedInvocation:
@@ -119,12 +122,12 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
                         self._terminate(context, start_response)
                     raise
 
-    def get_dagster_tags(self, context: OpExecutionContext) -> Dict[str, str]:
+    def get_dagster_tags(self, context: OpOrAssetExecutionContext) -> Dict[str, str]:
         tags = get_dagster_tags(context)
         return tags
 
     def _enrich_ray_job(
-        self, context: OpExecutionContext, session: PipesSession, ray_job: Dict[str, Any]
+        self, context: OpOrAssetExecutionContext, session: PipesSession, ray_job: Dict[str, Any]
     ) -> Dict[str, Any]:
         env_vars = session.get_bootstrap_env_vars()
 
@@ -154,7 +157,7 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
 
         return ray_job
 
-    def _start(self, context: OpExecutionContext, ray_job: Dict[str, Any]) -> Dict[str, Any]:
+    def _start(self, context: OpOrAssetExecutionContext, ray_job: Dict[str, Any]) -> Dict[str, Any]:
         name = ray_job["metadata"]["name"]
         namespace = ray_job["metadata"]["namespace"]
 
@@ -179,7 +182,7 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
             name=ray_job["metadata"]["name"],
         )
 
-    def _read_messages(self, context: OpExecutionContext, start_response: Dict[str, Any]) -> None:
+    def _read_messages(self, context: OpOrAssetExecutionContext, start_response: Dict[str, Any]) -> None:
         status = cast(RayJobStatus, start_response["status"])
 
         if isinstance(self._message_reader, PipesRayJobMessageReader):
@@ -191,7 +194,7 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
                 blocking=True,
             )
 
-    def _wait_for_completion(self, context: OpExecutionContext, start_response: Dict[str, Any]) -> RayJobStatus:
+    def _wait_for_completion(self, context: OpOrAssetExecutionContext, start_response: Dict[str, Any]) -> RayJobStatus:
         context.log.info("[pipes] Waiting for RayJob to complete...")
 
         name = start_response["metadata"]["name"]
@@ -220,7 +223,7 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
 
             time.sleep(self.poll_interval)
 
-    def _terminate(self, context: OpExecutionContext, start_response: Dict[str, Any]) -> None:
+    def _terminate(self, context: OpOrAssetExecutionContext, start_response: Dict[str, Any]) -> None:
         name = start_response["metadata"]["name"]
         namespace = start_response["metadata"]["namespace"]
 

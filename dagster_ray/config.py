@@ -24,7 +24,7 @@ class RayExecutionConfig(Config):
 
 
 class RayJobSubmissionClientConfig(Config):
-    address: str = Field(default=None, description="The address of the Ray cluster to connect to.")
+    address: str = Field(..., description="The address of the Ray cluster to connect to.")
     metadata: Optional[Dict[str, Any]] = Field(
         default=None,
         description="""Arbitrary metadata to store along with all jobs. New metadata

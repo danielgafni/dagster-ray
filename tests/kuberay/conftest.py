@@ -3,7 +3,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, Generator, Iterator, List, Tuple
+from typing import Any, Dict, Iterator, List, Tuple
 
 import pytest
 import pytest_cases
@@ -86,11 +86,11 @@ KUBERNETES_VERSION = os.getenv("PYTEST_KUBERNETES_VERSION", "1.31.0")
 KUBERAY_VERSIONS = os.getenv("PYTEST_KUBERAY_VERSIONS", "1.2.2").split(",")
 
 
-@pytest_cases.fixture(scope="session")
+@pytest_cases.fixture(scope="session")  # type: ignore
 @pytest.mark.parametrize("kuberay_version", KUBERAY_VERSIONS)
 def k8s_with_kuberay(
     request, kuberay_helm_repo, dagster_ray_image: str, kuberay_version: str
-) -> Generator[AClusterManager, None, None]:
+) -> Iterator[AClusterManager]:
     k8s = select_provider_manager("minikube")("dagster-ray")
     k8s.create(ClusterOptions(api_version=KUBERNETES_VERSION))
     # load images in advance to avoid possible timeouts later on
