@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import sys
 from typing import TYPE_CHECKING, Any, Optional, cast
@@ -29,7 +31,7 @@ def get_job_submission_id_from_run_id(run_id: str, resume_attempt_number=None):
 
 
 class RayLauncherConfig(RayExecutionConfig, RayJobSubmissionClientConfig):
-    env_vars: Optional[list[str]] = Field(
+    env_vars: list[str] | None = Field(
         default=None,
         description="A list of environment variables to inject into the Job. Each can be of the form KEY=VALUE or just KEY (in which case the value will be pulled from the current process).",
     )
@@ -39,16 +41,16 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
     def __init__(
         self,
         address: str,
-        metadata: Optional[dict[str, Any]] = None,
-        headers: Optional[dict[str, Any]] = None,
-        cookies: Optional[dict[str, Any]] = None,
-        env_vars: Optional[list[str]] = None,
-        runtime_env: Optional[dict[str, Any]] = None,
-        num_cpus: Optional[int] = None,
-        num_gpus: Optional[int] = None,
-        memory: Optional[int] = None,
-        resources: Optional[dict[str, float]] = None,
-        inst_data: Optional[ConfigurableClassData] = None,
+        metadata: dict[str, Any] | None = None,
+        headers: dict[str, Any] | None = None,
+        cookies: dict[str, Any] | None = None,
+        env_vars: list[str] | None = None,
+        runtime_env: dict[str, Any] | None = None,
+        num_cpus: int | None = None,
+        num_gpus: int | None = None,
+        memory: int | None = None,
+        resources: dict[str, float] | None = None,
+        inst_data: ConfigurableClassData | None = None,
     ):
         """RunLauncher that starts a Ray job (incluster mode) for each Dagster run.
 
@@ -84,13 +86,13 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
         super().__init__()
 
     @property
-    def client(self) -> "JobSubmissionClient":  # note: this must be a property
+    def client(self) -> JobSubmissionClient:  # note: this must be a property
         from ray.job_submission import JobSubmissionClient
 
         return JobSubmissionClient(self.address, metadata=self.metadata, headers=self.headers, cookies=self.cookies)
 
     @property
-    def inst_data(self) -> Optional[ConfigurableClassData]:
+    def inst_data(self) -> ConfigurableClassData | None:
         return self._inst_data
 
     @classmethod
@@ -256,9 +258,7 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
             )
             return False
 
-    def get_run_worker_debug_info(
-        self, run: DagsterRun, include_container_logs: Optional[bool] = True
-    ) -> Optional[str]:
+    def get_run_worker_debug_info(self, run: DagsterRun, include_container_logs: bool | None = True) -> str | None:
         try:
             job_details = [j for j in self.client.list_jobs() if (j.metadata or {}).get("dagster/run-id") == run.run_id]
 

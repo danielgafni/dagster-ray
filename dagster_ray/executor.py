@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import Iterator
 from typing import TYPE_CHECKING, Any, Optional, cast
 
@@ -36,11 +38,11 @@ if TYPE_CHECKING:
 
 
 class RayExecutorConfig(RayExecutionConfig, RayJobSubmissionClientConfig):
-    env_vars: Optional[list[str]] = Field(
+    env_vars: list[str] | None = Field(
         default=None,
         description="A list of environment variables to inject into the Job. Each can be of the form KEY=VALUE or just KEY (in which case the value will be pulled from the current process).",
     )
-    address: Optional[str] = Field(default=None, description="The address of the Ray cluster to connect to.")  # type: ignore
+    address: str | None = Field(default=None, description="The address of the Ray cluster to connect to.")  # type: ignore
     # sorry for the long name, but it has to be very clear what this is doing
     inherit_job_submission_client_from_ray_run_launcher: bool = True
 
@@ -104,13 +106,13 @@ class RayStepHandler(StepHandler):
 
     def __init__(
         self,
-        client: "JobSubmissionClient",
-        env_vars: Optional[list[str]],
-        runtime_env: Optional[dict[str, Any]],
-        num_cpus: Optional[float],
-        num_gpus: Optional[float],
-        memory: Optional[int],
-        resources: Optional[dict[str, float]],
+        client: JobSubmissionClient,
+        env_vars: list[str] | None,
+        runtime_env: dict[str, Any] | None,
+        num_cpus: float | None,
+        num_gpus: float | None,
+        memory: int | None,
+        resources: dict[str, float] | None,
     ):
         super().__init__()
 

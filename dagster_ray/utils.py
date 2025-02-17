@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import os
-from typing import Optional
 
 
-def resolve_env_vars_list(env_vars: Optional[list[str]]) -> dict[str, str]:
+def resolve_env_vars_list(env_vars: list[str] | None) -> dict[str, str]:
     res = {}
 
     if env_vars is not None:

@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import random
 import string
 import threading
 import time
 from collections.abc import Generator, Iterator
 from contextlib import contextmanager
-from typing import TYPE_CHECKING, Any, Optional, TypedDict, Union, cast
+from typing import TYPE_CHECKING, Any, TypedDict, Union, cast
 
 import dagster._check as check
 from dagster import AssetExecutionContext, OpExecutionContext, PipesClient
@@ -43,12 +45,12 @@ class PipesRayJobMessageReader(PipesMessageReader):
     """
 
     def __init__(self):
-        self._handler: Optional[PipesMessageHandler] = None
-        self._thread: Optional[threading.Thread] = None
+        self._handler: PipesMessageHandler | None = None
+        self._thread: threading.Thread | None = None
         self.session_closed = threading.Event()
 
     @contextmanager
-    def read_messages(self, handler: "PipesMessageHandler") -> Iterator[PipesParams]:
+    def read_messages(self, handler: PipesMessageHandler) -> Iterator[PipesParams]:
         #  This method should start a thread to continuously read messages from some location
         self._handler = handler
 
@@ -58,7 +60,7 @@ class PipesRayJobMessageReader(PipesMessageReader):
             self.terminate()
 
     @property
-    def handler(self) -> "PipesMessageHandler":
+    def handler(self) -> PipesMessageHandler:
         if self._handler is None:
             raise Exception("PipesMessageHandler is only available while reading messages in open_pipes_session")
 
@@ -73,7 +75,7 @@ class PipesRayJobMessageReader(PipesMessageReader):
         self._handler = None
 
     # TODO: call this method as part of self.read_messages
-    def consume_job_logs(self, client: "JobSubmissionClient", job_id: str, blocking: bool = False) -> None:
+    def consume_job_logs(self, client: JobSubmissionClient, job_id: str, blocking: bool = False) -> None:
         if blocking:
             handle_job_logs(handler=self.handler, client=client, job_id=job_id, session_closed=None)
         else:
@@ -94,7 +96,7 @@ class PipesRayJobMessageReader(PipesMessageReader):
 
 
 def handle_job_logs(
-    handler: PipesMessageHandler, client: "JobSubmissionClient", job_id: str, session_closed: Optional[threading.Event]
+    handler: PipesMessageHandler, client: JobSubmissionClient, job_id: str, session_closed: threading.Event | None
 ):
     import asyncio
 
@@ -182,9 +184,9 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
 
     def __init__(
         self,
-        client: "JobSubmissionClient",
-        context_injector: Optional[PipesContextInjector] = None,
-        message_reader: Optional[PipesMessageReader] = None,
+        client: JobSubmissionClient,
+        context_injector: PipesContextInjector | None = None,
+        message_reader: PipesMessageReader | None = None,
         forward_termination: bool = True,
         timeout: int = 600,
         poll_interval: int = 5,
@@ -197,14 +199,14 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
         self.timeout = check.int_param(timeout, "timeout")
         self.poll_interval = check.int_param(poll_interval, "poll_interval")
 
-        self._job_submission_client: Optional[JobSubmissionClient] = None
+        self._job_submission_client: JobSubmissionClient | None = None
 
     def run(  # type: ignore
         self,
         *,
         context: OpOrAssetExecutionContext,
         submit_job_params: SubmitJobParams,
-        extras: Optional[PipesExtras] = None,
+        extras: PipesExtras | None = None,
     ) -> PipesClientCompletedInvocation:
         """
         Execute a RayJob, enriched with the Pipes protocol.
@@ -279,7 +281,7 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
                 blocking=True,
             )
 
-    def _wait_for_completion(self, context: OpOrAssetExecutionContext, job_id: str) -> "JobStatus":
+    def _wait_for_completion(self, context: OpOrAssetExecutionContext, job_id: str) -> JobStatus:
         from ray.job_submission import JobStatus
 
         context.log.info(f"[pipes] Waiting for RayJob {job_id} to complete...")

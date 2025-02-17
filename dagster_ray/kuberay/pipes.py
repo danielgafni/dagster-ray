@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import time
-from typing import TYPE_CHECKING, Any, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, Union, cast
 
 import dagster._check as check
 import yaml
@@ -48,9 +50,9 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
 
     def __init__(
         self,
-        client: Optional[RayJobClient] = None,
-        context_injector: Optional[PipesContextInjector] = None,
-        message_reader: Optional[PipesMessageReader] = None,
+        client: RayJobClient | None = None,
+        context_injector: PipesContextInjector | None = None,
+        message_reader: PipesMessageReader | None = None,
         forward_termination: bool = True,
         timeout: int = 600,
         poll_interval: int = 5,
@@ -66,10 +68,10 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
         self.poll_interval = check.int_param(poll_interval, "poll_interval")
         self.port_forward = check.bool_param(port_forward, "port_forward")
 
-        self._job_submission_client: Optional[JobSubmissionClient] = None
+        self._job_submission_client: JobSubmissionClient | None = None
 
     @property
-    def job_submission_client(self) -> "JobSubmissionClient":
+    def job_submission_client(self) -> JobSubmissionClient:
         if self._job_submission_client is None:
             raise DagsterInvariantViolationError("JobSubmissionClient is only available inside the run method.")
         else:
@@ -80,7 +82,7 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
         *,
         context: OpOrAssetExecutionContext,
         ray_job: dict[str, Any],
-        extras: Optional[PipesExtras] = None,
+        extras: PipesExtras | None = None,
     ) -> PipesClientCompletedInvocation:
         """
         Execute a RayJob, enriched with the Pipes protocol.

@@ -1,12 +1,14 @@
+from __future__ import annotations
+
 import os
-from typing import Union, cast
+from typing import cast
 
 from dagster import AssetExecutionContext, InitResourceContext, OpExecutionContext
 
 from dagster_ray._base.constants import DEFAULT_DEPLOYMENT_NAME
 
 
-def get_dagster_tags(context: Union[InitResourceContext, OpExecutionContext, AssetExecutionContext]) -> dict[str, str]:
+def get_dagster_tags(context: InitResourceContext | OpExecutionContext | AssetExecutionContext) -> dict[str, str]:
     """
     Returns a dictionary with common Dagster tags.
     """

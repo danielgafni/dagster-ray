@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import socket
 import subprocess
@@ -10,7 +12,6 @@ from queue import Queue
 from typing import (
     TYPE_CHECKING,
     Any,
-    Optional,
     TypedDict,
     cast,
 )
@@ -78,9 +79,9 @@ class RayClusterStatus(TypedDict):
 class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
     def __init__(
         self,
-        config_file: Optional[str] = None,
-        context: Optional[str] = None,
-        api_client: Optional["ApiClient"] = None,
+        config_file: str | None = None,
+        context: str | None = None,
+        api_client: ApiClient | None = None,
     ) -> None:
         super().__init__(group=GROUP, version=VERSION, kind=KIND, plural=PLURAL, api_client=api_client)
 
@@ -94,7 +95,7 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
         name: str,
         namespace: str,
         timeout: int,
-        image: Optional[str] = None,
+        image: str | None = None,
     ) -> tuple[str, dict[str, str]]:
         from kubernetes import watch
 
@@ -242,7 +243,7 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
     @contextmanager
     def job_submission_client(
         self, name: str, namespace: str, port_forward: bool = False, timeout: int = 60
-    ) -> Iterator["JobSubmissionClient"]:
+    ) -> Iterator[JobSubmissionClient]:
         """
         Returns a JobSubmissionClient object that can be used to interact with Ray jobs running in the KubeRay cluster.
         If port_forward is True, it will port forward the dashboard and GCS ports to localhost, and should be used in a context manager.

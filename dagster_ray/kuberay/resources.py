@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import contextlib
 import hashlib
 import random
@@ -5,7 +7,7 @@ import re
 import string
 import sys
 from collections.abc import Generator
-from typing import TYPE_CHECKING, Any, Optional, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import dagster._check as check
 from dagster import ConfigurableResource, InitResourceContext
@@ -36,12 +38,12 @@ if TYPE_CHECKING:
 
 @experimental
 class RayClusterClientResource(ConfigurableResource):
-    kube_context: Optional[str] = None
-    kubeconfig_file: Optional[str] = None
+    kube_context: str | None = None
+    kubeconfig_file: str | None = None
 
     _raycluster_client: RayClusterClient = PrivateAttr()
-    _k8s_api: "kubernetes.client.CustomObjectsApi" = PrivateAttr()
-    _k8s_core_api: "kubernetes.client.CoreV1Api" = PrivateAttr()
+    _k8s_api: kubernetes.client.CustomObjectsApi = PrivateAttr()
+    _k8s_core_api: kubernetes.client.CoreV1Api = PrivateAttr()
 
     @property
     def client(self) -> RayClusterClient:
@@ -50,13 +52,13 @@ class RayClusterClientResource(ConfigurableResource):
         return self._raycluster_client
 
     @property
-    def k8s(self) -> "kubernetes.client.CustomObjectsApi":
+    def k8s(self) -> kubernetes.client.CustomObjectsApi:
         if self._k8s_api is None:
             raise ValueError(f"{self.__class__.__name__} not initialized")
         return self._k8s_api
 
     @property
-    def k8s_core(self) -> "kubernetes.client.CoreV1Api":
+    def k8s_core(self) -> kubernetes.client.CoreV1Api:
         if self._k8s_core_api is None:
             raise ValueError(f"{self.__class__.__name__} not initialized")
         return self._k8s_core_api
@@ -175,7 +177,7 @@ class KubeRayCluster(BaseRayResource):
     def _build_raycluster(
         self,
         image: str,
-        labels: Optional[dict[str, str]] = None,  # TODO: use in RayCluster labels
+        labels: dict[str, str] | None = None,  # TODO: use in RayCluster labels
     ) -> dict[str, Any]:
         """
         Builds a RayCluster from the provided configuration, while injecting custom image and labels (only known during resource setup)
@@ -283,7 +285,7 @@ class KubeRayCluster(BaseRayResource):
         return step_name
 
 
-def get_k8s_object_name(run_id: str, step_key: Optional[str] = None):
+def get_k8s_object_name(run_id: str, step_key: str | None = None):
     """Creates a unique (short!) identifier to name k8s objects based on run ID and step key(s).
 
     K8s Job names are limited to 63 characters, because they are used as labels. For more info, see:

@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import uuid
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Optional, Union, cast
+from typing import TYPE_CHECKING, Union, cast
 
 from dagster import AssetExecutionContext, ConfigurableResource, InitResourceContext, OpExecutionContext
 from pydantic import Field, PrivateAttr
@@ -34,7 +36,7 @@ class BaseRayResource(ConfigurableResource, ABC):
         default=8265, description="Dashboard port for connection. Make sure to match with the actual available port."
     )
 
-    _context: Optional["RayBaseContext"] = PrivateAttr()
+    _context: RayBaseContext | None = PrivateAttr()
 
     def setup_for_execution(self, context: InitResourceContext) -> None:
         raise NotImplementedError(
@@ -43,7 +45,7 @@ class BaseRayResource(ConfigurableResource, ABC):
         )
 
     @property
-    def context(self) -> "RayBaseContext":
+    def context(self) -> RayBaseContext:
         assert self._context is not None, "RayClusterResource not initialized"
         return self._context
 
@@ -71,7 +73,7 @@ class BaseRayResource(ConfigurableResource, ABC):
         return ray.get_runtime_context().get_job_id()
 
     @retry(stop=stop_after_delay(120), retry=retry_if_exception_type(ConnectionError), reraise=True)
-    def init_ray(self, context: Union[OpOrAssetExecutionContext, InitResourceContext]) -> "RayBaseContext":
+    def init_ray(self, context: OpOrAssetExecutionContext | InitResourceContext) -> RayBaseContext:
         assert context.log is not None
 
         import ray
