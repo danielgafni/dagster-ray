@@ -1,11 +1,12 @@
+from __future__ import annotations
+
 import contextlib
 import hashlib
 import random
 import re
 import string
 import sys
-from collections.abc import Generator
-from typing import TYPE_CHECKING, Any, Optional, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import dagster._check as check
 from dagster import ConfigurableResource, InitResourceContext
@@ -31,34 +32,39 @@ from dagster_ray._base.resources import BaseRayResource
 from dagster_ray.kuberay.client.base import load_kubeconfig
 
 if TYPE_CHECKING:
+    from collections.abc import Generator
+
     import kubernetes
 
 
 @experimental
 class RayClusterClientResource(ConfigurableResource):
-    kube_context: Optional[str] = None
-    kubeconfig_file: Optional[str] = None
+    kube_context: str | None = None
+    kubeconfig_file: str | None = None
 
     _raycluster_client: RayClusterClient = PrivateAttr()
-    _k8s_api: "kubernetes.client.CustomObjectsApi" = PrivateAttr()
-    _k8s_core_api: "kubernetes.client.CoreV1Api" = PrivateAttr()
+    _k8s_api: kubernetes.client.CustomObjectsApi = PrivateAttr()
+    _k8s_core_api: kubernetes.client.CoreV1Api = PrivateAttr()
 
     @property
     def client(self) -> RayClusterClient:
         if self._raycluster_client is None:
-            raise ValueError(f"{self.__class__.__name__} not initialized")
+            msg = f"{self.__class__.__name__} not initialized"
+            raise ValueError(msg)
         return self._raycluster_client
 
     @property
-    def k8s(self) -> "kubernetes.client.CustomObjectsApi":
+    def k8s(self) -> kubernetes.client.CustomObjectsApi:
         if self._k8s_api is None:
-            raise ValueError(f"{self.__class__.__name__} not initialized")
+            msg = f"{self.__class__.__name__} not initialized"
+            raise ValueError(msg)
         return self._k8s_api
 
     @property
-    def k8s_core(self) -> "kubernetes.client.CoreV1Api":
+    def k8s_core(self) -> kubernetes.client.CoreV1Api:
         if self._k8s_core_api is None:
-            raise ValueError(f"{self.__class__.__name__} not initialized")
+            msg = f"{self.__class__.__name__} not initialized"
+            raise ValueError(msg)
         return self._k8s_core_api
 
     def setup_for_execution(self, context: InitResourceContext) -> None:
@@ -73,9 +79,8 @@ class RayClusterClientResource(ConfigurableResource):
 
 @experimental
 class KubeRayCluster(BaseRayResource):
-    """
-    Provides a RayCluster for the current step selection
-    The cluster is automatically deleted after steps execution
+    """Provides a RayCluster for the current step selection
+    The cluster is automatically deleted after steps execution.
     """
 
     deployment_name: str = Field(
@@ -95,7 +100,8 @@ class KubeRayCluster(BaseRayResource):
     @property
     def host(self) -> str:
         if self._host is None:
-            raise ValueError(f"{self.__class__.__name__} not initialized")
+            msg = f"{self.__class__.__name__} not initialized"
+            raise ValueError(msg)
         return self._host
 
     @property
@@ -105,7 +111,8 @@ class KubeRayCluster(BaseRayResource):
     @property
     def cluster_name(self) -> str:
         if self._cluster_name is None:
-            raise ValueError(f"{self.__class__.__name__}not initialized")
+            msg = f"{self.__class__.__name__}not initialized"
+            raise ValueError(msg)
         return self._cluster_name
 
     def get_dagster_tags(self, context: InitResourceContext) -> dict[str, str]:
@@ -122,8 +129,6 @@ class KubeRayCluster(BaseRayResource):
 
         self._cluster_name = self._get_ray_cluster_step_name(context)
 
-        # self._host = f"{self.cluster_name}-head-svc.{self.namespace}.svc.cluster.local"
-
         try:
             # just a safety measure, no need to recreate the cluster for step retries or smth
             if not self.client.client.list(
@@ -137,10 +142,11 @@ class KubeRayCluster(BaseRayResource):
 
                 resource = self.client.client.create(body=cluster_body, namespace=self.namespace)
                 if not resource:
-                    raise RuntimeError(f"Couldn't create RayCluster {self.namespace}/{self.cluster_name}")
+                    msg = f"Couldn't create RayCluster {self.namespace}/{self.cluster_name}"
+                    raise RuntimeError(msg)
 
                 context.log.info(
-                    f"Created RayCluster {self.namespace}/{self.cluster_name}. Waiting for it to become ready..."
+                    f"Created RayCluster {self.namespace}/{self.cluster_name}. Waiting for it to become ready...",
                 )
 
                 self._wait_raycluster_ready()
@@ -152,7 +158,7 @@ class KubeRayCluster(BaseRayResource):
                 context.log.info("RayCluster is ready! Connection command:")
 
                 context.log.info(
-                    f"`kubectl -n {self.namespace} port-forward svc/{self.cluster_name}-head-svc 8265:8265 6379:6379 10001:10001`"
+                    f"`kubectl -n {self.namespace} port-forward svc/{self.cluster_name}-head-svc 8265:8265 6379:6379 10001:10001`",  # noqa: E501
                 )
 
             context.log.debug(f"Ray host: {self.host}")
@@ -163,10 +169,10 @@ class KubeRayCluster(BaseRayResource):
                 self._context = None
 
             yield self
-        except Exception as e:
+        except Exception:
             context.log.critical(f"Couldn't create or connect to RayCluster {self.namespace}/{self.cluster_name}!")
             self._maybe_cleanup_raycluster(context)
-            raise e
+            raise
 
         self._maybe_cleanup_raycluster(context)
         if self._context is not None:
@@ -175,13 +181,12 @@ class KubeRayCluster(BaseRayResource):
     def _build_raycluster(
         self,
         image: str,
-        labels: Optional[dict[str, str]] = None,  # TODO: use in RayCluster labels
+        labels: dict[str, str] | None = None,  # TODO: use in RayCluster labels
     ) -> dict[str, Any]:
-        """
-        Builds a RayCluster from the provided configuration, while injecting custom image and labels (only known during resource setup)
-        """
+        """Builds a RayCluster from the provided configuration, while injecting custom image
+        and labels (only known during resource setup)."""
         # TODO: inject self.redis_port and self.dashboard_port into the RayCluster configuration
-        # TODO: autoa-apply some tags from dagster-k8s/config
+        # TODO: auto-apply some tags from dagster-k8s/config
 
         labels = labels or {}
         assert isinstance(labels, dict)
@@ -190,18 +195,17 @@ class KubeRayCluster(BaseRayResource):
         head_group_spec = self.ray_cluster.head_group_spec.copy()
         worker_group_specs = self.ray_cluster.worker_group_specs.copy()
 
-        def update_group_spec(group_spec: dict[str, Any]):
+        def update_group_spec(group_spec: dict[str, Any]) -> None:
             # TODO: only inject if the container has a `dagster.io/inject-image` annotation or smth
             if group_spec["template"]["spec"]["containers"][0].get("image") is None:
                 group_spec["template"]["spec"]["containers"][0]["image"] = image
 
             if group_spec.get("metadata") is None:
                 group_spec["metadata"] = {"labels": labels}
+            elif group_spec["metadata"].get("labels") is None:
+                group_spec["metadata"]["labels"] = labels
             else:
-                if group_spec["metadata"].get("labels") is None:
-                    group_spec["metadata"]["labels"] = labels
-                else:
-                    group_spec["metadata"]["labels"].update(labels)
+                group_spec["metadata"]["labels"].update(labels)
 
         update_group_spec(head_group_spec)
         for worker_group_spec in worker_group_specs:
@@ -222,7 +226,7 @@ class KubeRayCluster(BaseRayResource):
             },
         }
 
-    def _wait_raycluster_ready(self):
+    def _wait_raycluster_ready(self) -> None:
         import kubernetes
 
         self.client.client.wait_until_ready(self.cluster_name, namespace=self.namespace, timeout=self.timeout)
@@ -246,7 +250,7 @@ class KubeRayCluster(BaseRayResource):
                 w.stop()
                 return
 
-    def _maybe_cleanup_raycluster(self, context: InitResourceContext):
+    def _maybe_cleanup_raycluster(self, context: InitResourceContext) -> None:
         assert context.log is not None
 
         if not self.skip_cleanup and cast(DagsterRun, context.dagster_run).status != DagsterRunStatus.FAILURE:
@@ -256,7 +260,7 @@ class KubeRayCluster(BaseRayResource):
             context.log.warning(
                 f"Skipping RayCluster {self.cluster_name} deletion because `disable_cluster_cleanup` "
                 f"config parameter is set to `True` or the run failed. "
-                f"It may be still be deleted by the automatic cleanup job."
+                f"It may be still be deleted by the automatic cleanup job.",
             )
 
     def _get_ray_cluster_step_name(self, context: InitResourceContext) -> str:
@@ -278,12 +282,10 @@ class KubeRayCluster(BaseRayResource):
         )
 
         step_name = f"{cluster_name_prefix}-{name_key}".lower()
-        step_name = re.sub(r"[^-0-9a-z]", "-", step_name)
-
-        return step_name
+        return re.sub(r"[^-0-9a-z]", "-", step_name)
 
 
-def get_k8s_object_name(run_id: str, step_key: Optional[str] = None):
+def get_k8s_object_name(run_id: str, step_key: str | None = None):
     """Creates a unique (short!) identifier to name k8s objects based on run ID and step key(s).
 
     K8s Job names are limited to 63 characters, because they are used as labels. For more info, see:

@@ -1,15 +1,16 @@
-import os
-from typing import Union, cast
+from __future__ import annotations
 
-from dagster import AssetExecutionContext, InitResourceContext, OpExecutionContext
+import os
+from typing import TYPE_CHECKING, cast
 
 from dagster_ray._base.constants import DEFAULT_DEPLOYMENT_NAME
 
+if TYPE_CHECKING:
+    from dagster import AssetExecutionContext, InitResourceContext, OpExecutionContext
 
-def get_dagster_tags(context: Union[InitResourceContext, OpExecutionContext, AssetExecutionContext]) -> dict[str, str]:
-    """
-    Returns a dictionary with common Dagster tags.
-    """
+
+def get_dagster_tags(context: InitResourceContext | OpExecutionContext | AssetExecutionContext) -> dict[str, str]:
+    """Returns a dictionary with common Dagster tags."""
     assert context.dagster_run is not None
 
     labels = {

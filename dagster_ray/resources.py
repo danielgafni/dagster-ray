@@ -19,8 +19,7 @@ from dagster_ray._base.resources import BaseRayResource
 
 
 class LocalRay(BaseRayResource):
-    """
-    Dummy Resource.
+    """Dummy Resource.
     Is useful for testing and local development.
     Provides the same interface as actual Resources.
     """

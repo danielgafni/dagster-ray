@@ -1,12 +1,14 @@
+from __future__ import annotations
+
 import time
-from typing import TYPE_CHECKING, Any, Generic, Optional, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 if TYPE_CHECKING:
     from kubernetes import client
     from kubernetes.client.models.v1_endpoints import V1Endpoints
 
 
-def load_kubeconfig(context: Optional[str] = None, config_file: Optional[str] = None) -> Any:
+def load_kubeconfig(context: str | None = None, config_file: str | None = None) -> Any:
     from kubernetes import config
 
     try:
@@ -28,8 +30,8 @@ class BaseKubeRayClient(Generic[T_Status]):
         version: str,
         kind: str,
         plural: str,
-        api_client: Optional["client.ApiClient"] = None,
-    ):
+        api_client: client.ApiClient | None = None,
+    ) -> None:
         from kubernetes import client
 
         self.group = group
@@ -40,7 +42,9 @@ class BaseKubeRayClient(Generic[T_Status]):
         self._api = client.CustomObjectsApi(api_client=api_client)
         self._core_v1_api = client.CoreV1Api(api_client=api_client)
 
-    def wait_for_service_endpoints(self, service_name: str, namespace: str, poll_interval: int = 5, timeout: int = 600):
+    def wait_for_service_endpoints(
+        self, service_name: str, namespace: str, poll_interval: int = 5, timeout: int = 600
+    ) -> None:
         from kubernetes.client import ApiException
 
         start_time = time.time()
@@ -60,8 +64,9 @@ class BaseKubeRayClient(Generic[T_Status]):
 
             elapsed_time = time.time() - start_time
             if elapsed_time > timeout:
+                msg = f"Timed out waiting for endpoints for service {service_name} in namespace {namespace}"
                 raise TimeoutError(
-                    f"Timed out waiting for endpoints for service {service_name} in namespace {namespace}"
+                    msg,
                 )
 
             time.sleep(poll_interval)
@@ -83,11 +88,11 @@ class BaseKubeRayClient(Generic[T_Status]):
 
             if resource.get("status"):
                 return resource["status"]
-            else:
-                time.sleep(poll_interval)
-                timeout -= poll_interval
+            time.sleep(poll_interval)
+            timeout -= poll_interval
 
-        raise TimeoutError(f"Timed out waiting for status of {self.kind} {name} in namespace {namespace}")
+        msg = f"Timed out waiting for status of {self.kind} {name} in namespace {namespace}"
+        raise TimeoutError(msg)
 
     def list(self, namespace: str, label_selector: str = "", async_req: bool = False) -> dict[str, Any]:
         from kubernetes.client import ApiException
@@ -103,8 +108,7 @@ class BaseKubeRayClient(Generic[T_Status]):
             )
             if "items" in resource:
                 return resource
-            else:
-                return {}
+            return {}
         except ApiException as e:
             if e.status == 404:
                 return {}

@@ -20,7 +20,7 @@ from tests.kuberay.utils import NAMESPACE
 
 
 @pytest.fixture(scope="session")
-def kuberay_helm_repo():
+def kuberay_helm_repo() -> None:
     subprocess.run(["helm", "repo", "add", "kuberay", "https://ray-project.github.io/kuberay-helm/"], check=True)
     subprocess.run(["helm", "repo", "update", "kuberay"], check=True)
 
@@ -90,7 +90,10 @@ KUBERAY_VERSIONS = os.getenv("PYTEST_KUBERAY_VERSIONS", "1.2.2").split(",")
 @pytest_cases.fixture(scope="session")  # type: ignore
 @pytest.mark.parametrize("kuberay_version", KUBERAY_VERSIONS)
 def k8s_with_kuberay(
-    request, kuberay_helm_repo, dagster_ray_image: str, kuberay_version: str
+    request,
+    kuberay_helm_repo,
+    dagster_ray_image: str,
+    kuberay_version: str,
 ) -> Iterator[AClusterManager]:
     k8s = select_provider_manager("minikube")("dagster-ray")
     k8s.create(ClusterOptions(api_version=KUBERNETES_VERSION))

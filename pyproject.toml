@@ -109,7 +109,21 @@ exclude = [
     "venv",
 ]
 [tool.ruff.lint]
-extend-select = ["I", "TID252", "TID253", "UP"]
+select = ["ALL"]
+ignore = [
+    # disallow assert statements
+    "S101",
+    # disallow non-specific type: ignore comments
+    "PGH003",
+    # docs
+    "D",
+    # missing trailing comma
+    "COM812",
+    # fixme and TODO comments
+    "FIX", "TD",
+    # logging call with f-strings (doesn't make sense since it's almost always the Dagster logger being used)
+    "G004",
+]
 [tool.ruff.lint.isort]
 known-first-party = ["dagster_ray", "tests"]
 

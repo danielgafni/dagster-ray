@@ -30,12 +30,14 @@ def delete_kuberay_clusters_op(
 class CleanupKuberayClustersConfig(Config):
     namespace: str = "kuberay"
     label_selector: str = Field(
-        default=f"dagster.io/deployment={DEFAULT_DEPLOYMENT_NAME}", description="Label selector to filter RayClusters"
+        default=f"dagster.io/deployment={DEFAULT_DEPLOYMENT_NAME}",
+        description="Label selector to filter RayClusters",
     )
 
 
 @op(
-    description="Deletes RayCluster resources which do not correspond to any active Dagster Runs in this deployment from Kubernetes",
+    description="""Deletes RayCluster resources which do not correspond to any active Dagster Runs in this deployment
+        from Kubernetes""",
     name="cleanup_kuberay_clusters",
 )
 def cleanup_kuberay_clusters_op(
@@ -49,8 +51,8 @@ def cleanup_kuberay_clusters_op(
                 DagsterRunStatus.STARTED,
                 DagsterRunStatus.QUEUED,
                 DagsterRunStatus.CANCELING,
-            ]
-        )
+            ],
+        ),
     )
 
     clusters = client.client.list(

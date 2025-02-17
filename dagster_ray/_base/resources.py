@@ -1,12 +1,11 @@
+from __future__ import annotations
+
 import uuid
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Optional, Union, cast
+from typing import TYPE_CHECKING, Union, cast
 
 from dagster import AssetExecutionContext, ConfigurableResource, InitResourceContext, OpExecutionContext
 from pydantic import Field, PrivateAttr
-
-# yes, `python-client` is actually the KubeRay package name
-# https://github.com/ray-project/kuberay/issues/2078
 from requests.exceptions import ConnectionError
 from tenacity import retry, retry_if_exception_type, stop_after_delay
 from typing_extensions import TypeAlias
@@ -15,42 +14,46 @@ from dagster_ray._base.utils import get_dagster_tags
 from dagster_ray.config import RayDataExecutionOptions
 
 if TYPE_CHECKING:
-    from ray._private.worker import BaseContext as RayBaseContext  # noqa
+    from ray._private.worker import BaseContext as RayBaseContext
 
 OpOrAssetExecutionContext: TypeAlias = Union[OpExecutionContext, AssetExecutionContext]
 
 
 class BaseRayResource(ConfigurableResource, ABC):
-    """
-    Base class for Ray Resources.
+    """Base class for Ray Resources.
     Defines the common interface and some utility methods.
     """
 
     data_execution_options: RayDataExecutionOptions = Field(default_factory=RayDataExecutionOptions)
     redis_port: int = Field(
-        default=10001, description="Redis port for connection. Make sure to match with the actual available port."
+        default=10001,
+        description="Redis port for connection. Make sure to match with the actual available port.",
     )
     dashboard_port: int = Field(
-        default=8265, description="Dashboard port for connection. Make sure to match with the actual available port."
+        default=8265,
+        description="Dashboard port for connection. Make sure to match with the actual available port.",
     )
 
-    _context: Optional["RayBaseContext"] = PrivateAttr()
+    _context: RayBaseContext | None = PrivateAttr()
 
     def setup_for_execution(self, context: InitResourceContext) -> None:
-        raise NotImplementedError(
+        msg = (
             "This is an abstract resource, it's not meant to be provided directly. "
             "Use a backend-specific resource instead."
         )
+        raise NotImplementedError(
+            msg,
+        )
 
     @property
-    def context(self) -> "RayBaseContext":
+    def context(self) -> RayBaseContext:
         assert self._context is not None, "RayClusterResource not initialized"
         return self._context
 
     @property
     @abstractmethod
     def host(self) -> str:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @property
     def ray_address(self) -> str:
@@ -62,8 +65,7 @@ class BaseRayResource(ConfigurableResource, ABC):
 
     @property
     def runtime_job_id(self) -> str:
-        """
-        Returns the Ray Job ID for the current job which was created with `ray.init()`.
+        """Returns the Ray Job ID for the current job which was created with `ray.init()`.
         :return:
         """
         import ray
@@ -71,7 +73,7 @@ class BaseRayResource(ConfigurableResource, ABC):
         return ray.get_runtime_context().get_job_id()
 
     @retry(stop=stop_after_delay(120), retry=retry_if_exception_type(ConnectionError), reraise=True)
-    def init_ray(self, context: Union[OpOrAssetExecutionContext, InitResourceContext]) -> "RayBaseContext":
+    def init_ray(self, context: OpOrAssetExecutionContext | InitResourceContext) -> RayBaseContext:
         assert context.log is not None
 
         import ray
@@ -84,8 +86,7 @@ class BaseRayResource(ConfigurableResource, ABC):
         return cast("RayBaseContext", self._context)
 
     def get_dagster_tags(self, context: InitResourceContext) -> dict[str, str]:
-        tags = get_dagster_tags(context)
-        return tags
+        return get_dagster_tags(context)
 
     def _get_step_key(self, context: InitResourceContext) -> str:
         # just return a random string

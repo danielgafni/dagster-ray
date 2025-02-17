@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import os
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 from dagster import Config
 from pydantic import Field
@@ -61,7 +63,7 @@ DEFAULT_WORKER_GROUP_SPECS = [
                         "volumeMounts": [{"mountPath": "/tmp/ray", "name": "ray-logs"}],
                         "name": "worker",
                         "imagePullPolicy": "Always",
-                    }
+                    },
                 ],
                 "volumes": [
                     {"name": "ray-logs", "emptyDir": {}},
@@ -71,12 +73,12 @@ DEFAULT_WORKER_GROUP_SPECS = [
                 "nodeSelector": {},
             },
         },
-    }
+    },
 ]
 
 
 class RayClusterConfig(Config):
-    image: Optional[str] = None
+    image: str | None = None
     namespace: str = "ray"
     enable_in_tree_autoscaling: bool = False
     autoscaler_options: dict[str, Any] = DEFAULT_AUTOSCALER_OPTIONS  # TODO: add a dedicated Config type
@@ -89,11 +91,11 @@ class RayJobConfig(Config):
     entrypoint_memory: float
     entrypoint_num_gpus: int
     suspend: bool = False
-    annotations: Optional[dict[str, str]] = None
-    labels: Optional[dict[str, str]] = None
+    annotations: dict[str, str] | None = None
+    labels: dict[str, str] | None = None
     shutdown_after_job_finishes: bool = True
     ttl_seconds_after_finished: int = 60 * 10  # 10 minutes
     active_deadline_seconds: int = 60 * 60 * 24  # 24 hours
     submission_mode: Literal["K8sJobMode", "HTTPMode"] = "K8sJobMode"
-    runtime_env_yaml: Optional[str] = None
+    runtime_env_yaml: str | None = None
     cluster: RayClusterConfig = Field(default_factory=RayClusterConfig)

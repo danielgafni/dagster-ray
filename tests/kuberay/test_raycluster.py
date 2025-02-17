@@ -70,7 +70,7 @@ def get_hostname():
 def test_kuberay_cluster_resource(
     ray_cluster_resource: KubeRayCluster,
     k8s_with_kuberay: AClusterManager,
-):
+) -> None:
     @asset
     # testing RayResource type annotation too!
     def my_asset(context: AssetExecutionContext, ray_cluster: RayResource) -> None:
@@ -96,7 +96,8 @@ def test_kuberay_cluster_resource(
             assert ray_cluster.cluster_name in ray.get(get_hostname.remote())
 
             ray_cluster_description = ray_cluster.client.client.get(
-                ray_cluster.cluster_name, namespace=ray_cluster.namespace
+                ray_cluster.cluster_name,
+                namespace=ray_cluster.namespace,
             )
             assert ray_cluster_description["metadata"]["labels"]["dagster.io/run_id"] == context.run_id
             assert ray_cluster_description["metadata"]["labels"]["dagster.io/cluster"] == ray_cluster.cluster_name
@@ -113,8 +114,9 @@ def test_kuberay_cluster_resource(
     assert (
         len(
             kuberay_client.list(
-                namespace=ray_cluster_resource.namespace, label_selector=f"dagster.io/run_id={result.run_id}"
-            )["items"]
+                namespace=ray_cluster_resource.namespace,
+                label_selector=f"dagster.io/run_id={result.run_id}",
+            )["items"],
         )
         == 0
     )
@@ -123,7 +125,7 @@ def test_kuberay_cluster_resource(
 def test_kuberay_cleanup_job(
     ray_cluster_resource_skip_cleanup: KubeRayCluster,
     k8s_with_kuberay: AClusterManager,
-):
+) -> None:
     @asset
     def my_asset(ray_cluster: RayResource) -> None:
         assert isinstance(ray_cluster, KubeRayCluster)
@@ -140,7 +142,7 @@ def test_kuberay_cleanup_job(
             kuberay_client.list(
                 namespace=ray_cluster_resource_skip_cleanup.namespace,
                 label_selector=f"dagster.io/run_id={result.run_id}",
-            )["items"]
+            )["items"],
         )
         > 0
     )
@@ -153,11 +155,12 @@ def test_kuberay_cleanup_job(
             ops={
                 "cleanup_kuberay_clusters": CleanupKuberayClustersConfig(
                     namespace=ray_cluster_resource_skip_cleanup.namespace,
-                )
-            }
+                ),
+            },
         ),
     )
 
     assert not kuberay_client.list(
-        namespace=ray_cluster_resource_skip_cleanup.namespace, label_selector=f"dagster.io/run_id={result.run_id}"
+        namespace=ray_cluster_resource_skip_cleanup.namespace,
+        label_selector=f"dagster.io/run_id={result.run_id}",
     )["items"]

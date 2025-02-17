@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import random
 import string
 import threading
 import time
-from collections.abc import Generator, Iterator
 from contextlib import contextmanager
-from typing import TYPE_CHECKING, Any, Optional, TypedDict, Union, cast
+from typing import TYPE_CHECKING, Any, TypedDict, Union, cast
 
 import dagster._check as check
 from dagster import AssetExecutionContext, OpExecutionContext, PipesClient
@@ -16,7 +17,6 @@ from dagster._core.pipes.client import (
     PipesContextInjector,
     PipesMessageReader,
 )
-from dagster._core.pipes.context import PipesMessageHandler, PipesSession
 from dagster._core.pipes.utils import (
     PipesEnvContextInjector,
     _join_thread,
@@ -29,6 +29,9 @@ from typing_extensions import NotRequired, TypeAlias
 from dagster_ray._base.utils import get_dagster_tags
 
 if TYPE_CHECKING:
+    from collections.abc import Generator, Iterator
+
+    from dagster._core.pipes.context import PipesMessageHandler, PipesSession
     from ray.job_submission import JobStatus, JobSubmissionClient
 
 
@@ -37,18 +40,17 @@ OpOrAssetExecutionContext: TypeAlias = Union[OpExecutionContext, AssetExecutionC
 
 @experimental
 class PipesRayJobMessageReader(PipesMessageReader):
-    """
-    Dagster Pipes message reader for receiving messages from a Ray job.
+    """Dagster Pipes message reader for receiving messages from a Ray job.
     Will extract Dagster events and forward the rest to stdout.
     """
 
-    def __init__(self):
-        self._handler: Optional[PipesMessageHandler] = None
-        self._thread: Optional[threading.Thread] = None
+    def __init__(self) -> None:
+        self._handler: PipesMessageHandler | None = None
+        self._thread: threading.Thread | None = None
         self.session_closed = threading.Event()
 
     @contextmanager
-    def read_messages(self, handler: "PipesMessageHandler") -> Iterator[PipesParams]:
+    def read_messages(self, handler: PipesMessageHandler) -> Iterator[PipesParams]:
         #  This method should start a thread to continuously read messages from some location
         self._handler = handler
 
@@ -58,9 +60,10 @@ class PipesRayJobMessageReader(PipesMessageReader):
             self.terminate()
 
     @property
-    def handler(self) -> "PipesMessageHandler":
+    def handler(self) -> PipesMessageHandler:
         if self._handler is None:
-            raise Exception("PipesMessageHandler is only available while reading messages in open_pipes_session")
+            msg = "PipesMessageHandler is only available while reading messages in open_pipes_session"
+            raise Exception(msg)
 
         return self._handler
 
@@ -73,7 +76,7 @@ class PipesRayJobMessageReader(PipesMessageReader):
         self._handler = None
 
     # TODO: call this method as part of self.read_messages
-    def consume_job_logs(self, client: "JobSubmissionClient", job_id: str, blocking: bool = False) -> None:
+    def consume_job_logs(self, client: JobSubmissionClient, job_id: str, blocking: bool = False) -> None:
         if blocking:
             handle_job_logs(handler=self.handler, client=client, job_id=job_id, session_closed=None)
         else:
@@ -94,8 +97,11 @@ class PipesRayJobMessageReader(PipesMessageReader):
 
 
 def handle_job_logs(
-    handler: PipesMessageHandler, client: "JobSubmissionClient", job_id: str, session_closed: Optional[threading.Event]
-):
+    handler: PipesMessageHandler,
+    client: JobSubmissionClient,
+    job_id: str,
+    session_closed: threading.Event | None,
+) -> None:
     import asyncio
 
     async_tailer = client.tail_job_logs(job_id=job_id)
@@ -174,21 +180,23 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
             context into the Ray job. Defaults to :py:class:`PipesEnvContextInjector`.
         message_reader (Optional[PipesMessageReader]): A message reader to use to read messages
             from the glue job run. Defaults to :py:class:`PipesRayJobMessageReader`.
-        forward_termination (bool): Whether to cancel the `RayJob` job run when the Dagster process receives a termination signal.
+        forward_termination (bool): Whether to cancel the `RayJob` job run when the Dagster process receives
+            a termination signal.
         timeout (int): Timeout for various internal interactions with the Kubernetes RayJob.
         poll_interval (int): Interval at which to poll the Kubernetes for status updates.
         Is useful when running in a local environment.
+
     """
 
     def __init__(
         self,
-        client: "JobSubmissionClient",
-        context_injector: Optional[PipesContextInjector] = None,
-        message_reader: Optional[PipesMessageReader] = None,
+        client: JobSubmissionClient,
+        context_injector: PipesContextInjector | None = None,
+        message_reader: PipesMessageReader | None = None,
         forward_termination: bool = True,
         timeout: int = 600,
         poll_interval: int = 5,
-    ):
+    ) -> None:
         self.client = client
         self._context_injector = context_injector or PipesEnvContextInjector()
         self._message_reader = message_reader or PipesRayJobMessageReader()
@@ -197,24 +205,23 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
         self.timeout = check.int_param(timeout, "timeout")
         self.poll_interval = check.int_param(poll_interval, "poll_interval")
 
-        self._job_submission_client: Optional[JobSubmissionClient] = None
+        self._job_submission_client: JobSubmissionClient | None = None
 
     def run(  # type: ignore
         self,
         *,
         context: OpOrAssetExecutionContext,
         submit_job_params: SubmitJobParams,
-        extras: Optional[PipesExtras] = None,
+        extras: PipesExtras | None = None,
     ) -> PipesClientCompletedInvocation:
-        """
-        Execute a RayJob, enriched with the Pipes protocol.
+        """Execute a RayJob, enriched with the Pipes protocol.
 
         Args:
             context (OpExecutionContext): Current Dagster op or asset context.
             ray_job (Dict[str, Any]): RayJob specification. `API reference <https://ray-project.github.io/kuberay/reference/api/#rayjob>`_.
             extras (Optional[Dict[str, Any]]): Additional information to pass to the Pipes session.
-        """
 
+        """
         with open_pipes_session(
             context=context,
             message_reader=self._message_reader,
@@ -237,11 +244,13 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
                 raise
 
     def get_dagster_tags(self, context: OpOrAssetExecutionContext) -> dict[str, str]:
-        tags = get_dagster_tags(context)
-        return tags
+        return get_dagster_tags(context)
 
     def _enrich_submit_job_params(
-        self, context: OpOrAssetExecutionContext, session: PipesSession, submit_job_params: SubmitJobParams
+        self,
+        context: OpOrAssetExecutionContext,
+        session: PipesSession,
+        submit_job_params: SubmitJobParams,
     ) -> EnrichedSubmitJobParams:
         runtime_env = submit_job_params.get("runtime_env", {})
         metadata = submit_job_params.get("metadata", {})
@@ -279,7 +288,7 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
                 blocking=True,
             )
 
-    def _wait_for_completion(self, context: OpOrAssetExecutionContext, job_id: str) -> "JobStatus":
+    def _wait_for_completion(self, context: OpOrAssetExecutionContext, job_id: str) -> JobStatus:
         from ray.job_submission import JobStatus
 
         context.log.info(f"[pipes] Waiting for RayJob {job_id} to complete...")
@@ -290,8 +299,9 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
             if status.is_terminal():
                 if status in {JobStatus.FAILED, JobStatus.STOPPED}:
                     job_details = self.client.get_job_info(job_id)
+                    msg = f"[pipes] RayJob {job_id} failed with status {status}. Message:\n{job_details.message}"
                     raise RuntimeError(
-                        f"[pipes] RayJob {job_id} failed with status {status}. Message:\n{job_details.message}"
+                        msg,
                     )
 
                 return status
