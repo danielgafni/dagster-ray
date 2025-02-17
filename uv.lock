@@ -592,6 +592,7 @@ name = "dagster-ray"
 source = { editable = "." }
 dependencies = [
     { name = "dagster" },
+    { name = "eval-type-backport", marker = "python_full_version < '3.10'" },
     { name = "tenacity" },
 ]
 
@@ -634,6 +635,7 @@ dev = [
 requires-dist = [
     { name = "dagster", specifier = ">=1.10.0" },
     { name = "dagster-k8s", marker = "extra == 'kuberay'", specifier = ">=0.19.0" },
+    { name = "eval-type-backport", marker = "python_full_version < '3.10'", specifier = ">=0.2.2" },
     { name = "kubernetes", marker = "extra == 'kuberay'", specifier = ">=20.0.0" },
     { name = "pyyaml", marker = "extra == 'kuberay'" },
     { name = "pyyaml", marker = "extra == 'kuberay'", specifier = ">=4.0.0" },
@@ -736,6 +738,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/31/e9/f49c4e7fccb77fa5c43c2480e09a857a78b41e7331a75e128ed5df45c56b/durationpy-0.9.tar.gz", hash = "sha256:fd3feb0a69a0057d582ef643c355c40d2fa1c942191f914d12203b1a01ac722a", size = 3186 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/4c/a3/ac312faeceffd2d8f86bc6dcb5c401188ba5a01bc88e69bed97578a0dfcd/durationpy-0.9-py3-none-any.whl", hash = "sha256:e65359a7af5cedad07fb77a2dd3f390f8eb0b74cb845589fa6c057086834dd38", size = 3461 },
+]
+
+[[package]]
+name = "eval-type-backport"
+version = "0.2.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/30/ea/8b0ac4469d4c347c6a385ff09dc3c048c2d021696664e26c7ee6791631b5/eval_type_backport-0.2.2.tar.gz", hash = "sha256:f0576b4cf01ebb5bd358d02314d31846af5e07678387486e2c798af0e7d849c1", size = 9079 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ce/31/55cd413eaccd39125368be33c46de24a1f639f2e12349b0361b4678f3915/eval_type_backport-0.2.2-py3-none-any.whl", hash = "sha256:cb6ad7c393517f476f96d456d0412ea80f0a8cf96f6892834cd9340149111b0a", size = 5830 },
 ]
 
 [[package]]

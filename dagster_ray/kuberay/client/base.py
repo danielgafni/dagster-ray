@@ -1,12 +1,14 @@
+from __future__ import annotations
+
 import time
-from typing import TYPE_CHECKING, Any, Generic, Optional, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 if TYPE_CHECKING:
     from kubernetes import client
     from kubernetes.client.models.v1_endpoints import V1Endpoints
 
 
-def load_kubeconfig(context: Optional[str] = None, config_file: Optional[str] = None) -> Any:
+def load_kubeconfig(context: str | None = None, config_file: str | None = None) -> Any:
     from kubernetes import config
 
     try:
@@ -28,7 +30,7 @@ class BaseKubeRayClient(Generic[T_Status]):
         version: str,
         kind: str,
         plural: str,
-        api_client: Optional["client.ApiClient"] = None,
+        api_client: client.ApiClient | None = None,
     ):
         from kubernetes import client
 

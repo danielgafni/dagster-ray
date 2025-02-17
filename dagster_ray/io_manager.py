@@ -1,4 +1,6 @@
-from typing import TYPE_CHECKING, Optional, Union
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from dagster import ConfigurableIOManager, InputContext, OutputContext
 
@@ -18,10 +20,10 @@ class RayObjectMap:
     def __init__(self):
         self._object_map: dict[str, ray.ObjectRef] = {}
 
-    def set(self, key: str, ref: "ray.ObjectRef"):
+    def set(self, key: str, ref: ray.ObjectRef):
         self._object_map[key] = ref
 
-    def get(self, key: str) -> Optional["ray.ObjectRef"]:
+    def get(self, key: str) -> ray.ObjectRef | None:
         return self._object_map.get(key)
 
     def delete(self, key: str):
@@ -59,7 +61,7 @@ class RayObjectMap:
 
 
 class RayIOManager(ConfigurableIOManager):
-    address: Optional[str] = None
+    address: str | None = None
 
     def handle_output(self, context: OutputContext, obj):
         import ray
@@ -108,7 +110,7 @@ class RayIOManager(ConfigurableIOManager):
 
         return ray.get(ref)
 
-    def _get_single_key(self, context: Union[InputContext, OutputContext]) -> str:
+    def _get_single_key(self, context: InputContext | OutputContext) -> str:
         identifier = context.get_identifier() if not context.has_asset_key else context.get_asset_identifier()
         return "/".join(identifier)
 

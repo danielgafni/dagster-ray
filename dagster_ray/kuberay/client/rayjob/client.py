@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import logging
 import time
 from collections.abc import Iterator
-from typing import TYPE_CHECKING, Literal, Optional, TypedDict
+from typing import TYPE_CHECKING, Literal, TypedDict
 
 from typing_extensions import NotRequired
 
@@ -35,9 +37,9 @@ class RayJobStatus(TypedDict):
 class RayJobClient(BaseKubeRayClient[RayJobStatus]):
     def __init__(
         self,
-        config_file: Optional[str] = None,
-        context: Optional[str] = None,
-        api_client: Optional["ApiClient"] = None,
+        config_file: str | None = None,
+        context: str | None = None,
+        api_client: ApiClient | None = None,
     ) -> None:
         # this call must happen BEFORE creating K8s apis
         load_kubeconfig(config_file=config_file, context=context)
