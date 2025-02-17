@@ -24,5 +24,8 @@
       "addLabels": ["lint"],
       "schedule": ["every friday"]
     }
-  ]
+  ],
+  "lockFileMaintenance": {
+      "enabled": true
+  }
 }
