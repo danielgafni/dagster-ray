@@ -2,5 +2,27 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended"
+  ],
+  "labels": ["dependencies"],
+  "reviewers": ["danielgafni"],
+  "packageRules": [
+    {
+      "matchPackageNames": ["dagster"],
+      "matchUpdateTypes": ["minor"],
+      "addLabels": ["dagster"],
+      "schedule": ["every friday"]
+    },
+    {
+      "matchPackageNames": ["ray"],
+      "matchUpdateTypes": ["minor"],
+      "addLabels": ["ray"],
+      "schedule": ["every friday"]
+    },
+    {
+      "matchPackageNames": ["pyright", "ruff"],
+      "matchUpdateTypes": ["minor"],
+      "addLabels": ["lint"],
+      "schedule": ["every friday"]
+    }
   ]
 }
