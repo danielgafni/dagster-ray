@@ -46,7 +46,7 @@ jobs:
           - "1.1.0"
     steps:
       - uses: actions/checkout@v4
-      - uses: azure/setup-helm@v4.2.0
+      - uses: azure/setup-helm@v4.3.0
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Start minikube
