@@ -1,4 +1,4 @@
-#syntax=docker/dockerfile:1.13
+#syntax=docker/dockerfile:1.14
 
 # options: prod,dev
 ARG BUILD_DEPENDENCIES=prod
