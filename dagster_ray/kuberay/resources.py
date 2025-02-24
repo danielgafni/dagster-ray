@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 import dagster._check as check
 from dagster import ConfigurableResource, InitResourceContext
-from dagster._annotations import experimental
+from dagster._annotations import beta
 from pydantic import Field, PrivateAttr
 
 from dagster_ray._base.constants import DEFAULT_DEPLOYMENT_NAME
@@ -36,7 +36,7 @@ if TYPE_CHECKING:
     import kubernetes
 
 
-@experimental
+@beta
 class RayClusterClientResource(ConfigurableResource):
     kube_context: str | None = None
     kubeconfig_file: str | None = None
@@ -73,7 +73,7 @@ class RayClusterClientResource(ConfigurableResource):
         self._k8s_core_api = kubernetes.client.CoreV1Api()
 
 
-@experimental
+@beta
 class KubeRayCluster(BaseRayResource):
     """
     Provides a RayCluster for the current step selection

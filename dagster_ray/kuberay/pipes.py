@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Union, cast
 import dagster._check as check
 import yaml
 from dagster import AssetExecutionContext, DagsterInvariantViolationError, OpExecutionContext, PipesClient
-from dagster._annotations import experimental
+from dagster._annotations import beta
 from dagster._core.definitions.resource_annotation import TreatAsResourceParam
 from dagster._core.errors import DagsterExecutionInterruptedError
 from dagster._core.pipes.client import (
@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 OpOrAssetExecutionContext: TypeAlias = Union[OpExecutionContext, AssetExecutionContext]
 
 
-@experimental
+@beta
 class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
     """A pipes client for running ``RayJob`` on Kubernetes.
 
