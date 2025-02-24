@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any, TypedDict, Union, cast
 
 import dagster._check as check
 from dagster import AssetExecutionContext, OpExecutionContext, PipesClient
-from dagster._annotations import experimental
+from dagster._annotations import beta
 from dagster._core.definitions.resource_annotation import TreatAsResourceParam
 from dagster._core.errors import DagsterExecutionInterruptedError
 from dagster._core.pipes.client import (
@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 OpOrAssetExecutionContext: TypeAlias = Union[OpExecutionContext, AssetExecutionContext]
 
 
-@experimental
+@beta
 class PipesRayJobMessageReader(PipesMessageReader):
     """
     Dagster Pipes message reader for receiving messages from a Ray job.
@@ -164,7 +164,7 @@ def generate_job_id() -> str:
     return f"pipes-{random_letters}"
 
 
-@experimental
+@beta
 class PipesRayJobClient(PipesClient, TreatAsResourceParam):
     """A pipes client for running Ray jobs on remote clusters.
 
