@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Union, cast
+from typing import TYPE_CHECKING, Any, Union, cast
 
 from dagster import AssetExecutionContext, ConfigurableResource, InitResourceContext, OpExecutionContext
 from pydantic import Field, PrivateAttr
@@ -15,6 +15,7 @@ from typing_extensions import TypeAlias
 
 from dagster_ray._base.utils import get_dagster_tags
 from dagster_ray.config import RayDataExecutionOptions
+from dagster_ray.utils import _process_dagster_env_vars
 
 if TYPE_CHECKING:
     from ray._private.worker import BaseContext as RayBaseContext  # noqa
@@ -28,6 +29,10 @@ class BaseRayResource(ConfigurableResource, ABC):
     Defines the common interface and some utility methods.
     """
 
+    ray_init_options: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Additional keyword arguments to pass to `ray.init()` call, such as `runtime_env`, `num_cpus`, etc. Dagster's `EnvVar` is supported. More details in [Ray docs](https://docs.ray.io/en/latest/ray-core/api/doc/ray.init.html).",
+    )
     data_execution_options: RayDataExecutionOptions = Field(default_factory=RayDataExecutionOptions)
     redis_port: int = Field(
         default=10001, description="Redis port for connection. Make sure to match with the actual available port."
@@ -78,8 +83,16 @@ class BaseRayResource(ConfigurableResource, ABC):
 
         import ray
 
+        init_options = _process_dagster_env_vars(self.ray_init_options.copy())
+
+        init_options["ignore_reinit_error"] = init_options.get("ignore_reinit_error", True)
+
         self.data_execution_options.apply()
-        self._context = ray.init(address=self.ray_address, ignore_reinit_error=True)
+
+        self._context = ray.init(
+            address=self.ray_address,
+            **init_options,
+        )
         self.data_execution_options.apply()
         self.data_execution_options.apply_remote()
         context.log.info("Initialized Ray!")

@@ -29,12 +29,18 @@ class LocalRay(BaseRayResource):
     def host(self) -> str:
         return "127.0.0.1"
 
+    # the address is overwritten by None since ray.init does not behave as expected
+    # when the host is set to localhost or 127.0.0.1
+    @property
+    def ray_address(self) -> None:  # type: ignore
+        return None
+
     @contextlib.contextmanager
     def yield_for_execution(self, context: InitResourceContext) -> Generator[Self, None, None]:
         assert context.log is not None
         assert context.dagster_run is not None
 
-        context.log.debug(f"Ray host: {self.host}")
+        context.log.debug("Connecting to a local Ray cluster...")
 
         self.init_ray(context)
 
