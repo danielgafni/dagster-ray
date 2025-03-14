@@ -31,15 +31,15 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 FROM base-prod AS base-dev
 
-# Node.js is needed for pyright in CI
-ARG NODE_VERSION=23.0.0
-ARG NODE_PACKAGE=node-v$NODE_VERSION-linux-x64
-ARG NODE_HOME=/opt/$NODE_PACKAGE
-ENV NODE_PATH $NODE_HOME/lib/node_modules
-ENV PATH $NODE_HOME/bin:$PATH
-RUN --mount=type=cache,target=/cache/downloads \
-    curl --retry 3 https://nodejs.org/dist/v$NODE_VERSION/$NODE_PACKAGE.tar.gz -o /cache/downloads/$NODE_PACKAGE.tar.gz \
-    && tar -xzC /opt/ -f /cache/downloads/$NODE_PACKAGE.tar.gz
+# # Node.js is needed for pyright in CI (no longer needed since basedpyright is now used)
+# ARG NODE_VERSION=23.0.0
+# ARG NODE_PACKAGE=node-v$NODE_VERSION-linux-x64
+# ARG NODE_HOME=/opt/$NODE_PACKAGE
+# ENV NODE_PATH $NODE_HOME/lib/node_modules
+# ENV PATH $NODE_HOME/bin:$PATH
+# RUN --mount=type=cache,target=/cache/downloads \
+#     curl --retry 3 https://nodejs.org/dist/v$NODE_VERSION/$NODE_PACKAGE.tar.gz -o /cache/downloads/$NODE_PACKAGE.tar.gz \
+#     && tar -xzC /opt/ -f /cache/downloads/$NODE_PACKAGE.tar.gz
 
 
 RUN mkdir dagster_ray && touch dagster_ray/__init__.py && touch README.md

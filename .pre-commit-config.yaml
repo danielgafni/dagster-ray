@@ -37,8 +37,8 @@ repos:
         language: system
         pass_filenames: true
         files: "\\.(md)$"
-      - id: pyright
-        name: pyright
-        entry: pyright .
+      - id: basedpyright
+        name: basedpyright
+        entry: basedpyright --level error
         language: system
         pass_filenames: false
