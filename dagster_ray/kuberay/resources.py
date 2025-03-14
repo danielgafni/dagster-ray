@@ -20,6 +20,7 @@ from dagster_ray.kuberay.client import RayClusterClient
 # yes, `python-client` is actually the KubeRay package name
 # https://github.com/ray-project/kuberay/issues/2078
 from dagster_ray.kuberay.configs import RayClusterConfig
+from dagster_ray.kuberay.utils import normalize_k8s_label_values
 
 if sys.version_info >= (3, 11):
     from typing import Self
@@ -134,7 +135,7 @@ class KubeRayCluster(BaseRayResource):
             )["items"]:
                 cluster_body = self._build_raycluster(
                     image=(self.ray_cluster.image or context.dagster_run.tags["dagster/image"]),
-                    labels=self.get_dagster_tags(context),
+                    labels=normalize_k8s_label_values(self.get_dagster_tags(context)),
                 )
 
                 resource = self.client.client.create(body=cluster_body, namespace=self.namespace)
