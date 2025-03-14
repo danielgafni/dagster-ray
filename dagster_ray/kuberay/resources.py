@@ -52,26 +52,12 @@ class RayClusterClientResource(ConfigurableResource):
             raise ValueError(f"{self.__class__.__name__} not initialized")
         return self._raycluster_client
 
-    @property
-    def k8s(self) -> kubernetes.client.CustomObjectsApi:
-        if self._k8s_api is None:
-            raise ValueError(f"{self.__class__.__name__} not initialized")
-        return self._k8s_api
-
-    @property
-    def k8s_core(self) -> kubernetes.client.CoreV1Api:
-        if self._k8s_core_api is None:
-            raise ValueError(f"{self.__class__.__name__} not initialized")
-        return self._k8s_core_api
-
     def setup_for_execution(self, context: InitResourceContext) -> None:
         import kubernetes
 
         load_kubeconfig(context=self.kube_context, config_file=self.kubeconfig_file)
 
         self._raycluster_client = RayClusterClient(context=self.kube_context, config_file=self.kubeconfig_file)
-        self._k8s_api = kubernetes.client.CustomObjectsApi()
-        self._k8s_core_api = kubernetes.client.CoreV1Api()
 
 
 @beta
@@ -229,25 +215,6 @@ class KubeRayCluster(BaseRayResource):
         import kubernetes
 
         self.client.client.wait_until_ready(self.cluster_name, namespace=self.namespace, timeout=self.timeout)
-
-        # the above code only checks for RayCluster creation
-        # not for head pod readiness
-
-        w = kubernetes.watch.Watch()
-        for event in w.stream(
-            func=self.client.k8s_core.list_namespaced_pod,
-            namespace=self.namespace,
-            label_selector=f"ray.io/cluster={self.cluster_name},ray.io/group=headgroup",
-            timeout_seconds=60,
-        ):
-            if event["object"].status.phase == "Running":  # type: ignore
-                w.stop()
-                return
-            # event.type: ADDED, MODIFIED, DELETED
-            if event["type"] == "DELETED":  # type: ignore
-                # Pod was deleted while we were waiting for it to start.
-                w.stop()
-                return
 
     def _maybe_cleanup_raycluster(self, context: InitResourceContext):
         assert context.log is not None

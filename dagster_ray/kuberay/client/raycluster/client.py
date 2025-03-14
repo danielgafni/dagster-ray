@@ -14,6 +14,8 @@ from typing import (
     Any,
     TypedDict,
     cast,
+    Literal,
+    TypeAlias
 )
 
 from typing_extensions import NotRequired
@@ -48,6 +50,8 @@ def get_random_available_port() -> int:
         return port
 
 
+ClusterState = Literal["ready", "failed", "suspended"]
+
 class RayClusterEndpoints(TypedDict):  # these are ports
     client: str
     dashboard: str
@@ -73,7 +77,7 @@ class RayClusterStatus(TypedDict):
 
     head: NotRequired[RayClusterHead]
     endpoints: NotRequired[RayClusterEndpoints]
-    state: NotRequired[str]
+    state: NotRequired[ClusterState]
 
 
 class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
@@ -99,7 +103,8 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
     ) -> tuple[str, dict[str, str]]:
         from kubernetes import watch
 
-        """
+        """Blocks until the RayCluster is ready to accept connections.
+
         If ready, returns service ip address and a dictionary of ports.
         Dictionary keys: ["client", "dashboard", "metrics", "redis", "serve"]
         """
