@@ -85,6 +85,13 @@ class BaseRayResource(ConfigurableResource, ABC):
 
         init_options = _process_dagster_env_vars(self.ray_init_options.copy())
 
+        # cleanup None values from runtime_env.env_vars since Ray doesn't like them
+
+        if "runtime_env" in init_options and "env_vars" in init_options["runtime_env"]:
+            init_options["runtime_env"]["env_vars"] = {
+                k: v for k, v in init_options["runtime_env"]["env_vars"].items() if v is not None
+            }
+
         init_options["ignore_reinit_error"] = init_options.get("ignore_reinit_error", True)
 
         self.data_execution_options.apply()
