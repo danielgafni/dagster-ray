@@ -22,6 +22,7 @@ from typing_extensions import TypeAlias
 from dagster_ray._base.utils import get_dagster_tags
 from dagster_ray.kuberay.client import RayJobClient
 from dagster_ray.kuberay.client.rayjob.client import RayJobStatus
+from dagster_ray.kuberay.utils import normalize_k8s_label_values
 from dagster_ray.pipes import PipesRayJobMessageReader, generate_job_id
 
 if TYPE_CHECKING:
@@ -137,7 +138,7 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
         ray_job["metadata"]["labels"] = ray_job["metadata"].get("labels", {})
 
         ray_job["metadata"]["name"] = ray_job["metadata"].get("name", f"pipes-{generate_job_id()}")
-        ray_job["metadata"]["labels"].update(self.get_dagster_tags(context))
+        ray_job["metadata"]["labels"].update(normalize_k8s_label_values(self.get_dagster_tags(context)))
 
         # update env vars in runtimeEnv
         runtime_env_yaml = ray_job["spec"].get("runtimeEnvYAML", "{}")
