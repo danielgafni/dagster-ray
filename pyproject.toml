@@ -126,6 +126,8 @@ reportWildcardImportFromLibrary = true
 reportUntypedFunctionDecorator = true
 reportUntypedClassDecorator = true
 reportAny = false
+reportExplicitAny = false
+reportUnusedCallResult = false
 
 include = [
     "dagster_ray",

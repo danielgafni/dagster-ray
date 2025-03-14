@@ -6,3 +6,8 @@ publish-dev:
     uv publish
     uv run --with hatch hatch clean
     echo '__version__ = "0.0.0"  # managed by hatch' > dagster_ray/_version.py
+
+
+ruff:
+    uv run --no-sync ruff check --fix --exit-zero
+    uv run --no-sync ruff format

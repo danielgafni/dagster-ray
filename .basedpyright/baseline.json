@@ -18,14 +18,6 @@
                 }
             },
             {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 32,
-                    "endColumn": 35,
-                    "lineCount": 1
-                }
-            },
-            {
                 "code": "reportImplicitOverride",
                 "range": {
                     "startColumn": 8,
@@ -132,14 +124,6 @@
         ],
         "./dagster_ray/config.py": [
             {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 27,
-                    "endColumn": 30,
-                    "lineCount": 1
-                }
-            },
-            {
                 "code": "reportDeprecated",
                 "range": {
                     "startColumn": 23,
@@ -152,30 +136,6 @@
                 "range": {
                     "startColumn": 25,
                     "endColumn": 28,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 24,
-                    "endColumn": 27,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 23,
-                    "endColumn": 26,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 23,
-                    "endColumn": 26,
                     "lineCount": 1
                 }
             },
@@ -326,14 +286,6 @@
                 }
             },
             {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 31,
-                    "endColumn": 34,
-                    "lineCount": 1
-                }
-            },
-            {
                 "code": "reportUnannotatedClassAttribute",
                 "range": {
                     "startColumn": 13,
@@ -430,14 +382,6 @@
                 }
             },
             {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 8,
-                    "endColumn": 9,
-                    "lineCount": 12
-                }
-            },
-            {
                 "code": "reportImplicitOverride",
                 "range": {
                     "startColumn": 8,
@@ -450,14 +394,6 @@
                 "range": {
                     "startColumn": 8,
                     "endColumn": 22,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 8,
-                    "endColumn": 43,
                     "lineCount": 1
                 }
             }
@@ -581,14 +517,6 @@
                     "startColumn": 12,
                     "endColumn": 20,
                     "lineCount": 2
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 8,
-                    "endColumn": 36,
-                    "lineCount": 1
                 }
             },
             {
@@ -802,14 +730,6 @@
                 }
             },
             {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 83,
-                    "endColumn": 86,
-                    "lineCount": 1
-                }
-            },
-            {
                 "code": "reportMissingTypeStubs",
                 "range": {
                     "startColumn": 9,
@@ -962,14 +882,6 @@
                 }
             },
             {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 26,
-                    "endColumn": 29,
-                    "lineCount": 1
-                }
-            },
-            {
                 "code": "reportUnknownMemberType",
                 "range": {
                     "startColumn": 32,
@@ -978,26 +890,10 @@
                 }
             },
             {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 99,
-                    "endColumn": 102,
-                    "lineCount": 1
-                }
-            },
-            {
                 "code": "reportMissingTypeStubs",
                 "range": {
                     "startColumn": 13,
                     "endColumn": 30,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 22,
-                    "endColumn": 25,
                     "lineCount": 1
                 }
             },
@@ -1018,26 +914,10 @@
                 }
             },
             {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 58,
-                    "endColumn": 61,
-                    "lineCount": 1
-                }
-            },
-            {
                 "code": "reportMissingTypeStubs",
                 "range": {
                     "startColumn": 13,
                     "endColumn": 30,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 22,
-                    "endColumn": 25,
                     "lineCount": 1
                 }
             },
@@ -1058,22 +938,6 @@
                 }
             },
             {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 27,
-                    "endColumn": 30,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 51,
-                    "endColumn": 54,
-                    "lineCount": 1
-                }
-            },
-            {
                 "code": "reportUnknownMemberType",
                 "range": {
                     "startColumn": 15,
@@ -1118,14 +982,6 @@
                 "range": {
                     "startColumn": 8,
                     "endColumn": 14,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 43,
-                    "endColumn": 46,
                     "lineCount": 1
                 }
             },
@@ -1244,14 +1100,6 @@
                 }
             },
             {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 34,
-                    "endColumn": 37,
-                    "lineCount": 1
-                }
-            },
-            {
                 "code": "reportArgumentType",
                 "range": {
                     "startColumn": 40,
@@ -1324,14 +1172,6 @@
                 }
             },
             {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 12,
-                    "endColumn": 26,
-                    "lineCount": 1
-                }
-            },
-            {
                 "code": "reportTypedDictNotRequiredAccess",
                 "range": {
                     "startColumn": 19,
@@ -1372,14 +1212,6 @@
                     "endColumn": 20,
                     "lineCount": 1
                 }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 24,
-                    "endColumn": 82,
-                    "lineCount": 1
-                }
             }
         ],
         "./dagster_ray/kuberay/configs.py": [
@@ -1404,30 +1236,6 @@
                 "range": {
                     "startColumn": 0,
                     "endColumn": 26,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 34,
-                    "endColumn": 37,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 31,
-                    "endColumn": 34,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 39,
-                    "endColumn": 42,
                     "lineCount": 1
                 }
             }
@@ -1518,98 +1326,10 @@
                 }
             },
             {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 27,
-                    "endColumn": 30,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 20,
-                    "endColumn": 70,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 92,
-                    "endColumn": 95,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 19,
-                    "endColumn": 22,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 76,
-                    "endColumn": 79,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 95,
-                    "endColumn": 98,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 8,
-                    "endColumn": 9,
-                    "lineCount": 8
-                }
-            },
-            {
                 "code": "reportUnusedParameter",
                 "range": {
                     "startColumn": 29,
                     "endColumn": 36,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 91,
-                    "endColumn": 94,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 97,
-                    "endColumn": 100,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 87,
-                    "endColumn": 90,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 8,
-                    "endColumn": 93,
                     "lineCount": 1
                 }
             }
@@ -1816,26 +1536,10 @@
                 }
             },
             {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 16,
-                    "endColumn": 38,
-                    "lineCount": 1
-                }
-            },
-            {
                 "code": "reportUnannotatedClassAttribute",
                 "range": {
                     "startColumn": 21,
                     "endColumn": 29,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 19,
-                    "endColumn": 22,
                     "lineCount": 1
                 }
             },
@@ -1928,14 +1632,6 @@
                 }
             },
             {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 52,
-                    "endColumn": 55,
-                    "lineCount": 1
-                }
-            },
-            {
                 "code": "reportUnknownArgumentType",
                 "range": {
                     "startColumn": 26,
@@ -1996,14 +1692,6 @@
                 "range": {
                     "startColumn": 15,
                     "endColumn": 25,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 8,
-                    "endColumn": 110,
                     "lineCount": 1
                 }
             },
@@ -2080,22 +1768,6 @@
                 }
             },
             {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 4,
-                    "endColumn": 37,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 4,
-                    "endColumn": 45,
-                    "lineCount": 1
-                }
-            },
-            {
                 "code": "reportUnusedVariable",
                 "range": {
                     "startColumn": 54,
@@ -2125,38 +1797,6 @@
                 "code": "reportImplicitOverride",
                 "range": {
                     "startColumn": 8,
-                    "endColumn": 30,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 16,
-                    "endColumn": 37,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 8,
-                    "endColumn": 29,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 39,
-                    "endColumn": 42,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 27,
                     "endColumn": 30,
                     "lineCount": 1
                 }
@@ -2234,14 +1874,6 @@
                 }
             },
             {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 16,
-                    "endColumn": 58,
-                    "lineCount": 1
-                }
-            },
-            {
                 "code": "reportInvalidCast",
                 "range": {
                     "startColumn": 15,
@@ -2253,14 +1885,6 @@
                 "code": "reportUnusedParameter",
                 "range": {
                     "startColumn": 29,
-                    "endColumn": 36,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 8,
                     "endColumn": 36,
                     "lineCount": 1
                 }
@@ -2306,14 +1930,6 @@
                     "endColumn": 19,
                     "lineCount": 1
                 }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 8,
-                    "endColumn": 30,
-                    "lineCount": 1
-                }
             }
         ],
         "./dagster_ray/run_launcher.py": [
@@ -2338,38 +1954,6 @@
                 "range": {
                     "startColumn": 51,
                     "endColumn": 72,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 28,
-                    "endColumn": 31,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 27,
-                    "endColumn": 30,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 27,
-                    "endColumn": 30,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 31,
-                    "endColumn": 34,
                     "lineCount": 1
                 }
             },
@@ -2574,30 +2158,6 @@
                 }
             },
             {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 8,
-                    "endColumn": 9,
-                    "lineCount": 11
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 8,
-                    "endColumn": 9,
-                    "lineCount": 10
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 8,
-                    "endColumn": 9,
-                    "lineCount": 5
-                }
-            },
-            {
                 "code": "reportImplicitOverride",
                 "range": {
                     "startColumn": 8,
@@ -2611,38 +2171,6 @@
                     "startColumn": 8,
                     "endColumn": 17,
                     "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 8,
-                    "endColumn": 41,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 16,
-                    "endColumn": 17,
-                    "lineCount": 5
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 16,
-                    "endColumn": 17,
-                    "lineCount": 5
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 12,
-                    "endColumn": 13,
-                    "lineCount": 6
                 }
             },
             {
@@ -2668,22 +2196,6 @@
                 "range": {
                     "startColumn": 11,
                     "endColumn": 14,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 38,
-                    "endColumn": 41,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 46,
-                    "endColumn": 49,
                     "lineCount": 1
                 }
             },
@@ -2804,14 +2316,6 @@
                 }
             },
             {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 4,
-                    "endColumn": 5,
-                    "lineCount": 9
-                }
-            },
-            {
                 "code": "reportUnknownArgumentType",
                 "range": {
                     "startColumn": 32,
@@ -2859,30 +2363,6 @@
                     "startColumn": 65,
                     "endColumn": 91,
                     "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 4,
-                    "endColumn": 113,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 4,
-                    "endColumn": 69,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 8,
-                    "endColumn": 9,
-                    "lineCount": 23
                 }
             },
             {
@@ -2990,42 +2470,10 @@
                 }
             },
             {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 8,
-                    "endColumn": 104,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 4,
-                    "endColumn": 5,
-                    "lineCount": 17
-                }
-            },
-            {
                 "code": "reportUnknownMemberType",
                 "range": {
                     "startColumn": 8,
                     "endColumn": 19,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 8,
-                    "endColumn": 55,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 57,
-                    "endColumn": 60,
                     "lineCount": 1
                 }
             },
@@ -3090,14 +2538,6 @@
                 "range": {
                     "startColumn": 11,
                     "endColumn": 26,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 65,
-                    "endColumn": 68,
                     "lineCount": 1
                 }
             },
@@ -3182,35 +2622,11 @@
                 }
             },
             {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 31,
-                    "endColumn": 34,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 39,
-                    "endColumn": 42,
-                    "lineCount": 1
-                }
-            },
-            {
                 "code": "reportUnknownMemberType",
                 "range": {
                     "startColumn": 4,
                     "endColumn": 27,
                     "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 4,
-                    "endColumn": 5,
-                    "lineCount": 5
                 }
             }
         ],
@@ -3312,14 +2728,6 @@
                 }
             },
             {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 8,
-                    "endColumn": 118,
-                    "lineCount": 1
-                }
-            },
-            {
                 "code": "reportUnknownMemberType",
                 "range": {
                     "startColumn": 39,
@@ -3416,14 +2824,6 @@
                 }
             },
             {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 8,
-                    "endColumn": 118,
-                    "lineCount": 1
-                }
-            },
-            {
                 "code": "reportUnknownMemberType",
                 "range": {
                     "startColumn": 39,
@@ -3466,43 +2866,11 @@
                 }
             },
             {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 31,
-                    "endColumn": 34,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 39,
-                    "endColumn": 42,
-                    "lineCount": 1
-                }
-            },
-            {
                 "code": "reportUnknownArgumentType",
                 "range": {
                     "startColumn": 20,
                     "endColumn": 9,
                     "lineCount": 6
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 31,
-                    "endColumn": 34,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportExplicitAny",
-                "range": {
-                    "startColumn": 39,
-                    "endColumn": 42,
-                    "lineCount": 1
                 }
             },
             {
@@ -3527,22 +2895,6 @@
                     "startColumn": 24,
                     "endColumn": 29,
                     "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 12,
-                    "endColumn": 41,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 4,
-                    "endColumn": 5,
-                    "lineCount": 12
                 }
             }
         ],
@@ -3613,38 +2965,6 @@
                     "startColumn": 19,
                     "endColumn": 27,
                     "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 4,
-                    "endColumn": 5,
-                    "lineCount": 4
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 8,
-                    "endColumn": 9,
-                    "lineCount": 5
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 8,
-                    "endColumn": 114,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 4,
-                    "endColumn": 5,
-                    "lineCount": 3
                 }
             }
         ],
@@ -3722,14 +3042,6 @@
                 }
             },
             {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 8,
-                    "endColumn": 118,
-                    "lineCount": 1
-                }
-            },
-            {
                 "code": "reportUnknownMemberType",
                 "range": {
                     "startColumn": 39,
@@ -3788,14 +3100,6 @@
                 }
             },
             {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 8,
-                    "endColumn": 9,
-                    "lineCount": 5
-                }
-            },
-            {
                 "code": "reportUnknownMemberType",
                 "range": {
                     "startColumn": 4,
@@ -3825,22 +3129,6 @@
                     "startColumn": 9,
                     "endColumn": 37,
                     "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 8,
-                    "endColumn": 9,
-                    "lineCount": 7
-                }
-            },
-            {
-                "code": "reportUnusedCallResult",
-                "range": {
-                    "startColumn": 8,
-                    "endColumn": 9,
-                    "lineCount": 7
                 }
             }
         ],
