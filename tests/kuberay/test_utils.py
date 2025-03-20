@@ -9,6 +9,7 @@ def test_normalize_k8s_label_values():
             "user": "daniel@my.org",
             "user-dirty": "daniel!`~@my.org",
             "alphanumeric": "abc123",
+            "long": 64 * "a",
         }
     ) == {
         "foo": "bar",
@@ -16,4 +17,5 @@ def test_normalize_k8s_label_values():
         "user": "daniel-my-org",
         "user-dirty": "daniel-my-org",
         "alphanumeric": "abc123",
+        "long": 63 * "a",
     }
