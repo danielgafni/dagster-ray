@@ -130,7 +130,7 @@ class BaseRayResource(ConfigurableResource, ABC):
         vars: dict[str, str] = {}
         if self.enable_debug_post_mortem:
             vars["RAY_DEBUG_POST_MORTEM"] = "1"
-        if self.enable_profiling:
+        if self.enable_tracing:
             vars["RAY_PROFILING"] = "1"
         if self.enable_actor_task_logging:
             vars["RAY_ENABLE_RECORD_ACTOR_TASK_LOGGING"] = "1"
