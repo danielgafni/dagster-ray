@@ -155,7 +155,7 @@ class KubeRayCluster(BaseRayResource):
                 context.log.info("RayCluster is ready! Connection command:")
 
                 context.log.info(
-                    f"`kubectl -n {self.namespace} port-forward svc/{self.cluster_name}-head-svc 8265:8265 6379:6379 10001:10001`"
+                    f"kubectl -n {self.namespace} port-forward svc/{self.cluster_name}-head-svc 8265:8265 6379:6379 10001:10001"
                 )
 
             context.log.debug(f"Ray host: {self.host}")
