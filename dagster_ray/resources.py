@@ -1,4 +1,5 @@
 import contextlib
+import os
 import sys
 from collections.abc import Generator
 
@@ -39,6 +40,13 @@ class LocalRay(BaseRayResource):
     def yield_for_execution(self, context: InitResourceContext) -> Generator[Self, None, None]:
         assert context.log is not None
         assert context.dagster_run is not None
+
+        env_vars_to_inject = self.get_env_vars_to_inject()
+
+        if env_vars_to_inject:
+            context.log.warning("Setting debugging environment variables prior to starting Ray")
+            for key, value in env_vars_to_inject.items():
+                os.environ[key] = value
 
         context.log.debug("Connecting to a local Ray cluster...")
 

@@ -30,6 +30,31 @@ def test_runtime_env():
         )
 
 
+def test_debug_mode():
+    import ray
+
+    ray.init
+
+    @ray.remote
+    def my_func():
+        assert os.environ["RAY_PROFILING"] == "1"
+        assert os.environ["RAY_ENABLE_RECORD_ACTOR_TASK_LOGGING"] == "1"
+        assert os.environ["RAY_DEBUG_POST_MORTEM"] == "1"
+
+    @dg.asset
+    def my_asset(ray_cluster: RayResource) -> None:
+        ray.get(my_func.remote())
+
+    ray_cluster = LocalRay(enable_tracing=True, enable_actor_task_logging=True, enable_debug_post_mortem=True)
+
+    with dg.DagsterInstance.ephemeral() as instance:
+        dg.materialize(
+            assets=[my_asset],
+            instance=instance,
+            resources={"ray_cluster": ray_cluster},
+        )
+
+
 @pytest.mark.parametrize(
     "ray_init_options",
     [

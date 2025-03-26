@@ -85,6 +85,10 @@ class KubeRayCluster(BaseRayResource):
         default=DEFAULT_DEPLOYMENT_NAME,
         description="Prefix for the RayCluster name. Dagster Cloud variables are used to determine the default value.",
     )
+    env_vars: list[Any] = Field(
+        default_factory=list,
+        description="Environment variables to inject into all RayCluster containers in Kubernetes format.",
+    )
     ray_cluster: RayClusterConfig = Field(default_factory=RayClusterConfig)
     skip_cleanup: bool = False
     skip_init: bool = False
@@ -134,6 +138,7 @@ class KubeRayCluster(BaseRayResource):
                 label_selector=f"dagster.io/cluster={self.cluster_name}",
             )["items"]:
                 cluster_body = self._build_raycluster(
+                    context,
                     image=(self.ray_cluster.image or context.dagster_run.tags["dagster/image"]),
                     labels=normalize_k8s_label_values(self.get_dagster_tags(context)),
                 )
@@ -177,12 +182,15 @@ class KubeRayCluster(BaseRayResource):
 
     def _build_raycluster(
         self,
-        image: str,
+        context: InitResourceContext,
+        image: str | None = None,
         labels: dict[str, str] | None = None,  # TODO: use in RayCluster labels
     ) -> dict[str, Any]:
+        assert context.log is not None
         """
         Builds a RayCluster from the provided configuration, while injecting custom image and labels (only known during resource setup)
         """
+
         # TODO: inject self.redis_port and self.dashboard_port into the RayCluster configuration
         # TODO: autoa-apply some tags from dagster-k8s/config
 
@@ -193,10 +201,22 @@ class KubeRayCluster(BaseRayResource):
         head_group_spec = self.ray_cluster.head_group_spec.copy()
         worker_group_specs = self.ray_cluster.worker_group_specs.copy()
 
+        env_vars = self.env_vars.copy()
+
+        env_vars_to_inject = self.get_env_vars_to_inject()
+
+        if env_vars_to_inject:
+            context.log.info("Injecting debugging environment variables into the RayCluster configuration")
+            for key, value in self.get_env_vars_to_inject().items():
+                env_vars.append({"name": key, "value": value})
+
         def update_group_spec(group_spec: dict[str, Any]):
             # TODO: only inject if the container has a `dagster.io/inject-image` annotation or smth
             if group_spec["template"]["spec"]["containers"][0].get("image") is None:
                 group_spec["template"]["spec"]["containers"][0]["image"] = image
+
+            for container in group_spec["template"]["spec"]["containers"]:
+                container["env"] = container.get("env", []) + env_vars
 
             if group_spec.get("metadata") is None:
                 group_spec["metadata"] = {"labels": labels}

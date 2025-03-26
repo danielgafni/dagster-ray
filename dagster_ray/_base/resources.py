@@ -40,6 +40,18 @@ class BaseRayResource(ConfigurableResource, ABC):
     dashboard_port: int = Field(
         default=8265, description="Dashboard port for connection. Make sure to match with the actual available port."
     )
+    enable_tracing: bool = Field(
+        default=False,
+        description="Enable tracing: inject `RAY_PROFILING=1` into the Ray cluster configuration. Learn more: https://docs.ray.io/en/latest/ray-core/api/doc/ray.timeline.html#ray-timeline",
+    )
+    enable_actor_task_logging: bool = Field(
+        default=False,
+        description="Enable actor task logging: inject `RAY_ENABLE_RECORD_ACTOR_TASK_LOGGING=1` into the Ray cluster configuration.",
+    )
+    enable_debug_post_mortem: bool = Field(
+        default=False,
+        description="Enable post-mortem debugging: inject `RAY_DEBUG_POST_MORTEM=1` into the Ray cluster configuration. Learn more: https://docs.ray.io/en/latest/ray-observability/ray-distributed-debugger.html",
+    )
 
     _context: RayBaseContext | None = PrivateAttr()
 
@@ -113,3 +125,13 @@ class BaseRayResource(ConfigurableResource, ABC):
         # just return a random string
         # since we want a fresh cluster every time
         return str(uuid.uuid4())
+
+    def get_env_vars_to_inject(self) -> dict[str, str]:
+        vars: dict[str, str] = {}
+        if self.enable_debug_post_mortem:
+            vars["RAY_DEBUG_POST_MORTEM"] = "1"
+        if self.enable_tracing:
+            vars["RAY_PROFILING"] = "1"
+        if self.enable_actor_task_logging:
+            vars["RAY_ENABLE_RECORD_ACTOR_TASK_LOGGING"] = "1"
+        return vars
