@@ -129,8 +129,6 @@ class KubeRayCluster(BaseRayResource):
 
         self._cluster_name = self._get_ray_cluster_step_name(context)
 
-        # self._host = f"{self.cluster_name}-head-svc.{self.namespace}.svc.cluster.local"
-
         try:
             # just a safety measure, no need to recreate the cluster for step retries or smth
             if not self.client.client.list(
@@ -157,13 +155,10 @@ class KubeRayCluster(BaseRayResource):
                     "head"
                 ]["serviceIP"]
 
-                context.log.info("RayCluster is ready! Connection command:")
+                msg = f"RayCluster {self.namespace}/{self.cluster_name} is ready! Connection command:\n"
+                msg += f"kubectl -n {self.namespace} port-forward svc/{self.cluster_name}-head-svc 8265:8265 6379:6379 10001:10001"
 
-                context.log.info(
-                    f"`kubectl -n {self.namespace} port-forward svc/{self.cluster_name}-head-svc 8265:8265 6379:6379 10001:10001`"
-                )
-
-            context.log.debug(f"Ray host: {self.host}")
+                context.log.info(msg)
 
             if not self.skip_init:
                 self.init_ray(context)
