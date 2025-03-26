@@ -273,8 +273,7 @@ class KubeRayCluster(BaseRayResource):
         else:
             context.log.warning(
                 f"Skipping RayCluster {self.cluster_name} deletion because `disable_cluster_cleanup` "
-                f"config parameter is set to `True` or the run failed. "
-                f"It may be still be deleted by the automatic cleanup job."
+                f"config parameter is set to `True` and the run has failed."
             )
 
     def _get_ray_cluster_step_name(self, context: InitResourceContext) -> str:
