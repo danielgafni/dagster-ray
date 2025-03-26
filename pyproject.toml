@@ -120,6 +120,7 @@ banned-module-level-imports = ["ray", "kubernetes", "torch"]
 
 [tool.pyright]
 pythonVersion = "3.9"
+failOnWarnings = false
 reportPropertyTypeMismatch = true
 reportImportCycles = true
 reportWildcardImportFromLibrary = true

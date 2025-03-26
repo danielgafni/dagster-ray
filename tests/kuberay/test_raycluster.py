@@ -1,6 +1,7 @@
 import socket
 from typing import Any, cast
 
+import dagster as dg
 import pytest
 import ray  # noqa: TID253
 from dagster import AssetExecutionContext, RunConfig, asset, materialize_to_memory
@@ -161,3 +162,29 @@ def test_kuberay_cleanup_job(
     assert not kuberay_client.list(
         namespace=ray_cluster_resource_skip_cleanup.namespace, label_selector=f"dagster.io/run_id={result.run_id}"
     )["items"]
+
+
+def test_ray_cluster_builder_debug():
+    kuberay_cluster = KubeRayCluster(enable_debug_post_mortem=True)
+    kuberay_cluster._cluster_name = "test-cluster"
+    context = dg.build_init_resource_context()
+
+    ray_cluster_config = kuberay_cluster._build_raycluster(context)
+    for group_spec in [ray_cluster_config["spec"]["headGroupSpec"], *ray_cluster_config["spec"]["workerGroupSpecs"]]:
+        for container in group_spec["template"]["spec"]["containers"]:
+            assert {"name": "RAY_DEBUG_POST_MORTEM", "value": "1"} in container["env"], container
+
+    kuberay_cluster = KubeRayCluster(enable_tracing=True)
+    kuberay_cluster._cluster_name = "test-cluster"
+    ray_cluster_config = kuberay_cluster._build_raycluster(context)
+    for group_spec in [ray_cluster_config["spec"]["headGroupSpec"], *ray_cluster_config["spec"]["workerGroupSpecs"]]:
+        for container in group_spec["template"]["spec"]["containers"]:
+            assert {"name": "RAY_PROFILING", "value": "1"} in container["env"], container
+
+    kuberay_cluster = KubeRayCluster(enable_actor_task_logging=True)
+    kuberay_cluster._cluster_name = "test-cluster"
+    ray_cluster_config = kuberay_cluster._build_raycluster(context)
+    kuberay_cluster._cluster_name = "test-cluster"
+    for group_spec in [ray_cluster_config["spec"]["headGroupSpec"], *ray_cluster_config["spec"]["workerGroupSpecs"]]:
+        for container in group_spec["template"]["spec"]["containers"]:
+            assert {"name": "RAY_ENABLE_RECORD_ACTOR_TASK_LOGGING", "value": "1"} in container["env"], container
