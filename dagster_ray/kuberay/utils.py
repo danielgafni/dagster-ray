@@ -8,8 +8,13 @@ def normalize_k8s_label_values(labels: dict[str, str]) -> dict[str, str]:
 
     cleanup_regex = re.compile(r"[^a-zA-Z0-9-_.]+")
 
+    banned_starting_characters = ["-", "_", "."]
+
     for key, value in labels.items():
-        # daniel~!@my.domain -> daniel-my-domain
-        labels[key] = cleanup_regex.sub("", value.replace("@", "-").replace(".", "-"))[:63]
+        # -daniel~!@my.domain -> daniel-my-domain
+        with_maybe_bad_start = cleanup_regex.sub("", value.replace("@", "-").replace(".", "-"))
+        while with_maybe_bad_start and with_maybe_bad_start[0] in banned_starting_characters:
+            with_maybe_bad_start = with_maybe_bad_start[1:]
+        labels[key] = with_maybe_bad_start[:63]
 
     return labels

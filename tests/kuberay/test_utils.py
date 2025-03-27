@@ -10,6 +10,8 @@ def test_normalize_k8s_label_values():
             "user-dirty": "daniel!`~@my.org",
             "alphanumeric": "abc123",
             "long": 64 * "a",
+            "badstart": "-foo",
+            "badstart_after_initial_replace": "@foo",
         }
     ) == {
         "foo": "bar",
@@ -18,4 +20,6 @@ def test_normalize_k8s_label_values():
         "user-dirty": "daniel-my-org",
         "alphanumeric": "abc123",
         "long": 63 * "a",
+        "badstart": "foo",
+        "badstart_after_initial_replace": "foo",
     }
