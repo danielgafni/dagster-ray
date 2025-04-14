@@ -148,7 +148,7 @@ def test_kuberay_cleanup_job(
 
     cleanup_kuberay_clusters.execute_in_process(
         resources={
-            "client": RayClusterClientResource(kubeconfig_file=str(k8s_with_kuberay.kubeconfig)),
+            "kuberay_client": RayClusterClientResource(kubeconfig_file=str(k8s_with_kuberay.kubeconfig)),
         },
         run_config=RunConfig(
             ops={
