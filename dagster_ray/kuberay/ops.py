@@ -6,7 +6,7 @@ from dagster_ray.kuberay.resources import RayClusterClientResource
 
 
 class DeleteKubeRayClustersConfig(Config):
-    namespace: str = "kuberay"
+    namespace: str = "ray"
     cluster_names: list[str] = Field(default_factory=list, description="List of RayCluster names to delete")
 
 
@@ -14,12 +14,12 @@ class DeleteKubeRayClustersConfig(Config):
 def delete_kuberay_clusters_op(
     context: OpExecutionContext,
     config: DeleteKubeRayClustersConfig,
-    client: RayClusterClientResource,
+    kuberay_client: RayClusterClientResource,
 ) -> None:
     for cluster_name in config.cluster_names:
         try:
-            if client.client.get(name=cluster_name, namespace=config.namespace).get("items"):
-                client.client.delete(name=cluster_name, namespace=config.namespace)
+            if kuberay_client.client.get(name=cluster_name, namespace=config.namespace).get("items"):
+                kuberay_client.client.delete(name=cluster_name, namespace=config.namespace)
                 context.log.info(f"RayCluster {config.namespace}/{cluster_name} deleted!")
             else:
                 context.log.warning(f"RayCluster {config.namespace}/{cluster_name} doesn't exist")
@@ -41,7 +41,7 @@ class CleanupKuberayClustersConfig(Config):
 def cleanup_kuberay_clusters_op(
     context: OpExecutionContext,
     config: CleanupKuberayClustersConfig,
-    client: RayClusterClientResource,
+    kuberay_client: RayClusterClientResource,
 ) -> None:
     current_runs = context.instance.get_runs(
         filters=RunsFilter(
@@ -53,7 +53,7 @@ def cleanup_kuberay_clusters_op(
         )
     )
 
-    clusters = client.client.list(
+    clusters = kuberay_client.client.list(
         namespace=config.namespace,
         label_selector=config.label_selector,
     )["items"]
@@ -68,7 +68,7 @@ def cleanup_kuberay_clusters_op(
 
     for cluster_name in old_cluster_names:
         try:
-            client.client.delete(name=cluster_name, namespace=config.namespace)
+            kuberay_client.client.delete(name=cluster_name, namespace=config.namespace)
             context.log.info(f"RayCluster {config.namespace}/{cluster_name} deleted!")
         except:  # noqa
             context.log.exception(f"Couldn't delete RayCluster {config.namespace}/{cluster_name}")
