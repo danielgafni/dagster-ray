@@ -1,5 +1,4 @@
 version = 1
-revision = 1
 requires-python = ">=3.9, <3.13"
 resolution-markers = [
     "python_full_version >= '3.12' and platform_machine == 'x86_64' and sys_platform == 'darwin'",
@@ -656,7 +655,6 @@ requires-dist = [
     { name = "ray", extras = ["client"], marker = "extra == 'run-launcher'" },
     { name = "tenacity", specifier = ">=8.0.0" },
 ]
-provides-extras = ["executor", "kuberay", "pipes", "run-launcher"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -664,7 +662,7 @@ dev = [
     { name = "blacken-docs", specifier = ">=1.16.0,<2.0.0" },
     { name = "dagit", specifier = ">=1.3.9,<2.0.0" },
     { name = "dunamai", specifier = ">=1.22.0" },
-    { name = "hatch", specifier = ">=1.12.0" },
+    { name = "hatch", specifier = ">=1.14.1" },
     { name = "hypothesis", specifier = ">=6.77.0,<7.0.0" },
     { name = "ipython", specifier = ">=8.12.3" },
     { name = "pip", specifier = ">=24.2" },
@@ -1078,7 +1076,7 @@ wheels = [
 
 [[package]]
 name = "hatch"
-version = "1.14.0"
+version = "1.14.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
@@ -1098,9 +1096,9 @@ dependencies = [
     { name = "virtualenv" },
     { name = "zstandard" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/bc/15/b4e3d50d8177e6e8a243b24d9819e3807f7bfd3b2bebe7b5aef32a9c79cb/hatch-1.14.0.tar.gz", hash = "sha256:351e41bc6c72bc93cb98651212226e495b43549eee27c487832e459e5d0f0eda", size = 5188143 }
+sdist = { url = "https://files.pythonhosted.org/packages/1f/43/c0b37db0e857a44ce5ffdb7e8a9b8fa6425d0b74dea698fafcd9bddb50d1/hatch-1.14.1.tar.gz", hash = "sha256:ca1aff788f8596b0dd1f8f8dfe776443d2724a86b1976fabaf087406ba3d0713", size = 5188180 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/85/c6/ad910cdb79600af0100b7c4f7093eb4b95a2b44e589e66b6b938b09cc6f9/hatch-1.14.0-py3-none-any.whl", hash = "sha256:b12c7a2f4aaf6db7180e35c476e1a2ad4ec7197c20c4332964599424d4918ded", size = 125763 },
+    { url = "https://files.pythonhosted.org/packages/a5/40/19c0935bf9f25808541a0e3144ac459de696c5b6b6d4511a98d456c69604/hatch-1.14.1-py3-none-any.whl", hash = "sha256:39cdaa59e47ce0c5505d88a951f4324a9c5aafa17e4a877e2fde79b36ab66c21", size = 125770 },
 ]
 
 [[package]]
