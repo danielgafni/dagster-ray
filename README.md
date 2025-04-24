@@ -546,8 +546,16 @@ uv run pre-commit install
 
 ## Testing
 
+To run the test suite for the currently installed Python, `ray` and `dagster` versions, issue:
+
 ```shell
 uv run pytest
+```
+
+To run the test suite for more combinations of Python, `ray` and `dagster`, use `hatch`:
+
+```shell
+hatch run test:pytest
 ```
 
 ### KubeRay

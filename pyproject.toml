@@ -66,7 +66,7 @@ dev = [
     "pytest-kubernetes<1.0.0,>=0.3.1",
     "blacken-docs<2.0.0,>=1.16.0",
     "ray[default,data]>=2.7.0",
-    "hatch>=1.12.0",
+    "hatch>=1.14.1",
     "dunamai>=1.22.0",
     "pip>=24.2",
     "ipython>=8.12.3",
@@ -154,4 +154,36 @@ exclude = [
     "dist",
     "node_modules",
     "venv",
+]
+
+[tool.hatch.envs.test]
+type = "virtual"
+installer = "uv"
+
+[tool.hatch.envs.hatch-test.extra-scripts]
+pip = "{env:HATCH_UV} pip {args}"
+
+[tool.hatch.envs.test.extra-scripts]
+pip = "{env:HATCH_UV} pip {args}"
+
+[tool.hatch.envs.test.scripts]
+test = 'pytest'
+
+[[tool.hatch.envs.test.matrix]]
+# python = [
+#     "3.12",
+#     "3.11",
+#     "3.10",
+#     "3.9"
+# ]
+ray = [
+  "2.44.1",
+  "2.42.1",
+  "2.37.0",
+  "2.24.0",
+]
+dagster = [
+  "1.10.2",
+  "1.10.5",
+  "1.10.11",
 ]
