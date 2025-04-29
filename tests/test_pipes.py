@@ -42,8 +42,8 @@ def test_ray_job_pipes(pipes_ray_job_client: PipesRayJobClient, capsys):
 
         captured = capsys.readouterr()
 
-        print(captured.out)
-        print(captured.err, file=sys.stderr)
+        # print(captured.out)
+        # print(captured.err, file=sys.stderr)
 
         mat_evts = result.get_asset_materialization_events()
 

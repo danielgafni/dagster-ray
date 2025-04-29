@@ -18,7 +18,7 @@ from dagster._core.pipes.client import (
     PipesContextInjector,
     PipesMessageReader,
 )
-from dagster._core.pipes.context import PipesMessageHandler, PipesSession
+from dagster._core.pipes.context import PipesLaunchedData, PipesMessageHandler, PipesSession
 from dagster._core.pipes.utils import (
     PipesEnvContextInjector,
     _join_thread,
@@ -37,6 +37,9 @@ if TYPE_CHECKING:
 OpOrAssetExecutionContext: TypeAlias = Union[OpExecutionContext, AssetExecutionContext]
 
 
+PIPES_LAUNCHED_EXTRAS_RAY_JOB_ID_KEY = "ray_job_id"
+
+
 @beta
 class PipesRayJobMessageReader(PipesMessageReader):
     """
@@ -44,10 +47,23 @@ class PipesRayJobMessageReader(PipesMessageReader):
     Will extract Dagster events and forward the rest to stdout.
     """
 
-    def __init__(self):
+    def __init__(self, client: JobSubmissionClient | None = None):
+        from ray.job_submission import JobSubmissionClient
+
         self._handler: PipesMessageHandler | None = None
         self._thread: threading.Thread | None = None
         self.session_closed = threading.Event()
+        self.client = client or JobSubmissionClient()
+        self._job_id: str | None = None
+
+    @property
+    def job_id(self) -> str:
+        if self._job_id is None:
+            raise RuntimeError(
+                "job_id is only available after it has been set in the Pipes client via PipesSession.report_launched"
+            )
+        else:
+            return self._job_id
 
     @contextmanager
     def read_messages(self, handler: PipesMessageHandler) -> Iterator[PipesParams]:
@@ -55,6 +71,11 @@ class PipesRayJobMessageReader(PipesMessageReader):
         self._handler = handler
 
         try:
+            self._thread = threading.Thread(
+                target=self.handle_job_logs,
+                daemon=True,
+            )
+            self._thread.start()
             yield {PipesDefaultMessageWriter.STDIO_KEY: PipesDefaultMessageWriter.STDOUT}
         finally:
             self.terminate()
@@ -71,69 +92,61 @@ class PipesRayJobMessageReader(PipesMessageReader):
 
         if self._thread is not None:
             _join_thread(self._thread, "ray job logs tailing")
+            if self._job_id is None:
+                self.handler._context.log.warning(
+                    "[Pipes] PipesRayJobMessageReader._job_id is not set. It's expected to be set via PipesSession.report_launched."
+                )
 
         self._handler = None
 
-    # TODO: call this method as part of self.read_messages
-    def consume_job_logs(self, client: JobSubmissionClient, job_id: str, blocking: bool = False) -> None:
-        if blocking:
-            handle_job_logs(handler=self.handler, client=client, job_id=job_id, session_closed=None)
-        else:
-            self._thread = threading.Thread(
-                target=handle_job_logs,
-                kwargs={
-                    "handler": self.handler,
-                    "client": client,
-                    "job_id": job_id,
-                    "session_closed": self.session_closed,
-                },
-                daemon=True,
-            )
-            self._thread.start()
-
     def no_messages_debug_text(self) -> str:
-        return "Tried to read messages from a Ray job logs, but no messages were received."
+        return f"Tried to read messages from Ray Job logs, but no messages were received. Make sure PipesSession.report_launched has been called with `{PIPES_LAUNCHED_EXTRAS_RAY_JOB_ID_KEY}` set under `extras` field."
 
+    def on_launched(self, launched_payload: PipesLaunchedData) -> None:
+        self._job_id = launched_payload["extras"][PIPES_LAUNCHED_EXTRAS_RAY_JOB_ID_KEY]
 
-def handle_job_logs(
-    handler: PipesMessageHandler, client: JobSubmissionClient, job_id: str, session_closed: threading.Event | None
-):
-    import asyncio
+    def handle_job_logs(
+        self,
+    ):
+        import asyncio
 
-    async_tailer = client.tail_job_logs(job_id=job_id)
+        while self._job_id is None:
+            time.sleep(1.0)
 
-    # Backward compatible sync generator
-    def tail_logs() -> Generator[str, None, None]:
-        while True:
-            try:
+        async_tailer = self.client.tail_job_logs(job_id=self.job_id)
+
+        # Backward compatible sync generator
+        def tail_logs() -> Generator[str, None, None]:
+            while True:
                 try:
-                    loop = asyncio.get_event_loop()
-                except RuntimeError:
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-                yield loop.run_until_complete(async_tailer.__anext__())  # type: ignore
-            except (StopAsyncIteration, ValueError):
-                break
+                    try:
+                        loop = asyncio.get_event_loop()
+                    except RuntimeError:
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                    yield loop.run_until_complete(async_tailer.__anext__())  # type: ignore
+                except (StopAsyncIteration, ValueError):
+                    break
 
-    session_closed_at = None
+        session_closed_at = None
 
-    for chunk in tail_logs():
-        for log_line in chunk.split("\n"):
-            if log_line:
-                extract_message_or_forward_to_stdout(handler, log_line)
+        for chunk in tail_logs():
+            for log_line in chunk.split("\n"):
+                if log_line:
+                    extract_message_or_forward_to_stdout(self.handler, log_line)
 
-        if session_closed is not None and session_closed.is_set():
-            if session_closed_at is None:
-                session_closed_at = time.time()
+            if self.session_closed is not None and self.session_closed.is_set():
+                if session_closed_at is None:
+                    session_closed_at = time.time()
 
-            if time.time() - session_closed_at > 30:  # wait for 30 seconds to flush all logs
-                session_closed.wait()
-                return
+                if time.time() - session_closed_at > 30:  # wait for 30 seconds to flush all logs
+                    self.session_closed.wait()
+                    return
 
-    if session_closed is not None:
-        session_closed.wait()
+        if self.session_closed is not None:
+            self.session_closed.wait()
 
-    return
+        return
 
 
 class SubmitJobParams(TypedDict):
@@ -225,12 +238,12 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
         ) as session:
             enriched_submit_job_params = self._enrich_submit_job_params(context, session, submit_job_params)
 
-            job_id = self._start(context, enriched_submit_job_params)
+            job_id = self._start(context, session, enriched_submit_job_params)
 
             try:
-                self._read_messages(context, job_id)
+                # self._read_messages(context, job_id)
                 self._wait_for_completion(context, job_id)
-                return PipesClientCompletedInvocation(session)
+                return PipesClientCompletedInvocation(session, metadata={"Ray Job ID": job_id})
 
             except DagsterExecutionInterruptedError:
                 if self.forward_termination:
@@ -260,7 +273,9 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
 
         return cast(EnrichedSubmitJobParams, submit_job_params)
 
-    def _start(self, context: OpOrAssetExecutionContext, submit_job_params: EnrichedSubmitJobParams) -> str:
+    def _start(
+        self, context: OpOrAssetExecutionContext, session: PipesSession, submit_job_params: EnrichedSubmitJobParams
+    ) -> str:
         submission_id = submit_job_params["submission_id"]
 
         context.log.info(f"[pipes] Starting Ray job {submission_id}...")
@@ -269,17 +284,19 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
 
         context.log.info(f"[pipes] Ray job {job_id} started.")
 
+        session.report_launched({"extras": {PIPES_LAUNCHED_EXTRAS_RAY_JOB_ID_KEY: job_id}})
+
         return job_id
 
-    def _read_messages(self, context: OpOrAssetExecutionContext, job_id: str) -> None:
-        if isinstance(self._message_reader, PipesRayJobMessageReader):
-            # starts a thread
-            self._message_reader.consume_job_logs(
-                # TODO: investigate why some messages aren't being handled with blocking=False
-                client=self.client,
-                job_id=job_id,
-                blocking=True,
-            )
+    # def _read_messages(self, context: OpOrAssetExecutionContext, job_id: str) -> None:
+    #     if isinstance(self._message_reader, PipesRayJobMessageReader):
+    #         # starts a thread
+    #         self._message_reader.consume_job_logs(
+    #             # TODO: investigate why some messages aren't being handled with blocking=False
+    #             client=self.client,
+    #             job_id=job_id,
+    #             blocking=False,
+    #         )
 
     def _wait_for_completion(self, context: OpOrAssetExecutionContext, job_id: str) -> JobStatus:
         from ray.job_submission import JobStatus
