@@ -129,8 +129,20 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
                 )
 
                 try:
-                    # self._read_messages(context, start_response)
                     self._wait_for_completion(context, start_response)
+
+                    if isinstance(self._message_reader, PipesRayJobMessageReader) and self.port_forward:
+                        # in this case the message reader will fail once port forwarding is finished
+                        # TODO: find a better way to do it
+                        # likely this requires framework-level changes in Pipes
+                        # because currently there is no semantics for waiting for the message reader to complete
+                        # from the Pipes client
+                        context.log.debug(
+                            "[pipes] waiting for PipesRayJobMessageReader to complete before stopping port-forwarding"
+                        )
+                        self._message_reader.session_closed.set()
+                        self._message_reader.completed.wait()
+
                     return PipesClientCompletedInvocation(
                         session, metadata={"RayJob": f"{namespace}/{name}", "Ray Job ID": ray_job_id}
                     )

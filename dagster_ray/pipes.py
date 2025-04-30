@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import logging
 import random
 import string
 import threading
 import time
-from collections.abc import Generator, Iterator
+from collections.abc import AsyncIterator, Generator, Iterator
 from contextlib import contextmanager
+from functools import partial
 from typing import TYPE_CHECKING, Any, TypedDict, Union, cast
 
 import dagster._check as check
@@ -29,6 +31,8 @@ from dagster_pipes import PipesDefaultMessageWriter, PipesExtras, PipesParams
 from typing_extensions import NotRequired, TypeAlias
 
 from dagster_ray._base.utils import get_dagster_tags
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from ray.job_submission import JobStatus, JobSubmissionClient
@@ -59,20 +63,30 @@ class PipesRayJobMessageReader(PipesMessageReader):
 
     def __init__(self, job_submission_client_kwargs: dict[str, Any] | None = None):
         self._job_submission_client_kwargs = job_submission_client_kwargs
-        self._handler: PipesMessageHandler | None = None
         self._thread: threading.Thread | None = None
         self.session_closed = threading.Event()
         self._job_id = None
         self._client = None
 
+        self.completed = threading.Event()
+
     @property
     def client(self) -> JobSubmissionClient:
         if self._client is None:
             raise RuntimeError(
-                "client is only available after it has been set in the Pipes client via PipesSession.report_launched"
+                "client is only available after it has been seeded in the Pipes client via PipesSession.report_launched"
             )
         else:
             return self._client
+
+    @property
+    def job_id(self) -> str:
+        if self._job_id is None:
+            raise RuntimeError(
+                "job_id is only available after it has been seeded in the Pipes client via PipesSession.report_launched"
+            )
+        else:
+            return self._job_id
 
     def on_launched(self, launched_payload: PipesLaunchedData) -> None:
         from ray.job_submission import JobSubmissionClient
@@ -83,94 +97,93 @@ class PipesRayJobMessageReader(PipesMessageReader):
         )
         self._job_id = launched_payload["extras"][PIPES_LAUNCHED_EXTRAS_RAY_JOB_ID_KEY]
 
-    @property
-    def job_id(self) -> str:
-        if self._job_id is None:
-            raise RuntimeError(
-                "job_id is only available after it has been set in the Pipes client via PipesSession.report_launched"
-            )
-        else:
-            return self._job_id
+        super().on_launched(launched_payload)
+
+    def messages_are_readable(self, params: PipesParams) -> bool:
+        return self._job_id is not None and self._client is not None
 
     @contextmanager
     def read_messages(self, handler: PipesMessageHandler) -> Iterator[PipesParams]:
-        #  This method should start a thread to continuously read messages from some location
-        self._handler = handler
-
         try:
             self._thread = threading.Thread(
-                target=self.handle_job_logs,
+                target=partial(self.handle_job_logs, handler),
                 daemon=True,
             )
             self._thread.start()
             yield {PipesDefaultMessageWriter.STDIO_KEY: PipesDefaultMessageWriter.STDOUT}
         finally:
-            self.terminate()
+            self.terminate(handler)
 
-    @property
-    def handler(self) -> PipesMessageHandler:
-        if self._handler is None:
-            raise Exception("PipesMessageHandler is only available while reading messages in open_pipes_session")
-
-        return self._handler
-
-    def terminate(self) -> None:
+    def terminate(self, handler: PipesMessageHandler) -> None:
         self.session_closed.set()
 
         if self._thread is not None:
             _join_thread(self._thread, "ray job logs tailing")
             if self._job_id is None:
-                self.handler._context.log.warning(
+                handler._context.log.warning(
                     "[Pipes] PipesRayJobMessageReader._job_id is not set. It's expected to be set via PipesSession.report_launched."
                 )
-
-        self._handler = None
 
     def no_messages_debug_text(self) -> str:
         return f"Tried to read messages from Ray Job logs, but no messages were received. Make sure PipesSession.report_launched has been called with `{PIPES_LAUNCHED_EXTRAS_RAY_JOB_ID_KEY}` set under `extras` field."
 
     def handle_job_logs(
         self,
+        handler: PipesMessageHandler,
     ):
         import asyncio
 
-        while self._job_id is None:
-            time.sleep(1.0)
+        try:
+            while self._job_id is None and not self.session_closed.is_set():
+                time.sleep(1)
 
-        async_tailer = self.client.tail_job_logs(job_id=self.job_id)
+            if self.session_closed.is_set():
+                handler._context.log.warning(
+                    "[pipes] PipesSession.report_launched was not called before session was closed."
+                )
+                return
 
-        # Backward compatible sync generator
-        def tail_logs() -> Generator[str, None, None]:
-            while True:
+            assert self._job_id is not None and self._client is not None, (
+                "Job ID and client are required for tailing logs. Expected on_launched to set them by this line."
+            )
+
+            def tail_logs(tailer: AsyncIterator[str]) -> Generator[str | None, None, None]:
                 try:
+                    loop = asyncio.get_event_loop()
+                except RuntimeError:
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+
+                while True:
                     try:
-                        loop = asyncio.get_event_loop()
-                    except RuntimeError:
-                        loop = asyncio.new_event_loop()
-                        asyncio.set_event_loop(loop)
-                    yield loop.run_until_complete(async_tailer.__anext__())  # type: ignore
-                except (StopAsyncIteration, ValueError):
-                    break
+                        yield loop.run_until_complete(tailer.__anext__())  # type: ignore
+                    except (StopAsyncIteration, ValueError):
+                        break
+                    except Exception:
+                        logger.exception("Encountered exception during ray job log tailing")
+                        yield None
 
-        session_closed_at = None
+            session_closed_at = None
 
-        for chunk in tail_logs():
-            for log_line in chunk.split("\n"):
-                if log_line:
-                    extract_message_or_forward_to_stdout(self.handler, log_line)
+            tailer = self.client.tail_job_logs(job_id=self.job_id)
 
-            if self.session_closed is not None and self.session_closed.is_set():
-                if session_closed_at is None:
-                    session_closed_at = time.time()
+            for chunk in tail_logs(tailer):
+                if chunk:
+                    for log_line in chunk.split("\n"):
+                        if log_line:
+                            extract_message_or_forward_to_stdout(handler, log_line)
 
-                if time.time() - session_closed_at > 30:  # wait for 30 seconds to flush all logs
-                    self.session_closed.wait()
-                    return
+                if self.session_closed.is_set():
+                    if session_closed_at is None:
+                        session_closed_at = time.time()
 
-        if self.session_closed is not None:
-            self.session_closed.wait()
-
-        return
+                    if time.time() - session_closed_at > 30:  # wait for 30 seconds to flush all logs
+                        self.completed.set()
+                        return
+        except:
+            raise
+        finally:
+            self.completed.set()
 
 
 class SubmitJobParams(TypedDict):
