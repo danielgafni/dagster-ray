@@ -129,8 +129,19 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
                 )
 
                 try:
-                    # self._read_messages(context, start_response)
                     self._wait_for_completion(context, start_response)
+
+                    if isinstance(self._message_reader, PipesRayJobMessageReader) and self.port_forward:
+                        # in this case the message reader will fail once port forwarding is finished
+                        # TODO: merge https://github.com/danielgafni/dagster-ray/pull/123
+                        # to avoid this work-around
+                        self._message_reader.thread_ready.wait()
+                        context.log.debug(
+                            "[pipes] waiting for PipesRayJobMessageReader to complete before stopping port-forwarding"
+                        )
+                        self._message_reader.session_closed.set()
+                        self._message_reader.completed.wait()
+
                     return PipesClientCompletedInvocation(
                         session, metadata={"RayJob": f"{namespace}/{name}", "Ray Job ID": ray_job_id}
                     )
@@ -221,7 +232,7 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
                 if job_status in ["PENDING", "RUNNING"]:
                     pass
                 elif job_status == "SUCCEEDED":
-                    context.log.info(f"[pipes] RayJob {namespace}/{name} is complete!")
+                    context.log.info(f"[pipes] RayJob {namespace}/{name} succeeded!")
                     return status
                 elif job_status in ["STOPPED", "FAILED"]:
                     raise RuntimeError(
