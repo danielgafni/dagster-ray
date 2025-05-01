@@ -68,9 +68,6 @@ def dagster_ray_image():
                 image,
                 str(ROOT_DIR),
             ],
-            env={
-                "DOCKER_BUILDKIT": "1",
-            },
             check=True,
         )
     else:

@@ -14,8 +14,13 @@ def get_dagster_tags(context: InitResourceContext | OpExecutionContext | AssetEx
     """
     assert context.dagster_run is not None
 
+    if isinstance(context, InitResourceContext):
+        run_id = cast(str, context.run_id)
+    else:
+        run_id = context.run.run_id
+
     labels = {
-        "dagster.io/run_id": cast(str, context.run_id),
+        "dagster.io/run_id": run_id,
         "dagster.io/deployment": DEFAULT_DEPLOYMENT_NAME,
         # TODO: add more labels
     }
