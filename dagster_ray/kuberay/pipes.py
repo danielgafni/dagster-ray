@@ -5,7 +5,13 @@ from typing import TYPE_CHECKING, Any, Union, cast
 
 import dagster._check as check
 import yaml
-from dagster import AssetExecutionContext, DagsterInvariantViolationError, OpExecutionContext, PipesClient
+from dagster import (
+    AssetExecutionContext,
+    DagsterInvariantViolationError,
+    OpExecutionContext,
+    PipesClient,
+    PipesMessageHandler,
+)
 from dagster._annotations import beta
 from dagster._core.definitions.resource_annotation import TreatAsResourceParam
 from dagster._core.errors import DagsterExecutionInterruptedError
@@ -14,10 +20,10 @@ from dagster._core.pipes.client import (
     PipesContextInjector,
     PipesMessageReader,
 )
-from dagster._core.pipes.context import PipesSession
+from dagster._core.pipes.context import PipesLaunchedData, PipesSession
 from dagster._core.pipes.utils import PipesEnvContextInjector, open_pipes_session
 from dagster_pipes import PipesExtras
-from typing_extensions import TypeAlias
+from typing_extensions import TypeAlias, override
 
 from dagster_ray._base.utils import get_dagster_tags
 from dagster_ray.kuberay.client import RayJobClient
@@ -34,6 +40,62 @@ if TYPE_CHECKING:
     from ray.job_submission import JobSubmissionClient
 
 OpOrAssetExecutionContext: TypeAlias = Union[OpExecutionContext, AssetExecutionContext]
+
+
+PIPES_LAUNCHED_EXTRAS_KUBE_RAYJOB_NAME = "kube_rayjob_name"
+PIPES_LAUNCHED_EXTRAS_KUBE_RAYJOB_NAMESPACE = "kube_rayjob_namespace"
+
+
+@beta
+class PipesKubeRayJobMessageReader(PipesRayJobMessageReader):
+    def __init__(
+        self,
+        client: RayJobClient | None = None,
+        port_forward: bool = False,
+        job_submission_client_kwargs: dict[str, Any] | None = None,
+    ):
+        super().__init__(job_submission_client_kwargs)
+
+        self._rayjob_client = client
+        self.port_forward = port_forward
+
+        self._rayjob_name: str | None = None
+        self._rayjob_namespace: str | None = None
+
+    @property
+    def rayjob_name(self) -> str:
+        if self._rayjob_name is None:
+            raise RuntimeError(
+                "rayjob_name is only available after it has been seeded in the Pipes client via PipesSession.report_launched"
+            )
+        else:
+            return self._rayjob_name
+
+    @property
+    def rayjob_namespace(self) -> str:
+        if self._rayjob_namespace is None:
+            raise RuntimeError(
+                "rayjob_namespace is only available after it has been seeded in the Pipes client via PipesSession.report_launched"
+            )
+        else:
+            return self._rayjob_namespace
+
+    @override
+    def on_launched(self, launched_payload: PipesLaunchedData) -> None:
+        super().on_launched(launched_payload)
+
+        self._rayjob_name = launched_payload["extras"][PIPES_LAUNCHED_EXTRAS_KUBE_RAYJOB_NAME]
+        self._rayjob_namespace = launched_payload["extras"][PIPES_LAUNCHED_EXTRAS_KUBE_RAYJOB_NAMESPACE]
+
+    @property
+    @override
+    def state_is_readable(self) -> bool:
+        return super().state_is_readable and self._rayjob_name is not None and self._rayjob_namespace is not None
+
+    @override
+    def handle_job_logs(self, handler: PipesMessageHandler):
+        if self.port_forward:
+            maybe_port_forward = self._rayjob_client.ray_cluster_client.port_forward(name=self._rayjob_client)
 
 
 @beta
@@ -67,7 +129,7 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
         self.client: RayJobClient = client or RayJobClient()
 
         self._context_injector = context_injector or PipesEnvContextInjector()
-        self._message_reader = message_reader or PipesRayJobMessageReader()
+        self._message_reader = message_reader or PipesKubeRayJobMessageReader(port_forward=port_forward)
 
         self.forward_termination = check.bool_param(forward_termination, "forward_termination")
         self.timeout = check.int_param(timeout, "timeout")
@@ -116,6 +178,7 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
                 name=self.client.get_ray_cluster_name(name=name, namespace=namespace),
                 namespace=namespace,
                 port_forward=self.port_forward,
+                job_submission_client=self.job_submission_client,
             ) as job_submission_client:
                 self._job_submission_client = job_submission_client
 
@@ -124,6 +187,8 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
                         "extras": {
                             PIPES_LAUNCHED_EXTRAS_RAY_JOB_ID_KEY: ray_job_id,
                             PIPES_LAUNCHED_EXTRAS_RAY_ADDRESS_KEY: job_submission_client.get_address(),
+                            PIPES_LAUNCHED_EXTRAS_KUBE_RAYJOB_NAME: name,
+                            PIPES_LAUNCHED_EXTRAS_KUBE_RAYJOB_NAMESPACE: namespace,
                         }
                     }
                 )

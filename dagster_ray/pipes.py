@@ -99,8 +99,12 @@ class PipesRayJobMessageReader(PipesMessageReader):
 
         super().on_launched(launched_payload)
 
+    @property
+    def state_is_readable(self) -> bool:
+        return self._job_id is not None and self._client is not None and not self.session_closed.is_set()
+
     def messages_are_readable(self, params: PipesParams) -> bool:
-        return self._job_id is not None and self._client is not None
+        return self.state_is_readable
 
     @contextmanager
     def read_messages(self, handler: PipesMessageHandler) -> Iterator[PipesParams]:
@@ -134,7 +138,7 @@ class PipesRayJobMessageReader(PipesMessageReader):
         import asyncio
 
         try:
-            while self._job_id is None and not self.session_closed.is_set():
+            while not self.state_is_readable:
                 time.sleep(1)
 
             if self.session_closed.is_set():
