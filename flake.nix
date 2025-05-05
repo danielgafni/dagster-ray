@@ -18,6 +18,7 @@
           stdenv.cc
           uv
           python
+          minikube
         ];
         LD_LIBRARY_PATH = lib.makeLibraryPath [pkgs.stdenv.cc.cc.lib pkgs.glib pkgs.python39];
         UV_PYTHON = "${python}/bin/python";
