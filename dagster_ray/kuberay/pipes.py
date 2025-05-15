@@ -23,7 +23,12 @@ from dagster_ray._base.utils import get_dagster_tags
 from dagster_ray.kuberay.client import RayJobClient
 from dagster_ray.kuberay.client.rayjob.client import RayJobStatus
 from dagster_ray.kuberay.utils import normalize_k8s_label_values
-from dagster_ray.pipes import PipesRayJobMessageReader, generate_job_id
+from dagster_ray.pipes import (
+    PIPES_LAUNCHED_EXTRAS_RAY_ADDRESS_KEY,
+    PIPES_LAUNCHED_EXTRAS_RAY_JOB_ID_KEY,
+    PipesRayJobMessageReader,
+    generate_job_id,
+)
 
 if TYPE_CHECKING:
     from ray.job_submission import JobSubmissionClient
@@ -100,7 +105,9 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
             extras=extras,
         ) as session:
             ray_job = self._enrich_ray_job(context, session, ray_job)
-            start_response = self._start(context, ray_job)
+            start_response = self._start(context, session, ray_job)
+            start_status = cast(RayJobStatus, start_response["status"])
+            ray_job_id = start_status["jobId"]
 
             name = ray_job["metadata"]["name"]
             namespace = ray_job["metadata"]["namespace"]
@@ -112,10 +119,32 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
             ) as job_submission_client:
                 self._job_submission_client = job_submission_client
 
+                session.report_launched(
+                    {
+                        "extras": {
+                            PIPES_LAUNCHED_EXTRAS_RAY_JOB_ID_KEY: ray_job_id,
+                            PIPES_LAUNCHED_EXTRAS_RAY_ADDRESS_KEY: job_submission_client.get_address(),
+                        }
+                    }
+                )
+
                 try:
-                    self._read_messages(context, start_response)
                     self._wait_for_completion(context, start_response)
-                    return PipesClientCompletedInvocation(session)
+
+                    if isinstance(self._message_reader, PipesRayJobMessageReader) and self.port_forward:
+                        # in this case the message reader will fail once port forwarding is finished
+                        # TODO: merge https://github.com/danielgafni/dagster-ray/pull/123
+                        # to avoid this work-around
+                        self._message_reader.thread_ready.wait()
+                        context.log.debug(
+                            "[pipes] waiting for PipesRayJobMessageReader to complete before stopping port-forwarding"
+                        )
+                        self._message_reader.session_closed.set()
+                        self._message_reader.completed.wait()
+
+                    return PipesClientCompletedInvocation(
+                        session, metadata={"RayJob": f"{namespace}/{name}", "Ray Job ID": ray_job_id}
+                    )
 
                 except DagsterExecutionInterruptedError:
                     if self.forward_termination:
@@ -160,7 +189,9 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
 
         return ray_job
 
-    def _start(self, context: OpOrAssetExecutionContext, ray_job: dict[str, Any]) -> dict[str, Any]:
+    def _start(
+        self, context: OpOrAssetExecutionContext, session: PipesSession, ray_job: dict[str, Any]
+    ) -> dict[str, Any]:
         name = ray_job["metadata"]["name"]
         namespace = ray_job["metadata"]["namespace"]
 
@@ -185,18 +216,6 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
             name=ray_job["metadata"]["name"],
         )
 
-    def _read_messages(self, context: OpOrAssetExecutionContext, start_response: dict[str, Any]) -> None:
-        status = cast(RayJobStatus, start_response["status"])
-
-        if isinstance(self._message_reader, PipesRayJobMessageReader):
-            # starts a thread
-            self._message_reader.consume_job_logs(
-                # TODO: investigate why some messages aren't being handled with blocking=False
-                client=self.job_submission_client,
-                job_id=status["jobId"],
-                blocking=True,
-            )
-
     def _wait_for_completion(self, context: OpOrAssetExecutionContext, start_response: dict[str, Any]) -> RayJobStatus:
         context.log.info("[pipes] Waiting for RayJob to complete...")
 
@@ -213,7 +232,7 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
                 if job_status in ["PENDING", "RUNNING"]:
                     pass
                 elif job_status == "SUCCEEDED":
-                    context.log.info(f"[pipes] RayJob {namespace}/{name} is complete!")
+                    context.log.info(f"[pipes] RayJob {namespace}/{name} succeeded!")
                     return status
                 elif job_status in ["STOPPED", "FAILED"]:
                     raise RuntimeError(
