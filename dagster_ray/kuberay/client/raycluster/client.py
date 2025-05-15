@@ -242,7 +242,12 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
 
     @contextmanager
     def job_submission_client(
-        self, name: str, namespace: str, port_forward: bool = False, timeout: int = 60
+        self,
+        name: str,
+        namespace: str,
+        port_forward: bool = False,
+        timeout: int = 60,
+        **job_submission_client_kwargs: dict[str, Any],
     ) -> Iterator[JobSubmissionClient]:
         """
         Returns a JobSubmissionClient object that can be used to interact with Ray jobs running in the KubeRay cluster.
@@ -260,11 +265,13 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
             host = status["head"]["serviceIP"]  # type: ignore
             dashboard_port = status["endpoints"]["dashboard"]  # type: ignore
 
-            yield JobSubmissionClient(address=f"http://{host}:{dashboard_port}")
+            yield JobSubmissionClient(address=f"http://{host}:{dashboard_port}", **job_submission_client_kwargs)
         else:
             self.wait_for_service_endpoints(service_name=f"{name}-head-svc", namespace=namespace, timeout=timeout)
             with self.port_forward(name=name, namespace=namespace, local_dashboard_port=0, local_gcs_port=0) as (
                 local_dashboard_port,
                 _,
             ):
-                yield JobSubmissionClient(address=f"http://localhost:{local_dashboard_port}")
+                yield JobSubmissionClient(
+                    address=f"http://localhost:{local_dashboard_port}", **job_submission_client_kwargs
+                )
