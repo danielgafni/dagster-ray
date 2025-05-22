@@ -14,7 +14,7 @@ COPY --from=bitnami/kubectl:1.33.1 /opt/bitnami/kubectl/bin/kubectl /usr/local/b
 
 # install uv (https://github.com/astral-sh/uv)
 # docs for using uv with Docker: https://docs.astral.sh/uv/guides/integration/docker/
-COPY --from=ghcr.io/astral-sh/uv:0.7.6 /uv /bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.7.7 /uv /bin/uv
 
 ENV UV_PROJECT_ENVIRONMENT=/usr/local/
 ENV DAGSTER_HOME=/opt/dagster/dagster_home
