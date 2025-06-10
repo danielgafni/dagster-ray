@@ -12,6 +12,7 @@ from queue import Queue
 from typing import (
     TYPE_CHECKING,
     Any,
+    Callable,
     TypedDict,
     cast,
 )
@@ -33,12 +34,27 @@ PLURAL = "rayclusters"
 KIND = "RayCluster"
 
 
-def enqueue_output(out: FileIO, queue: Queue, should_stop):
-    for line in iter(out.readline, b""):
-        if should_stop():
-            return
-        queue.put(line)
-    out.close()
+def enqueue_output(out: FileIO, queue: Queue, should_stop: Callable[[], bool]):
+    import select
+
+    try:
+        while True:
+            if should_stop():
+                break
+            rlist, _, _ = select.select([out], [], [], 1.0)
+            if not rlist:
+                continue
+            line = out.readline()
+            if not line:
+                break
+            queue.put(line)
+    except Exception:
+        logger.exception("Exception encountered while reading port-forwarded RayCluster logs")
+    finally:
+        try:
+            out.close()
+        except Exception:
+            logger.exception("Exception encountered while closing RayCluster logs during port-forwarding")
 
 
 def get_random_available_port() -> int:
