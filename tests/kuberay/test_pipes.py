@@ -58,7 +58,7 @@ RAY_JOB = {
         },
         "shutdownAfterJobFinishes": False,  # helpful for debugging tests1
         "submissionMode": "K8sJobMode",
-        "ttlSecondsAfterFinished": 300,
+        # "ttlSecondsAfterFinished": 300,  # doesn't work together with shutdownAfterJobFinishes starting from KubeRay 1.4.0
     },
 }
 
