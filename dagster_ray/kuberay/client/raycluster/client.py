@@ -146,7 +146,7 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
             state = status.get("state")
 
             # https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/observability.html#raycluster-status-conditions
-            conditions = status.get("conditions", [])
+            conditions = list(reversed(status.get("conditions", [])))
 
             if log_cluster_conditions:
                 while len(conditions) > condition_index_to_log:
