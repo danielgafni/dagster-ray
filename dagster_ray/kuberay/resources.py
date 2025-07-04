@@ -93,6 +93,10 @@ class KubeRayCluster(BaseRayResource):
     skip_cleanup: bool = False
     skip_init: bool = False
     timeout: int = Field(default=600, description="Timeout in seconds for the RayCluster to become ready")
+    log_cluster_conditions: bool = Field(
+        default=True,
+        description="Whether to log RayCluster conditions while waiting for the RayCluster to become ready. For more information, see https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/observability.html#raycluster-status-conditions.",
+    )
 
     client: RayClusterClientResource = Field(default_factory=RayClusterClientResource)
 
@@ -243,7 +247,12 @@ class KubeRayCluster(BaseRayResource):
     def _wait_raycluster_ready(self):
         import kubernetes
 
-        self.client.client.wait_until_ready(self.cluster_name, namespace=self.namespace, timeout=self.timeout)
+        self.client.client.wait_until_ready(
+            self.cluster_name,
+            namespace=self.namespace,
+            timeout=self.timeout,
+            log_cluster_conditions=self.log_cluster_conditions,
+        )
 
         # the above code only checks for RayCluster creation
         # not for head pod readiness
