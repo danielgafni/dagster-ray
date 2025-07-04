@@ -42,7 +42,7 @@ class BaseRayResource(ConfigurableResource, ABC):
     )
     enable_tracing: bool = Field(
         default=False,
-        description="Enable tracing: inject `RAY_PROFILING=1` into the Ray cluster configuration. Learn more: https://docs.ray.io/en/latest/ray-core/api/doc/ray.timeline.html#ray-timeline",
+        description="Enable tracing: inject `RAY_PROFILING=1` and `RAY_task_events_report_interval_ms=0` into the Ray cluster configuration. This allows using `ray.timeline()` to fetch recorded task events. Learn more: https://docs.ray.io/en/latest/ray-core/api/doc/ray.timeline.html#ray-timeline",
     )
     enable_actor_task_logging: bool = Field(
         default=False,
@@ -132,6 +132,7 @@ class BaseRayResource(ConfigurableResource, ABC):
             vars["RAY_DEBUG_POST_MORTEM"] = "1"
         if self.enable_tracing:
             vars["RAY_PROFILING"] = "1"
+            vars["RAY_task_events_report_interval_ms"] = "0"
         if self.enable_actor_task_logging:
             vars["RAY_ENABLE_RECORD_ACTOR_TASK_LOGGING"] = "1"
         return vars
