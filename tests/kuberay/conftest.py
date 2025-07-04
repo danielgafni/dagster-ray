@@ -9,6 +9,7 @@ from typing import Any
 import pytest
 import pytest_cases
 from kubernetes import config  # noqa: TID253
+from packaging.version import Version
 from pytest_kubernetes.options import ClusterOptions
 from pytest_kubernetes.providers import AClusterManager, select_provider_manager
 from tenacity import retry, stop_after_attempt, wait_random_exponential
@@ -104,21 +105,34 @@ def k8s_with_kuberay(
         k8s.load_image(str(image_tar))
 
     # init the cluster with a workload
+
+    args = [
+        "helm",
+        "--kubeconfig",
+        str(k8s.kubeconfig),
+        "upgrade",
+        "--install",
+        "--create-namespace",
+        "--namespace",
+        "kuberay-operator",
+        "kuberay-operator",
+        "kuberay/kuberay-operator",
+        "--version",
+        kuberay_version,
+    ]
+
+    if Version(kuberay_version) > Version("1.3.0"):
+        args.extend(
+            [
+                "--set",
+                "featureGates\\[0\\].name=RayClusterStatusConditions",
+                "--set",
+                "featureGates\\[0\\].enabled=true",
+            ]
+        )
+
     subprocess.run(
-        [
-            "helm",
-            "--kubeconfig",
-            str(k8s.kubeconfig),
-            "upgrade",
-            "--install",
-            "--create-namespace",
-            "--namespace",
-            "kuberay-operator",
-            "kuberay-operator",
-            "kuberay/kuberay-operator",
-            "--version",
-            kuberay_version,
-        ],
+        args,
         check=True,
     )
 

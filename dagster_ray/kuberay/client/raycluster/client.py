@@ -112,12 +112,12 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
         namespace: str,
         timeout: int,
         image: str | None = None,
-    ) -> tuple[str, dict[str, str]]:
+        log_cluster_conditions: bool = False,
+    ) -> tuple[str, RayClusterEndpoints]:
         from kubernetes import watch
 
         """
         If ready, returns service ip address and a dictionary of ports.
-        Dictionary keys: ["client", "dashboard", "metrics", "redis", "serve"]
         """
 
         w = watch.Watch()
@@ -127,6 +127,8 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
         # TODO: use get_namespaced_custom_object instead
         # once https://github.com/kubernetes-client/python/issues/1679
         # is solved
+
+        condition_index_to_log = 0
 
         for event in w.stream(
             self._api.list_namespaced_custom_object,
@@ -141,16 +143,25 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
                 continue
 
             status: RayClusterStatus = item["status"]
+            state = status.get("state")
 
-            if status.get("state") == "failed":
+            # https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/observability.html#raycluster-status-conditions
+            conditions = list(reversed(status.get("conditions", [])))
+
+            if log_cluster_conditions:
+                while len(conditions) > condition_index_to_log:
+                    logger.info(f"RayCluster {namespace}/{name} condition: {conditions[condition_index_to_log]}")
+                    condition_index_to_log += 1
+
+            if state == "failed":
                 raise Exception(
-                    f"RayCluster {namespace}/{name} failed to start. Reason:\n{status.get('reason')}\nMore details: `kubectl -n {namespace} describe RayCluster {name}`"
+                    f"RayCluster {namespace}/{name} failed to start. Status:\n\n{status}\n\nMore details: `kubectl -n {namespace} describe RayCluster {name}`"
                 )
 
             if (
                 item.get("metadata")  # type: ignore
                 and item["metadata"].get("name") == name  # type: ignore
-                and status.get("state") == "ready"
+                and state == "ready"
                 and status.get("head")
                 and status.get("endpoints", {}).get("dashboard")
             ):
@@ -163,7 +174,7 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
                         continue
                 w.stop()
                 logger.debug(f"RayCluster {namespace}/{name} is ready!")
-                return status["head"]["serviceIP"], status["endpoints"]  # type: ignore
+                return status["head"]["serviceIP"], status["endpoints"]
 
             if time.time() - start_time > timeout:
                 w.stop()
