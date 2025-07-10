@@ -170,7 +170,7 @@ class KubeRayCluster(BaseRayResource):
                 self._context = None
 
             yield self
-        except Exception as e:
+        except BaseException as e:
             context.log.critical(f"Couldn't create or connect to RayCluster {self.namespace}/{self.cluster_name}!")
             self._maybe_cleanup_raycluster(context)
             raise e
