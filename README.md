@@ -256,7 +256,7 @@ def my_asset(context: AssetExecutionContext, pipes_ray_job_client: PipesRayJobCl
         submit_job_params={
             "entrypoint": "python /app/my_script.py",
         },
-        extra={"param": "value"},
+        extras={"param": "value"},
     )
 
 
@@ -399,7 +399,7 @@ def my_asset(
                 },
             },
         },
-        extra={"param": "value"},
+        extras={"param": "value"},
     )
 
 
