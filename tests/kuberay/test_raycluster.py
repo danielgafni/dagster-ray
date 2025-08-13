@@ -10,6 +10,7 @@ from pytest_kubernetes.providers import AClusterManager
 from dagster_ray import RayResource
 from dagster_ray.kuberay import KubeRayCluster, RayClusterClientResource, RayClusterConfig, cleanup_kuberay_clusters
 from dagster_ray.kuberay.client import RayClusterClient
+from dagster_ray.kuberay.configs import RayClusterSpec
 from dagster_ray.kuberay.ops import CleanupKuberayClustersConfig
 from tests.kuberay.utils import NAMESPACE, get_random_free_port
 
@@ -30,9 +31,8 @@ def ray_cluster_resource(
         client=RayClusterClientResource(kubeconfig_file=str(k8s_with_kuberay.kubeconfig)),
         ray_cluster=RayClusterConfig(
             image=dagster_ray_image,
-            namespace=NAMESPACE,
-            head_group_spec=head_group_spec,
-            worker_group_specs=worker_group_specs,
+            metadata={"namespace": NAMESPACE},
+            spec=RayClusterSpec(head_group_spec=head_group_spec, worker_group_specs=worker_group_specs),
         ),
         redis_port=redis_port,
     )
@@ -55,9 +55,8 @@ def ray_cluster_resource_skip_cleanup(
         client=RayClusterClientResource(kubeconfig_file=str(k8s_with_kuberay.kubeconfig)),
         ray_cluster=RayClusterConfig(
             image=dagster_ray_image,
-            namespace=NAMESPACE,
-            head_group_spec=head_group_spec,
-            worker_group_specs=worker_group_specs,
+            metadata={"namespace": NAMESPACE},
+            spec=RayClusterSpec(head_group_spec=head_group_spec, worker_group_specs=worker_group_specs),
         ),
         redis_port=redis_port,
     )

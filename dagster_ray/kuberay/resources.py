@@ -17,7 +17,7 @@ from pydantic import Field, PrivateAttr
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 from dagster_ray._base.constants import DEFAULT_DEPLOYMENT_NAME
-from dagster_ray.kuberay.client import RayClusterClient
+from dagster_ray.kuberay.client import RayClusterClient, RayJobClient
 
 # yes, `python-client` is actually the KubeRay package name
 # https://github.com/ray-project/kuberay/issues/2078
@@ -77,7 +77,7 @@ class RayClusterClientResource(ConfigurableResource):
 
 
 @beta
-class KubeRayJobClientResource(ConfigurableResource):
+class KubeRayJobClientResource(ConfigurableResource[RayJobClient]):
     kube_context: str | None = None
     kubeconfig_file: str | None = None
 
@@ -103,7 +103,8 @@ class KubeRayJobClientResource(ConfigurableResource):
             raise ValueError(f"{self.__class__.__name__} not initialized")
         return self._k8s_core_api
 
-    def yield_for_execution(self, context: InitResourceContext) -> Iterator[RayJobClient]:
+    @contextlib.contextmanager
+    def yield_for_execution(self, context: InitResourceContext) -> Generator[RayJobClient, None, None]:
         import kubernetes
 
         load_kubeconfig(context=self.kube_context, config_file=self.kubeconfig_file)
@@ -160,14 +161,14 @@ class BaseKubeRayClusterResource(BaseRayResource):
 
     @property
     def namespace(self) -> str:
-        return self.ray_cluster.namespace  # TODO: add namespace auto-creation logic
+        return self.ray_cluster.namespace
 
     @property
     def cluster_name(self) -> str:
-        if self._cluster_name is None and self.ray_cluster.metadata.name is None:
+        if self._cluster_name is None and self.ray_cluster.metadata.get("name") is None:
             raise ValueError(f"{self.__class__.__name__}not initialized")
-        elif self.ray_cluster.metadata.name is not None:
-            return self.ray_cluster.metadata.name
+        elif (name := self.ray_cluster.metadata.get("name")) is not None:
+            return name
         else:
             return self._cluster_name
 
@@ -179,7 +180,7 @@ class BaseKubeRayClusterResource(BaseRayResource):
     def _build_raycluster(
         self,
         context: InitResourceContext,
-        image: str | None = None,
+        image: str | None = None,  # is injected into headgroup and workergroups, unless already specified there
         labels: dict[str, str] | None = None,  # TODO: use in RayCluster labels
     ) -> dict[str, Any]:
         assert context.log is not None
@@ -193,8 +194,8 @@ class BaseKubeRayClusterResource(BaseRayResource):
         labels = labels or {}
         assert isinstance(labels, dict)
 
-        head_group_spec = self.ray_cluster.head_group_spec.copy()
-        worker_group_specs = self.ray_cluster.worker_group_specs.copy()
+        head_group_spec = self.ray_cluster.spec.head_group_spec.copy()
+        worker_group_specs = self.ray_cluster.spec.worker_group_specs.copy()
 
         env_vars = self.env_vars.copy()
 
@@ -230,8 +231,8 @@ class BaseKubeRayClusterResource(BaseRayResource):
             "kind": self.ray_cluster.kind,
             "metadata": {
                 "name": self.cluster_name,
-                "labels": {**(self.ray_cluster.metadata.labels or {}), **labels},
-                "annotations": self.ray_cluster.metadata.annotations or {},
+                "labels": {**(self.ray_cluster.metadata.get("labels", {}) or {}), **labels},
+                "annotations": self.ray_cluster.metadata.get("annotations", {}),
             },
             "spec": remove_none_from_dict(
                 {
@@ -292,7 +293,7 @@ class KubeRayCluster(BaseKubeRayClusterResource):
 
         self.client.setup_for_execution(context)
 
-        self._cluster_name = self.ray_cluster.metadata.name or self._get_ray_cluster_step_name(context)
+        self._cluster_name = self.ray_cluster.metadata.get("name") or self._get_ray_cluster_step_name(context)
 
         try:
             # just a safety measure, no need to recreate the cluster for step retries or smth
@@ -316,9 +317,7 @@ class KubeRayCluster(BaseKubeRayClusterResource):
 
                 self._wait_raycluster_ready()
 
-                self._host = self.client.client.get_status(
-                    name=self.cluster_name, namespace=self.ray_cluster.metadata.namespace
-                )[  # pyright: ignore
+                self._host = self.client.client.get_status(name=self.cluster_name, namespace=self.namespace)[  # pyright: ignore
                     "head"
                 ]["serviceIP"]
 
@@ -400,16 +399,3 @@ class KubeRayCluster(BaseKubeRayClusterResource):
                 f"Skipping RayCluster {self.cluster_name} deletion because `disable_cluster_cleanup` "
                 f"config parameter is set to `True` and the run has failed."
             )
-
-
-class KubeRayInteractiveJob(KubeRayResource):
-    """A `RayJob` submitted with `InteractiveMode`.
-
-    First, an `Waiting` job is submitted. The user then can either submit a Ray job via the job API, or use `ray.init` to create an implicit job.
-
-    After that, the `ray.io/ray-job-submission-id` annotation on the `RayJob` can be set to reference the started Ray job, and the `RayJob` lifecycle moves to `Running`, as if it was originally created with the referenced job.
-
-    See more details [here](https://github.com/ray-project/kuberay/pull/2364)
-    """
-
-    client: RayJobClientResource
