@@ -77,25 +77,67 @@ DEFAULT_WORKER_GROUP_SPECS = [
 ]
 
 
-class RayClusterConfig(Config):
-    image: str | None = None
-    namespace: str = "ray"
-    enable_in_tree_autoscaling: bool = False
+class MetadataWithoutName(Config):
+    namespace: str | None = None
+    labels: dict[str, str] | None = None
+    annotations: dict[str, str] | None = None
+
+
+class MetadataWithOptionalName(MetadataWithoutName):
+    """This config almost matches the original Kubernetes metadata, except name which can be ommitted to be set automatically by `dagster-ray`."""
+
+    name: str | None = None
+
+
+class Metadata(MetadataWithoutName):
+    name: str
+
+
+class RayClusterSpec(Config):
+    """[RayCluster spec](https://ray-project.github.io/kuberay/reference/api/#rayclusterspec) configuration options. A few sensible defaults are provided for convenience."""
+
+    suspend: bool = False
+    managed_by: str | None = None
     autoscaler_options: dict[str, Any] = DEFAULT_AUTOSCALER_OPTIONS  # TODO: add a dedicated Config type
+    head_service_annotations: dict[str, str] | None = None
+    enable_in_tree_autoscaling: bool = False
+    gcs_fault_tolerance_options: dict[str, Any] | None = None
     head_group_spec: dict[str, Any] = DEFAULT_HEAD_GROUP_SPEC  # TODO: add a dedicated Config type
+    ray_version: str | None = None
     worker_group_specs: list[dict[str, Any]] = DEFAULT_WORKER_GROUP_SPECS  # TODO: add a dedicated Config type
 
 
-class RayJobConfig(Config):
+class RayClusterConfig(Config):
+    kind: str = "RayCluster"
+    api_version: str = "ray.io/v1"
+    metadata: MetadataWithOptionalName = Field(default_factory=MetadataWithOptionalName)
+    spec: RayClusterSpec = Field(default_factory=RayClusterSpec)
+
+
+class RayJobSpec(Config):
+    """[RayJob spec](https://ray-project.github.io/kuberay/reference/api/#rayjobspec) configuration options. A few sensible defaults are provided for convenience."""
+
+    active_deadline_seconds: int = 60 * 60 * 24  # 24 hours
+    backoff_limit: int = 0
+    ray_cluster_spec: RayClusterSpec = Field(default_factory=RayClusterSpec)
+    submitter_pod_template: dict[str, Any] | None = None
+    cluster_selector: dict[str, str] | None = None
+    managed_by: str | None = None
+    deletion_strategy: dict[str, Any] | None = None
+    runtime_env_yaml: str | None = None
+    job_id: str | None = None
+    submission_mode: Literal["K8sJobMode", "HTTPMode", "InteractiveMode"] = "K8sJobMode"
+    entrypoint_resources: str | None = None
     entrypoint_num_cpus: float
     entrypoint_memory: float
-    entrypoint_num_gpus: int
-    suspend: bool = False
-    annotations: dict[str, str] | None = None
-    labels: dict[str, str] | None = None
+    entrypoint_num_gpus: float
+    ttl_seconds_after_finished: int = 60 * 60  # 1 hour
     shutdown_after_job_finishes: bool = True
-    ttl_seconds_after_finished: int = 60 * 10  # 10 minutes
-    active_deadline_seconds: int = 60 * 60 * 24  # 24 hours
-    submission_mode: Literal["K8sJobMode", "HTTPMode"] = "K8sJobMode"
-    runtime_env_yaml: str | None = None
-    cluster: RayClusterConfig = Field(default_factory=RayClusterConfig)
+    suspend: bool = False
+
+
+class RayJobConfig(Config):
+    kind: str = "RayJob"
+    api_version: str = "ray.io/v1"
+    metadata: MetadataWithOptionalName = Field(default_factory=MetadataWithOptionalName)
+    spec: RayJobSpec = Field(default_factory=RayJobSpec)
