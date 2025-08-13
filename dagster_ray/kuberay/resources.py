@@ -22,7 +22,7 @@ from dagster_ray.kuberay.client import RayClusterClient
 # yes, `python-client` is actually the KubeRay package name
 # https://github.com/ray-project/kuberay/issues/2078
 from dagster_ray.kuberay.configs import RayClusterConfig
-from dagster_ray.kuberay.utils import normalize_k8s_label_values
+from dagster_ray.kuberay.utils import normalize_k8s_label_values, remove_none_from_dict
 
 if sys.version_info >= (3, 11):
     from typing import Self
@@ -77,12 +77,64 @@ class RayClusterClientResource(ConfigurableResource):
 
 
 @beta
-class KubeRayCluster(BaseRayResource):
-    """
-    Provides a RayCluster for the current step selection
-    The cluster is automatically deleted after steps execution
-    """
+class KubeRayJobClientResource(ConfigurableResource):
+    kube_context: str | None = None
+    kubeconfig_file: str | None = None
 
+    _rayjob_client: RayJobClient = PrivateAttr()
+    _k8s_api: kubernetes.client.CustomObjectsApi = PrivateAttr()
+    _k8s_core_api: kubernetes.client.CoreV1Api = PrivateAttr()
+
+    @property
+    def client(self) -> RayJobClient:
+        if self._rayjob_client is None:
+            raise ValueError(f"{self.__class__.__name__} not initialized")
+        return self._raycluster_client
+
+    @property
+    def k8s(self) -> kubernetes.client.CustomObjectsApi:
+        if self._k8s_api is None:
+            raise ValueError(f"{self.__class__.__name__} not initialized")
+        return self._k8s_api
+
+    @property
+    def k8s_core(self) -> kubernetes.client.CoreV1Api:
+        if self._k8s_core_api is None:
+            raise ValueError(f"{self.__class__.__name__} not initialized")
+        return self._k8s_core_api
+
+    def yield_for_execution(self, context: InitResourceContext) -> Iterator[RayJobClient]:
+        import kubernetes
+
+        load_kubeconfig(context=self.kube_context, config_file=self.kubeconfig_file)
+
+        self._rayjob_client = RayJobClient(context=self.kube_context, config_file=self.kubeconfig_file)
+        self._k8s_api = kubernetes.client.CustomObjectsApi()
+        self._k8s_core_api = kubernetes.client.CoreV1Api()
+
+        yield self.client
+
+
+def get_k8s_object_name(run_id: str, step_key: str | None = None):
+    """Creates a unique (short!) identifier to name k8s objects based on run ID and step key(s).
+
+    K8s Job names are limited to 63 characters, because they are used as labels. For more info, see:
+
+    https://kubernetes.io/docs/concepts/overview/working-with-objects/names/
+    """
+    check.str_param(run_id, "run_id")
+    check.opt_str_param(step_key, "step_key")
+    if not step_key:
+        letters = string.ascii_lowercase
+        step_key = "".join(random.choice(letters) for i in range(20))
+
+    # Creates 32-bit signed int, so could be negative
+    name_hash = hashlib.md5((run_id + step_key).encode("utf-8"))
+
+    return name_hash.hexdigest()[:8]
+
+
+class BaseKubeRayClusterResource(BaseRayResource):
     deployment_name: str = Field(
         default=DEFAULT_DEPLOYMENT_NAME,
         description="Prefix for the RayCluster name. Dagster Cloud variables are used to determine the default value.",
@@ -92,15 +144,10 @@ class KubeRayCluster(BaseRayResource):
         description="Environment variables to inject into all RayCluster containers in Kubernetes format.",
     )
     ray_cluster: RayClusterConfig = Field(default_factory=RayClusterConfig)
-    skip_cleanup: bool = False
-    skip_init: bool = False
-    timeout: int = Field(default=600, description="Timeout in seconds for the RayCluster to become ready")
     log_cluster_conditions: bool = Field(
         default=True,
         description="Whether to log RayCluster conditions while waiting for the RayCluster to become ready. For more information, see https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/observability.html#raycluster-status-conditions.",
     )
-
-    client: RayClusterClientResource = Field(default_factory=RayClusterClientResource)
 
     _cluster_name: str = PrivateAttr()
     _host: str = PrivateAttr()
@@ -117,69 +164,17 @@ class KubeRayCluster(BaseRayResource):
 
     @property
     def cluster_name(self) -> str:
-        if self._cluster_name is None:
+        if self._cluster_name is None and self.ray_cluster.metadata.name is None:
             raise ValueError(f"{self.__class__.__name__}not initialized")
-        return self._cluster_name
+        elif self.ray_cluster.metadata.name is not None:
+            return self.ray_cluster.metadata.name
+        else:
+            return self._cluster_name
 
     def get_dagster_tags(self, context: InitResourceContext) -> dict[str, str]:
         tags = super().get_dagster_tags(context=context)
         tags.update({"dagster.io/cluster": self.cluster_name, "dagster.io/deployment": self.deployment_name})
         return tags
-
-    @contextlib.contextmanager
-    def yield_for_execution(self, context: InitResourceContext) -> Generator[Self, None, None]:
-        assert context.log is not None
-        assert context.dagster_run is not None
-
-        self.client.setup_for_execution(context)
-
-        self._cluster_name = self._get_ray_cluster_step_name(context)
-
-        try:
-            # just a safety measure, no need to recreate the cluster for step retries or smth
-            if not self.client.client.list(
-                namespace=self.namespace,
-                label_selector=f"dagster.io/cluster={self.cluster_name}",
-            )["items"]:
-                cluster_body = self._build_raycluster(
-                    context,
-                    image=(self.ray_cluster.image or context.dagster_run.tags["dagster/image"]),
-                    labels=normalize_k8s_label_values(self.get_dagster_tags(context)),
-                )
-
-                resource = self.client.client.create(body=cluster_body, namespace=self.namespace)
-                if not resource:
-                    raise RuntimeError(f"Couldn't create RayCluster {self.namespace}/{self.cluster_name}")
-
-                context.log.info(
-                    f"Created RayCluster {self.namespace}/{self.cluster_name}. Waiting for it to become ready..."
-                )
-
-                self._wait_raycluster_ready()
-
-                self._host = self.client.client.get_status(name=self.cluster_name, namespace=self.namespace)[  # type: ignore
-                    "head"
-                ]["serviceIP"]
-
-                msg = f"RayCluster {self.namespace}/{self.cluster_name} is ready! Connection command:\n"
-                msg += f"kubectl -n {self.namespace} port-forward svc/{self.cluster_name}-head-svc 8265:8265 6379:6379 10001:10001"
-
-                context.log.info(msg)
-
-            if not self.skip_init:
-                self.init_ray(context)
-            else:
-                self._context = None
-
-            yield self
-        except BaseException as e:
-            context.log.critical(f"Couldn't create or connect to RayCluster {self.namespace}/{self.cluster_name}!")
-            self._maybe_cleanup_raycluster(context)
-            raise e
-
-        self._maybe_cleanup_raycluster(context)
-        if self._context is not None:
-            self._context.disconnect()
 
     def _build_raycluster(
         self,
@@ -193,12 +188,11 @@ class KubeRayCluster(BaseRayResource):
         """
 
         # TODO: inject self.redis_port and self.dashboard_port into the RayCluster configuration
-        # TODO: autoa-apply some tags from dagster-k8s/config
+        # TODO: auto-apply some tags from dagster-k8s/config
 
         labels = labels or {}
         assert isinstance(labels, dict)
 
-        image = self.ray_cluster.image or image
         head_group_spec = self.ray_cluster.head_group_spec.copy()
         worker_group_specs = self.ray_cluster.worker_group_specs.copy()
 
@@ -232,19 +226,121 @@ class KubeRayCluster(BaseRayResource):
             update_group_spec(worker_group_spec)
 
         return {
-            "apiVersion": "ray.io/v1",
-            "kind": "RayCluster",
+            "apiVersion": self.ray_cluster.api_version,
+            "kind": self.ray_cluster.kind,
             "metadata": {
                 "name": self.cluster_name,
-                "labels": labels or {},
+                "labels": {**(self.ray_cluster.metadata.labels or {}), **labels},
+                "annotations": self.ray_cluster.metadata.annotations or {},
             },
-            "spec": {
-                "enableInTreeAutoscaling": self.ray_cluster.enable_in_tree_autoscaling,
-                "autoscalerOptions": self.ray_cluster.autoscaler_options,
-                "headGroupSpec": head_group_spec,
-                "workerGroupSpecs": worker_group_specs,
-            },
+            "spec": remove_none_from_dict(
+                {
+                    "enableInTreeAutoscaling": self.ray_cluster.spec.enable_in_tree_autoscaling,
+                    "autoscalerOptions": self.ray_cluster.spec.autoscaler_options,
+                    "headGroupSpec": head_group_spec,
+                    "workerGroupSpecs": worker_group_specs,
+                    "suspend": self.ray_cluster.spec.suspend,
+                    "managedBy": self.ray_cluster.spec.managed_by,
+                    "headServiceAnnotations": self.ray_cluster.spec.head_service_annotations,
+                    "gcsFaultToleranceOptions": self.ray_cluster.spec.gcs_fault_tolerance_options,
+                    "rayVersion": self.ray_cluster.spec.ray_version,
+                }
+            ),
         }
+
+    def _get_ray_cluster_step_name(self, context: InitResourceContext) -> str:
+        assert isinstance(context.run_id, str)
+        assert context.dagster_run is not None
+
+        # try to make the name as short as possible
+        cluster_name_prefix = f"dg-{self.deployment_name.replace('-', '')[:8]}-{context.run_id[:8]}"
+
+        dagster_user_email = context.dagster_run.tags.get("user")
+        if dagster_user_email is not None:
+            cluster_name_prefix += f"-{dagster_user_email.replace('.', '').replace('-', '').split('@')[0][:6]}"
+
+        step_key = self._get_step_key(context)
+
+        name_key = get_k8s_object_name(
+            context.run_id,
+            step_key,
+        )
+
+        step_name = f"{cluster_name_prefix}-{name_key}".lower()
+        step_name = re.sub(r"[^-0-9a-z]", "-", step_name)
+
+        return step_name
+
+
+@beta
+class KubeRayCluster(BaseKubeRayClusterResource):
+    """
+    Provides a RayCluster for the current step selection
+    The cluster is automatically deleted after steps execution
+    """
+
+    skip_cleanup: bool = False
+    skip_init: bool = False
+    timeout: int = Field(default=600, description="Timeout in seconds for the RayCluster to become ready")
+    ray_cluster: RayClusterConfig = Field(default_factory=RayClusterConfig)
+    client: RayClusterClientResource = Field(default_factory=RayClusterClientResource)
+
+    @contextlib.contextmanager
+    def yield_for_execution(self, context: InitResourceContext) -> Generator[Self, None, None]:
+        assert context.log is not None
+        assert context.dagster_run is not None
+
+        self.client.setup_for_execution(context)
+
+        self._cluster_name = self.ray_cluster.metadata.name or self._get_ray_cluster_step_name(context)
+
+        try:
+            # just a safety measure, no need to recreate the cluster for step retries or smth
+            if not self.client.client.list(
+                namespace=self.namespace,
+                label_selector=f"dagster.io/cluster={self.cluster_name}",
+            )["items"]:
+                cluster_body = self._build_raycluster(
+                    context,
+                    image=(self.ray_cluster.image or context.dagster_run.tags["dagster/image"]),
+                    labels=normalize_k8s_label_values(self.get_dagster_tags(context)),
+                )
+
+                resource = self.client.client.create(body=cluster_body, namespace=self.namespace)
+                if not resource:
+                    raise RuntimeError(f"Couldn't create RayCluster {self.namespace}/{self.cluster_name}")
+
+                context.log.info(
+                    f"Created RayCluster {self.namespace}/{self.cluster_name}. Waiting for it to become ready..."
+                )
+
+                self._wait_raycluster_ready()
+
+                self._host = self.client.client.get_status(
+                    name=self.cluster_name, namespace=self.ray_cluster.metadata.namespace
+                )[  # pyright: ignore
+                    "head"
+                ]["serviceIP"]
+
+                msg = f"RayCluster {self.namespace}/{self.cluster_name} is ready! Connection command:\n"
+                msg += f"kubectl -n {self.namespace} port-forward svc/{self.cluster_name}-head-svc 8265:8265 6379:6379 10001:10001"
+
+                context.log.info(msg)
+
+            if not self.skip_init:
+                self.init_ray(context)
+            else:
+                self._context = None
+
+            yield self
+        except BaseException as e:
+            context.log.critical(f"Couldn't create or connect to RayCluster {self.namespace}/{self.cluster_name}!")
+            self._maybe_cleanup_raycluster(context)
+            raise e
+
+        self._maybe_cleanup_raycluster(context)
+        if self._context is not None:
+            self._context.disconnect()
 
     def _wait_raycluster_ready(self):
         import kubernetes
@@ -305,44 +401,15 @@ class KubeRayCluster(BaseRayResource):
                 f"config parameter is set to `True` and the run has failed."
             )
 
-    def _get_ray_cluster_step_name(self, context: InitResourceContext) -> str:
-        assert isinstance(context.run_id, str)
-        assert context.dagster_run is not None
 
-        # try to make the name as short as possible
-        cluster_name_prefix = f"dg-{self.deployment_name.replace('-', '')[:8]}-{context.run_id[:8]}"
+class KubeRayInteractiveJob(KubeRayResource):
+    """A `RayJob` submitted with `InteractiveMode`.
 
-        dagster_user_email = context.dagster_run.tags.get("user")
-        if dagster_user_email is not None:
-            cluster_name_prefix += f"-{dagster_user_email.replace('.', '').replace('-', '').split('@')[0][:6]}"
+    First, an `Waiting` job is submitted. The user then can either submit a Ray job via the job API, or use `ray.init` to create an implicit job.
 
-        step_key = self._get_step_key(context)
+    After that, the `ray.io/ray-job-submission-id` annotation on the `RayJob` can be set to reference the started Ray job, and the `RayJob` lifecycle moves to `Running`, as if it was originally created with the referenced job.
 
-        name_key = get_k8s_object_name(
-            context.run_id,
-            step_key,
-        )
-
-        step_name = f"{cluster_name_prefix}-{name_key}".lower()
-        step_name = re.sub(r"[^-0-9a-z]", "-", step_name)
-
-        return step_name
-
-
-def get_k8s_object_name(run_id: str, step_key: str | None = None):
-    """Creates a unique (short!) identifier to name k8s objects based on run ID and step key(s).
-
-    K8s Job names are limited to 63 characters, because they are used as labels. For more info, see:
-
-    https://kubernetes.io/docs/concepts/overview/working-with-objects/names/
+    See more details [here](https://github.com/ray-project/kuberay/pull/2364)
     """
-    check.str_param(run_id, "run_id")
-    check.opt_str_param(step_key, "step_key")
-    if not step_key:
-        letters = string.ascii_lowercase
-        step_key = "".join(random.choice(letters) for i in range(20))
 
-    # Creates 32-bit signed int, so could be negative
-    name_hash = hashlib.md5((run_id + step_key).encode("utf-8"))
-
-    return name_hash.hexdigest()[:8]
+    client: RayJobClientResource

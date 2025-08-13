@@ -1,4 +1,5 @@
 import re
+from typing import Any
 
 
 def normalize_k8s_label_values(labels: dict[str, str]) -> dict[str, str]:
@@ -18,3 +19,7 @@ def normalize_k8s_label_values(labels: dict[str, str]) -> dict[str, str]:
         labels[key] = with_maybe_bad_start[:63]
 
     return labels
+
+
+def remove_none_from_dict(d: dict[str, Any]) -> dict[str, Any]:
+    return {k: v for k, v in d.items() if v is not None}
