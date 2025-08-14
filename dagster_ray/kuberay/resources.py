@@ -10,9 +10,11 @@ from collections.abc import Generator
 from typing import TYPE_CHECKING, Any, cast
 
 import dagster._check as check
+import urllib3
 from dagster import ConfigurableResource, InitResourceContext
 from dagster._annotations import beta
 from pydantic import Field, PrivateAttr
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 from dagster_ray._base.constants import DEFAULT_DEPLOYMENT_NAME
 from dagster_ray.kuberay.client import RayClusterClient
@@ -258,12 +260,30 @@ class KubeRayCluster(BaseRayResource):
         # not for head pod readiness
 
         w = kubernetes.watch.Watch()
-        for event in w.stream(
+
+        events_gen = w.stream(
             func=self.client.k8s_core.list_namespaced_pod,
             namespace=self.namespace,
             label_selector=f"ray.io/cluster={self.cluster_name},ray.io/group=headgroup",
             timeout_seconds=60,
-        ):
+        )
+
+        @retry(
+            stop=stop_after_attempt(3),
+            wait=wait_fixed(5),
+            # ignore a very specific error which happens rarely under certain conditions
+            retry=retry_if_exception_type(urllib3.exceptions.ProtocolError),
+            reraise=True,
+        )
+        def get_next_event():
+            return next(events_gen)
+
+        while True:
+            try:
+                event = get_next_event()
+            except StopIteration:
+                break
+
             if event["object"].status.phase == "Running":  # type: ignore
                 w.stop()
                 return

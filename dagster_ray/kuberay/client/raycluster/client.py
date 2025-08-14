@@ -17,6 +17,8 @@ from typing import (
     cast,
 )
 
+import urllib3
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 from typing_extensions import NotRequired
 
 from dagster_ray.kuberay.client.base import BaseKubeRayClient
@@ -130,13 +132,30 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
 
         condition_index_to_log = 0
 
-        for event in w.stream(
+        events_gen = w.stream(
             self._api.list_namespaced_custom_object,
             self.group,
             self.version,
             namespace,
             self.plural,
-        ):
+        )
+
+        @retry(
+            stop=stop_after_attempt(3),
+            wait=wait_fixed(5),
+            # ignore a very specific error which happens rarely under certain conditions
+            retry=retry_if_exception_type(urllib3.exceptions.ProtocolError),
+            reraise=True,
+        )
+        def get_next_event():
+            return next(events_gen)
+
+        while True:
+            try:
+                event = get_next_event()
+            except StopIteration:
+                break
+
             item = cast(dict[str, Any], event["raw_object"])  # type: ignore
 
             if "status" not in item:
@@ -178,7 +197,9 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
 
             if time.time() - start_time > timeout:
                 w.stop()
-                raise TimeoutError(f"Timed out waiting for RayCluster {namespace}/{name} to be ready. Status: {status}")
+                raise TimeoutError(
+                    f"Timed out ({timeout}s) waiting for RayCluster {namespace}/{name} to be ready. Status: {status}"
+                )
 
         raise Exception("This code should be unreachable")
 
