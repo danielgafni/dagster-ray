@@ -454,9 +454,9 @@ pipes_kube_rayjob_client = PipesKubeRayJobClient(..., port_forward=not in_k8s)
 `KubeRayCluster` can be used for running Ray computations on Kubernetes in client (interactive) mode. Requires stable persistent connection through the duration of the Dagster step.
 
 When added as resource dependency to an `@op/@asset`, the `KubeRayCluster`:
- - Starts a dedicated `RayCluster` for it
- - Connects  to the cluster in client mode with `ray.init()` (unless `skip_init` is set to `True`)
- - Tears down the cluster after the step is executed (unless `skip_cleanup` is set to `True`)
+ - Creates a dedicated `RayCluster` for the Dagster step and waits for it to become ready (unless `skip_setup` is set to `True`)
+ - Connects to the cluster in client mode with `ray.init` (unless `skip_init` is set to `True`)
+ - Deletes the cluster after step execution (unless `skip_cleanup` is set to `True`)
 
 `RayCluster` comes with minimal default configuration, matching `KubeRay` defaults.
 
@@ -505,6 +505,32 @@ ray_cluster = KubeRayCluster(
     )
 )
 ```
+
+Defer cluster creation to user land:
+
+```python
+from dagster import asset, Definitions
+from dagster_ray import RayResource
+from dagster_ray.kuberay import KubeRayCluster
+import ray
+
+
+@asset
+def my_asset(
+    ray_cluster: RayResource,
+):
+    if i_want_to_create_raycluster_now():
+        ray_cluster.create_and_wait(context)
+        ray.get(ray.put(42))  # interact with the Ray cluster!
+    else:
+        context.log.info("Skipping cluster creation")
+
+
+definitions = Definitions(
+    resources={"ray_cluster": KubeRayCluster(skip_setup=True)}, assets=[my_asset]
+)
+```
+
 ### `KubeRayClient`
 
 This resource can be used to interact with the Kubernetes API Server.

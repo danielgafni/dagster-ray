@@ -9,3 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - [:bomb: breaking] `dagster_ray.kuberay` Configurations have been unified with KubeRay APIs.
+
+### Added
+- `RayResource` resources now have a `skip_setup` parameter that can be used to lazily postpone creation of ray clusters. The user can manually create the ray cluster inside the Dagster op when (if) needed.
