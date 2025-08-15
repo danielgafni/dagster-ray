@@ -8,22 +8,44 @@ from dagster import AssetExecutionContext, InitResourceContext, OpExecutionConte
 from dagster_ray._base.constants import DEFAULT_DEPLOYMENT_NAME
 
 
-def get_dagster_tags(context: InitResourceContext | OpExecutionContext | AssetExecutionContext) -> dict[str, str]:
+def get_dagster_tags(
+    context: InitResourceContext | OpExecutionContext | AssetExecutionContext, extra_tags: dict[str, str] | None = None
+) -> dict[str, str]:
     """
     Returns a dictionary with common Dagster tags.
     """
     assert context.dagster_run is not None
 
+    labels: dict[str, str] = {
+        "dagster.io/deployment": DEFAULT_DEPLOYMENT_NAME,  # TODO: this should come from extra_tags,
+        **(extra_tags or {}),
+    }
+
     if isinstance(context, InitResourceContext):
         run_id = cast(str, context.run_id)
+
+        labels.update(
+            **context.dagster_run.dagster_execution_info,
+        )
+
+        for resource_key, resource_def in context.all_resource_defs.items():
+            if resource_def is context.resource_def:
+                # inject the resource key used for this KubeRay resource
+                # this enables e.g reusing the same `RayCluster` across Dagster steps that require it without recreating the cluster
+                labels["dagster.io/resource_key"] = resource_key
     else:
         run_id = context.run.run_id
 
-    labels = {
-        "dagster.io/run_id": run_id,
-        "dagster.io/deployment": DEFAULT_DEPLOYMENT_NAME,
-        # TODO: add more labels
-    }
+        labels.update(
+            **context.run.dagster_execution_info,
+        )
+
+    labels.update(
+        {
+            "dagster.io/run_id": run_id,
+            # TODO: add more labels
+        }
+    )
 
     if context.dagster_run.tags.get("user"):
         labels["dagster.io/user"] = context.dagster_run.tags["user"]
