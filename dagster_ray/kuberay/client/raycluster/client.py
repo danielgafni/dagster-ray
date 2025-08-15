@@ -114,6 +114,7 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
         namespace: str,
         timeout: int,
         image: str | None = None,
+        poll_interval: float = 5.0,
         log_cluster_conditions: bool = False,
     ) -> tuple[str, RayClusterEndpoints]:
         """
@@ -158,6 +159,8 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
             if state == "ready" and status.get("head") and status.get("endpoints", {}).get("dashboard"):
                 logger.debug(f"RayCluster {namespace}/{name} is ready!")
                 return status["head"]["serviceIP"], status["endpoints"]
+
+            time.sleep(poll_interval)
         else:
             raise TimeoutError(
                 f"Timed out ({timeout}s) waiting for RayCluster {namespace}/{name} to be ready. Status: {status}"

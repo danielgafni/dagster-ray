@@ -45,3 +45,9 @@ def _process_dagster_env_vars(config: Any) -> Any:
 
     # Otherwise, just return as-is
     return config
+
+
+def get_current_job_id() -> str:
+    import ray
+
+    return ray.get_runtime_context().get_job_id()
