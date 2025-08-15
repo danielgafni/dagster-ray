@@ -11,7 +11,7 @@ from dagster._config.config_schema import UserConfigSchema
 from dagster._core.events import EngineEventData
 from dagster._core.launcher import LaunchRunContext, ResumeRunContext, RunLauncher
 from dagster._core.launcher.base import CheckRunHealthResult, WorkerStatus
-from dagster._core.remote_representation.origin import RemoteJobOrigin
+from dagster._core.remote_origin import RemoteRepositoryOrigin
 from dagster._core.storage.dagster_run import DagsterRun, DagsterRunStatus
 from dagster._grpc.types import ResumeRunArgs
 from dagster._serdes import ConfigurableClass, ConfigurableClassData
