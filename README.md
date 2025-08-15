@@ -33,7 +33,11 @@
 Documentation can be found below.
 
 > [!NOTE]
-> This project is in early development. APIs are unstable and can change at any time. Contributions are very welcome! See the [Development](#development) section below.
+> This project is ready for production use, but some APIs may change over time (with deprecation cycle).
+
+# Contributing
+
+Contributions are very welcome! See the [Development](#development) section below to get started with the codebase locally.
 
 # Feature Matrix
 
