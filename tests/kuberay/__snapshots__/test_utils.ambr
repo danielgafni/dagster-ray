@@ -1,0 +1,13 @@
+# serializer version: 1
+# name: test_normalize_k8s_label_values
+  dict({
+    'alphanumeric': 'abc123',
+    'badstart': 'foo',
+    'badstart_after_initial_replace': 'at-foo',
+    'foo': 'bar',
+    'long': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    'my/label': 'my-value',
+    'user': 'daniel-at-my.org',
+    'user-dirty': 'daniel-at-my.org',
+  })
+# ---

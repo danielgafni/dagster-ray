@@ -115,7 +115,7 @@ def ensure_kuberay_cluster_correctness(
         ray_cluster_description = ray_cluster.client.client.get(
             ray_cluster.cluster_name, namespace=ray_cluster.namespace
         )
-        assert ray_cluster_description["metadata"]["labels"]["dagster.io/run_id"] == context.run_id
+        assert ray_cluster_description["metadata"]["labels"]["dagster.io/run-id"] == context.run_id
         assert ray_cluster_description["metadata"]["labels"]["dagster.io/cluster"] == ray_cluster.cluster_name
 
 
@@ -149,7 +149,7 @@ def test_kuberay_cluster_resource(
     assert (
         len(
             kuberay_client.list(
-                namespace=ray_cluster_resource.namespace, label_selector=f"dagster.io/run_id={result.run_id}"
+                namespace=ray_cluster_resource.namespace, label_selector=f"dagster.io/run-id={result.run_id}"
             )["items"]
         )
         == 0
@@ -198,7 +198,7 @@ def test_kuberay_cleanup_job(
         len(
             kuberay_client.list(
                 namespace=ray_cluster_resource_skip_cleanup.namespace,
-                label_selector=f"dagster.io/run_id={result.run_id}",
+                label_selector=f"dagster.io/run-id={result.run_id}",
             )["items"]
         )
         > 0
@@ -218,7 +218,7 @@ def test_kuberay_cleanup_job(
     )
 
     assert not kuberay_client.list(
-        namespace=ray_cluster_resource_skip_cleanup.namespace, label_selector=f"dagster.io/run_id={result.run_id}"
+        namespace=ray_cluster_resource_skip_cleanup.namespace, label_selector=f"dagster.io/run-id={result.run_id}"
     )["items"]
 
 
