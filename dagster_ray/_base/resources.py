@@ -117,11 +117,11 @@ class BaseRayResource(ConfigurableResource, ABC):
         context.log.info("Initialized Ray!")
         return cast("RayBaseContext", self._context)
 
-    def get_dagster_tags(self, context: InitResourceContext) -> dict[str, str]:
+    def get_dagster_tags(self, context: InitResourceContext | OpOrAssetExecutionContext) -> dict[str, str]:
         tags = get_dagster_tags(context)
         return tags
 
-    def _get_step_key(self, context: InitResourceContext) -> str:
+    def _get_step_key(self, context: InitResourceContext | OpOrAssetExecutionContext) -> str:
         # just return a random string
         # since we want a fresh cluster every time
         return str(uuid.uuid4())

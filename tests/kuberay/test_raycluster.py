@@ -62,9 +62,61 @@ def ray_cluster_resource_skip_cleanup(
     )
 
 
+@pytest.fixture(scope="session")
+def ray_cluster_resource_skip_setup(
+    k8s_with_kuberay: AClusterManager,
+    dagster_ray_image: str,
+    head_group_spec: dict[str, Any],
+    worker_group_specs: list[dict[str, Any]],
+) -> KubeRayCluster:
+    redis_port = get_random_free_port()
+
+    return KubeRayCluster(
+        image=dagster_ray_image,
+        # have have to first run port-forwarding with minikube
+        # we can only init ray after that
+        skip_setup=True,
+        skip_init=True,
+        client=RayClusterClientResource(kubeconfig_file=str(k8s_with_kuberay.kubeconfig)),
+        ray_cluster=RayClusterConfig(
+            metadata={"namespace": NAMESPACE},
+            spec=RayClusterSpec(head_group_spec=head_group_spec, worker_group_specs=worker_group_specs),
+        ),
+        redis_port=redis_port,
+    )
+
+
 @ray.remote
 def get_hostname():
     return socket.gethostname()
+
+
+def ensure_kuberay_cluster_correctness(
+    ray_cluster: KubeRayCluster,
+    k8s_with_kuberay: AClusterManager,
+    context: AssetExecutionContext,
+):
+    with k8s_with_kuberay.port_forwarding(
+        target=f"svc/{ray_cluster.cluster_name}-head-svc",
+        source_port=cast(int, ray_cluster.redis_port),
+        target_port=10001,
+        namespace=ray_cluster.namespace,
+    ):
+        # now we can access the head node
+        # hack the _host attribute to point to the port-forwarded address
+        ray_cluster._host = "127.0.0.1"
+        ray_cluster.init_ray(context)  # normally this would happen automatically during resource setup
+        assert ray_cluster.context is not None
+
+        # make sure a @remote function runs inside the cluster
+        # not in localhost
+        assert ray_cluster.cluster_name in ray.get(get_hostname.remote())
+
+        ray_cluster_description = ray_cluster.client.client.get(
+            ray_cluster.cluster_name, namespace=ray_cluster.namespace
+        )
+        assert ray_cluster_description["metadata"]["labels"]["dagster.io/run_id"] == context.run_id
+        assert ray_cluster_description["metadata"]["labels"]["dagster.io/cluster"] == ray_cluster.cluster_name
 
 
 def test_kuberay_cluster_resource(
@@ -79,27 +131,11 @@ def test_kuberay_cluster_resource(
 
         assert isinstance(ray_cluster, KubeRayCluster)
 
-        with k8s_with_kuberay.port_forwarding(
-            target=f"svc/{ray_cluster.cluster_name}-head-svc",
-            source_port=cast(int, ray_cluster.redis_port),
-            target_port=10001,
-            namespace=ray_cluster.namespace,
-        ):
-            # now we can access the head node
-            # hack the _host attribute to point to the port-forwarded address
-            ray_cluster._host = "127.0.0.1"
-            ray_cluster.init_ray(context)  # normally this would happen automatically during resource setup
-            assert ray_cluster.context is not None
-
-            # make sure a @remote function runs inside the cluster
-            # not in localhost
-            assert ray_cluster.cluster_name in ray.get(get_hostname.remote())
-
-            ray_cluster_description = ray_cluster.client.client.get(
-                ray_cluster.cluster_name, namespace=ray_cluster.namespace
-            )
-            assert ray_cluster_description["metadata"]["labels"]["dagster.io/run_id"] == context.run_id
-            assert ray_cluster_description["metadata"]["labels"]["dagster.io/cluster"] == ray_cluster.cluster_name
+        ensure_kuberay_cluster_correctness(
+            ray_cluster,
+            k8s_with_kuberay,
+            context,
+        )
 
     result = materialize_to_memory(
         [my_asset],
@@ -117,6 +153,29 @@ def test_kuberay_cluster_resource(
             )["items"]
         )
         == 0
+    )
+
+
+def test_kuberay_cluster_resource_skip_setup(
+    ray_cluster_resource_skip_setup: KubeRayCluster,
+    k8s_with_kuberay: AClusterManager,
+):
+    @asset
+    def my_asset(context: AssetExecutionContext, ray_cluster: RayResource) -> None:
+        assert isinstance(ray_cluster, KubeRayCluster)
+
+        # call setup manually
+        ray_cluster.create_and_wait(context)
+
+        ensure_kuberay_cluster_correctness(
+            ray_cluster,
+            k8s_with_kuberay,
+            context,
+        )
+
+    materialize_to_memory(
+        [my_asset],
+        resources={"ray_cluster": ray_cluster_resource_skip_setup},
     )
 
 
