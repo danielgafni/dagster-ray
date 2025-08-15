@@ -399,3 +399,16 @@ class KubeRayCluster(BaseKubeRayClusterResource):
                 f"Skipping RayCluster {self.cluster_name} deletion because `disable_cluster_cleanup` "
                 f"config parameter is set to `True` and the run has failed."
             )
+
+
+class KubeRayInteractiveJob(KubeRayResource):
+    """A `RayJob` submitted with `InteractiveMode`.
+
+    First, an `Waiting` job is submitted. The user then can either submit a Ray job via the job API, or use `ray.init` to create an implicit job.
+
+    After that, the `ray.io/ray-job-submission-id` annotation on the `RayJob` can be set to reference the started Ray job, and the `RayJob` lifecycle moves to `Running`, as if it was originally created with the referenced job.
+
+    See more details [here](https://github.com/ray-project/kuberay/pull/2364)
+    """
+
+    client: RayJobClientResource
