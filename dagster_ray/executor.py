@@ -23,7 +23,11 @@ from dagster._core.executor.step_delegating import (
     StepHandler,
     StepHandlerContext,
 )
-from dagster._core.remote_origin import RemoteJobOrigin
+try:
+    from dagster._core.remote_representation.origin import RemoteJobOrigin
+except ImportError:
+    # for new versions of dagster > 1.11.6
+    from dagster._core.remote_origin import RemoteJobOrigin
 from dagster._utils.merger import merge_dicts
 from packaging.version import Version
 from pydantic import Field

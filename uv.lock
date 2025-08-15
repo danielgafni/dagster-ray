@@ -641,7 +641,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "dagster", specifier = ">=1.11.6" },
+    { name = "dagster", specifier = ">=1.10.0" },
     { name = "dagster-k8s", marker = "extra == 'kuberay'", specifier = ">=0.19.0" },
     { name = "eval-type-backport", marker = "python_full_version < '3.10'", specifier = ">=0.2.2" },
     { name = "kubernetes", marker = "extra == 'kuberay'", specifier = ">=20.0.0" },
