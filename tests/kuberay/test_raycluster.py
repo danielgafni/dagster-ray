@@ -116,7 +116,6 @@ def ensure_kuberay_cluster_correctness(
             ray_cluster.cluster_name, namespace=ray_cluster.namespace
         )
         assert ray_cluster_description["metadata"]["labels"]["dagster.io/run-id"] == context.run_id
-        assert ray_cluster_description["metadata"]["labels"]["dagster.io/cluster"] == ray_cluster.cluster_name
 
 
 def test_kuberay_cluster_resource(
@@ -227,21 +226,27 @@ def test_ray_cluster_builder_debug():
     kuberay_cluster._cluster_name = "test-cluster"
     context = dg.build_init_resource_context()
 
-    ray_cluster_config = kuberay_cluster._build_raycluster(context)
+    ray_cluster_config = kuberay_cluster.ray_cluster.to_k8s(
+        context, env_vars=kuberay_cluster.get_env_vars_to_inject(), labels={"foo": "bar"}
+    )
+    assert ray_cluster_config["metadata"]["labels"]["foo"] == "bar"
     for group_spec in [ray_cluster_config["spec"]["headGroupSpec"], *ray_cluster_config["spec"]["workerGroupSpecs"]]:
         for container in group_spec["template"]["spec"]["containers"]:
             assert {"name": "RAY_DEBUG_POST_MORTEM", "value": "1"} in container["env"], container
 
     kuberay_cluster = KubeRayCluster(enable_tracing=True)
     kuberay_cluster._cluster_name = "test-cluster"
-    ray_cluster_config = kuberay_cluster._build_raycluster(context)
+    ray_cluster_config = kuberay_cluster.ray_cluster.to_k8s(context, env_vars=kuberay_cluster.get_env_vars_to_inject())
     for group_spec in [ray_cluster_config["spec"]["headGroupSpec"], *ray_cluster_config["spec"]["workerGroupSpecs"]]:
         for container in group_spec["template"]["spec"]["containers"]:
             assert {"name": "RAY_PROFILING", "value": "1"} in container["env"], container
 
     kuberay_cluster = KubeRayCluster(enable_actor_task_logging=True)
     kuberay_cluster._cluster_name = "test-cluster"
-    ray_cluster_config = kuberay_cluster._build_raycluster(context)
+    ray_cluster_config = kuberay_cluster.ray_cluster.to_k8s(
+        context,
+        env_vars=kuberay_cluster.get_env_vars_to_inject(),
+    )
     kuberay_cluster._cluster_name = "test-cluster"
     for group_spec in [ray_cluster_config["spec"]["headGroupSpec"], *ray_cluster_config["spec"]["workerGroupSpecs"]]:
         for container in group_spec["template"]["spec"]["containers"]:

@@ -9,6 +9,7 @@ from typing_extensions import NotRequired
 
 from dagster_ray.kuberay.client.base import BaseKubeRayClient, load_kubeconfig
 from dagster_ray.kuberay.client.raycluster import RayClusterClient, RayClusterStatus
+from dagster_ray.kuberay.client.raycluster.client import RayClusterEndpoints
 
 if TYPE_CHECKING:
     from kubernetes.client import ApiClient
@@ -59,6 +60,28 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
     def ray_cluster_client(self) -> RayClusterClient:
         return RayClusterClient(config_file=self.config_file, context=self.context)
 
+    def wait_until_ready(
+        self,
+        name: str,
+        namespace: str,
+        timeout: int = 600,
+        poll_interval: float = 5,
+        log_cluster_conditions: bool = False,
+    ) -> tuple[str, RayClusterEndpoints]:
+        """Wait until the RayCluster attached to the RayJob is ready.
+
+        This doesn't necessarily mean that the cluster has already taken a job, just that it is ready to accept connections.
+        """
+        ray_cluster_name = self.get_ray_cluster_name(name, namespace)
+        ray_cluster_client = self.ray_cluster_client
+        return ray_cluster_client.wait_until_ready(
+            ray_cluster_name,
+            namespace=namespace,
+            timeout=timeout,
+            poll_interval=poll_interval,
+            log_cluster_conditions=log_cluster_conditions,
+        )
+
     def wait_until_running(
         self,
         name: str,
@@ -67,6 +90,7 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
         poll_interval: int = 5,
         terminate_on_timeout: bool = True,
         port_forward: bool = False,
+        log_cluster_conditions: bool = False,
     ) -> bool:
         start_time = time.time()
 

@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping
 from typing import Any, Literal
 
 import dagster as dg
 from pydantic import Field
+
+from dagster_ray.kuberay.utils import remove_none_from_dict
+from dagster_ray.pipes import OpOrAssetExecutionContext
 
 in_k8s = os.environ.get("KUBERNETES_SERVICE_HOST") is not None
 
@@ -77,6 +81,9 @@ DEFAULT_WORKER_GROUP_SPECS = [
 ]
 
 
+MISSING_IMAGE_MESSAGE = "Image is missing from the `RayCluster` spec, from the top-level Dagster resource config, and the Dagster run does not have a `dagster/image` tag. Please use one of these options to specify the image."
+
+
 class RayClusterSpec(dg.PermissiveConfig):
     """[RayCluster spec](https://ray-project.github.io/kuberay/reference/api/#rayclusterspec) configuration options. A few sensible defaults are provided for convenience."""
 
@@ -89,6 +96,57 @@ class RayClusterSpec(dg.PermissiveConfig):
     head_group_spec: dict[str, Any] = DEFAULT_HEAD_GROUP_SPEC
     ray_version: str | None = None
     worker_group_specs: list[dict[str, Any]] = DEFAULT_WORKER_GROUP_SPECS
+
+    def to_k8s(
+        self,
+        context: dg.InitResourceContext | OpOrAssetExecutionContext,
+        image: str | None = None,  # is injected into headgroup and workergroups, unless already specified there
+        env_vars: Mapping[str, str] | None = None,
+    ) -> dict[str, Any]:
+        """Convert into Kubernetes manifests in camelCase format and inject additional information"""
+
+        assert context.log is not None
+
+        # TODO: inject self.redis_port and self.dashboard_port into the RayCluster configuration
+        # TODO: auto-apply some tags from dagster-k8s/config
+
+        head_group_spec = self.head_group_spec.copy()
+        worker_group_specs = self.worker_group_specs.copy()
+
+        k8s_env_vars: list[dict[str, Any]] = []
+
+        if env_vars:
+            for key, value in env_vars.items():
+                k8s_env_vars.append({"name": key, "value": value})
+
+        def update_group_spec(group_spec: dict[str, Any]):
+            # TODO: only inject if the container has a `dagster.io/inject-image` annotation or smth
+            if group_spec["template"]["spec"]["containers"][0].get("image") is None:
+                if image is None:
+                    raise ValueError(MISSING_IMAGE_MESSAGE)
+                else:
+                    group_spec["template"]["spec"]["containers"][0]["image"] = image
+
+            for container in group_spec["template"]["spec"]["containers"]:
+                container["env"] = container.get("env", []) + k8s_env_vars
+
+        update_group_spec(head_group_spec)
+        for worker_group_spec in worker_group_specs:
+            update_group_spec(worker_group_spec)
+
+        return remove_none_from_dict(
+            {
+                "enableInTreeAutoscaling": self.enable_in_tree_autoscaling,
+                "autoscalerOptions": self.autoscaler_options,
+                "headGroupSpec": head_group_spec,
+                "workerGroupSpecs": worker_group_specs,
+                "suspend": self.suspend,
+                "managedBy": self.managed_by,
+                "headServiceAnnotations": self.head_service_annotations,
+                "gcsFaultToleranceOptions": self.gcs_fault_tolerance_options,
+                "rayVersion": self.ray_version,
+            }
+        )
 
 
 class RayClusterConfig(dg.Config):
@@ -104,13 +162,40 @@ class RayClusterConfig(dg.Config):
     def namespace(self) -> str:
         return self.metadata.get("namespace", "default")
 
+    def to_k8s(
+        self,
+        context: dg.InitResourceContext | OpOrAssetExecutionContext,
+        image: str | None = None,  # is injected into headgroup and workergroups, unless already specified there
+        labels: Mapping[str, str] | None = None,
+        annotations: Mapping[str, str] | None = None,
+        env_vars: Mapping[str, str] | None = None,
+    ) -> dict[str, Any]:
+        assert context.log is not None
+        """Convert into Kubernetes manifests in camelCase format and inject additional information"""
+
+        labels = labels or {}
+        annotations = annotations or {}
+
+        return {
+            "apiVersion": self.api_version,
+            "kind": self.kind,
+            "metadata": remove_none_from_dict(
+                {
+                    "name": self.metadata.get("name"),
+                    "labels": {**(self.metadata.get("labels", {}) or {}), **labels},
+                    "annotations": {**self.metadata.get("annotations", {}), **annotations},
+                }
+            ),
+            "spec": self.spec.to_k8s(context=context, image=image, env_vars=env_vars),
+        }
+
 
 class RayJobSpec(dg.PermissiveConfig):
     """[RayJob spec](https://ray-project.github.io/kuberay/reference/api/#rayjobspec) configuration options. A few sensible defaults are provided for convenience."""
 
     active_deadline_seconds: int = 60 * 60 * 24  # 24 hours
     backoff_limit: int = 0
-    ray_cluster_spec: RayClusterSpec = Field(default_factory=RayClusterSpec)
+    ray_cluster_spec: RayClusterSpec | None = Field(default_factory=RayClusterSpec)
     submitter_pod_template: dict[str, Any] | None = None
     cluster_selector: dict[str, str] | None = None
     managed_by: str | None = None
@@ -126,6 +211,37 @@ class RayJobSpec(dg.PermissiveConfig):
     shutdown_after_job_finishes: bool = True
     suspend: bool | None = None
 
+    def to_k8s(
+        self,
+        context: dg.InitResourceContext | OpOrAssetExecutionContext,
+        image: str | None = None,  # is injected into headgroup and workergroups, unless already specified there
+        env_vars: Mapping[str, str] | None = None,
+    ) -> dict[str, Any]:
+        """Convert into Kubernetes manifests in camelCase format and inject additional information"""
+        return remove_none_from_dict(
+            {
+                "activeDeadlineSeconds": self.active_deadline_seconds,
+                "backoffLimit": self.backoff_limit,
+                "submitterPodTemplate": self.submitter_pod_template,
+                "clusterSelector": self.cluster_selector,
+                "managedBy": self.managed_by,
+                "deletionStrategy": self.deletion_strategy,
+                "runtimeEnvYAML": self.runtime_env_yaml,
+                "jobId": self.job_id,
+                "submissionMode": self.submission_mode,
+                "entrypointResources": self.entrypoint_resources,
+                "entrypointNumCpus": self.entrypoint_num_cpus,
+                "entrypointMemory": self.entrypoint_memory,
+                "entrypointNumGpus": self.entrypoint_num_gpus,
+                "ttlSecondsAfterFinished": self.ttl_seconds_after_finished,
+                "shutdownAfterJobFinishes": self.shutdown_after_job_finishes,
+                "suspend": self.suspend,
+                "rayClusterSpec": self.ray_cluster_spec.to_k8s(context=context, image=image, env_vars=env_vars)
+                if self.ray_cluster_spec is not None
+                else None,
+            }
+        )
+
 
 class RayJobConfig(dg.Config):
     kind: str = "RayJob"
@@ -139,3 +255,33 @@ class RayJobConfig(dg.Config):
     @property
     def namespace(self) -> str:
         return self.metadata.get("namespace", "default")
+
+    def to_k8s(
+        self,
+        context: dg.InitResourceContext | OpOrAssetExecutionContext,
+        image: str | None = None,  # is injected into headgroup and workergroups, unless already specified there
+        labels: Mapping[str, str] | None = None,
+        annotations: Mapping[str, str] | None = None,
+        env_vars: Mapping[str, str] | None = None,
+    ) -> dict[str, Any]:
+        """Convert into Kubernetes manifests in camelCase format and inject additional information"""
+
+        labels = labels or {}
+        annotations = annotations or {}
+
+        return {
+            "apiVersion": self.api_version,
+            "kind": self.kind,
+            "metadata": remove_none_from_dict(
+                {
+                    "name": self.metadata.get("name"),
+                    "labels": {**(self.metadata.get("labels", {}) or {}), **labels},
+                    "annotations": {**self.metadata.get("annotations", {}), **annotations},
+                }
+            ),
+            "spec": self.spec.to_k8s(
+                context=context,
+                image=image,
+                env_vars=env_vars,
+            ),
+        }

@@ -86,7 +86,12 @@ KUBERAY_VERSIONS = os.getenv("PYTEST_KUBERAY_VERSIONS", "1.2.2").split(",")
 
 
 @pytest_cases.fixture(scope="session")  # type: ignore
-@pytest.mark.parametrize("kuberay_version", KUBERAY_VERSIONS)
+@pytest.mark.parametrize("kuberay_version_param", KUBERAY_VERSIONS)
+def kuberay_version(kuberay_version_param: str):
+    return kuberay_version_param
+
+
+@pytest.fixture(scope="session")  # type: ignore
 def k8s_with_kuberay(
     request, kuberay_helm_repo, dagster_ray_image: str, kuberay_version: str
 ) -> Iterator[AClusterManager]:
