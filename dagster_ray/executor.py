@@ -28,7 +28,7 @@ try:
     from dagster._core.remote_representation.origin import RemoteJobOrigin
 except ImportError:
     # for new versions of dagster > 1.11.6
-    from dagster._core.remote_origin import RemoteJobOrigin  # type: ignore[reportMissingImports]
+    from dagster._core.remote_origin import RemoteJobOrigin  # pyright: ignore[reportMissingImports]
 from dagster._utils.merger import merge_dicts
 from packaging.version import Version
 from pydantic import Field

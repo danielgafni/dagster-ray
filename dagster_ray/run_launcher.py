@@ -16,7 +16,7 @@ try:
     from dagster._core.remote_representation.origin import RemoteJobOrigin
 except ImportError:
     # for new versions of dagster > 1.11.6
-    from dagster._core.remote_origin import RemoteJobOrigin  # type: ignore[reportMissingImports]
+    from dagster._core.remote_origin import RemoteJobOrigin  # pyright: ignore[reportMissingImports]
 from dagster._core.storage.dagster_run import DagsterRun, DagsterRunStatus
 from dagster._grpc.types import ResumeRunArgs
 from dagster._serdes import ConfigurableClass, ConfigurableClassData
