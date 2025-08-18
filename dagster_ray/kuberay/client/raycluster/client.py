@@ -14,7 +14,6 @@ from typing import (
     Any,
     Callable,
     TypedDict,
-    cast,
 )
 
 import urllib3
@@ -92,6 +91,7 @@ class RayClusterStatus(TypedDict):
     head: NotRequired[RayClusterHead]
     endpoints: NotRequired[RayClusterEndpoints]
     state: NotRequired[str]
+    conditions: NotRequired[list[dict[str, Any]]]
 
 
 class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
@@ -116,52 +116,27 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
         image: str | None = None,
         log_cluster_conditions: bool = False,
     ) -> tuple[str, RayClusterEndpoints]:
-        from kubernetes import watch
-
         """
         If ready, returns service ip address and a dictionary of ports.
         """
-
-        w = watch.Watch()
-
         start_time = time.time()
-
-        # TODO: use get_namespaced_custom_object instead
-        # once https://github.com/kubernetes-client/python/issues/1679
-        # is solved
 
         condition_index_to_log = 0
 
-        events_gen = w.stream(
-            self._api.list_namespaced_custom_object,
-            self.group,
-            self.version,
-            namespace,
-            self.plural,
-        )
-
         @retry(
-            stop=stop_after_attempt(3),
-            wait=wait_fixed(5),
+            stop=stop_after_attempt(30),
+            wait=wait_fixed(2),
             # ignore a very specific error which happens rarely under certain conditions
             retry=retry_if_exception_type(urllib3.exceptions.ProtocolError),
             reraise=True,
         )
-        def get_next_event():
-            return next(events_gen)
+        def get_status_with_retry() -> RayClusterStatus:
+            return self.get_status(name=name, namespace=namespace, timeout=timeout)
 
-        while True:
-            try:
-                event = get_next_event()
-            except StopIteration:
-                break
+        status = get_status_with_retry()
 
-            item = cast(dict[str, Any], event["raw_object"])  # type: ignore
-
-            if "status" not in item:
-                continue
-
-            status: RayClusterStatus = item["status"]
+        while time.time() - start_time < timeout:
+            status = get_status_with_retry()
             state = status.get("state")
 
             # https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/observability.html#raycluster-status-conditions
@@ -177,31 +152,13 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
                     f"RayCluster {namespace}/{name} failed to start. Status:\n\n{status}\n\nMore details: `kubectl -n {namespace} describe RayCluster {name}`"
                 )
 
-            if (
-                item.get("metadata")  # type: ignore
-                and item["metadata"].get("name") == name  # type: ignore
-                and state == "ready"
-                and status.get("head")
-                and status.get("endpoints", {}).get("dashboard")
-            ):
-                if image is not None:
-                    if (
-                        item.get("spec")  # type: ignore
-                        and item["spec"]["headGroupSpec"]["template"]["spec"]["containers"][0]["image"]  # type: ignore
-                        != image
-                    ):
-                        continue
-                w.stop()
+            if state == "ready" and status.get("head") and status.get("endpoints", {}).get("dashboard"):
                 logger.debug(f"RayCluster {namespace}/{name} is ready!")
                 return status["head"]["serviceIP"], status["endpoints"]
-
-            if time.time() - start_time > timeout:
-                w.stop()
-                raise TimeoutError(
-                    f"Timed out ({timeout}s) waiting for RayCluster {namespace}/{name} to be ready. Status: {status}"
-                )
-
-        raise Exception("This code should be unreachable")
+        else:
+            raise TimeoutError(
+                f"Timed out ({timeout}s) waiting for RayCluster {namespace}/{name} to be ready. Status: {status}"
+            )
 
     @contextmanager
     def port_forward(
