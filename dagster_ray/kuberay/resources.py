@@ -32,7 +32,7 @@ else:
 from dagster import DagsterRun, DagsterRunStatus
 from ray._private.worker import BaseContext as RayBaseContext  # noqa
 
-from dagster_ray._base.resources import BaseRayResource
+from dagster_ray._base.resources import BaseRayResource, OpOrAssetExecutionContext
 from dagster_ray.kuberay.client.base import load_kubeconfig
 
 if TYPE_CHECKING:
@@ -172,14 +172,14 @@ class BaseKubeRayClusterResource(BaseRayResource):
         else:
             return self._cluster_name
 
-    def get_dagster_tags(self, context: InitResourceContext) -> dict[str, str]:
+    def get_dagster_tags(self, context: InitResourceContext | OpOrAssetExecutionContext) -> dict[str, str]:
         tags = super().get_dagster_tags(context=context)
         tags.update({"dagster.io/cluster": self.cluster_name, "dagster.io/deployment": self.deployment_name})
         return tags
 
     def _build_raycluster(
         self,
-        context: InitResourceContext,
+        context: InitResourceContext | OpOrAssetExecutionContext,
         image: str | None = None,  # is injected into headgroup and workergroups, unless already specified there
         labels: dict[str, str] | None = None,  # TODO: use in RayCluster labels
     ) -> dict[str, Any]:
@@ -249,7 +249,7 @@ class BaseKubeRayClusterResource(BaseRayResource):
             ),
         }
 
-    def _get_ray_cluster_step_name(self, context: InitResourceContext) -> str:
+    def _get_ray_cluster_step_name(self, context: InitResourceContext | OpOrAssetExecutionContext) -> str:
         assert isinstance(context.run_id, str)
         assert context.dagster_run is not None
 
@@ -284,6 +284,10 @@ class KubeRayCluster(BaseKubeRayClusterResource):
         default=None,
         description="Image to inject into the `RayCluster` spec. Defaults to `dagster/image` run tag. Images already provided in the `RayCluster` spec won't be overridden.",
     )
+    skip_setup: bool = Field(
+        default=False,
+        description="Skip `RayCluster` creation before step execution. If this is set to True, a manual call to .create_and_wait is required.",
+    )
     skip_cleanup: bool = False
     skip_init: bool = False
     timeout: int = Field(default=600, description="Timeout in seconds for the RayCluster to become ready")
@@ -295,7 +299,18 @@ class KubeRayCluster(BaseKubeRayClusterResource):
         assert context.log is not None
         assert context.dagster_run is not None
 
-        self.client.setup_for_execution(context)
+        if not self.skip_setup:
+            self.create_and_wait(context)
+
+        yield self
+
+        self._maybe_cleanup_raycluster(context)
+        if self._context is not None:
+            self._context.disconnect()
+
+    def create_and_wait(self, context: InitResourceContext | OpOrAssetExecutionContext):
+        assert context.log is not None
+        assert context.dagster_run is not None
 
         self._cluster_name = self.ray_cluster.metadata.get("name") or self._get_ray_cluster_step_name(context)
 
@@ -316,7 +331,7 @@ class KubeRayCluster(BaseKubeRayClusterResource):
                     raise RuntimeError(f"Couldn't create RayCluster {self.namespace}/{self.cluster_name}")
 
                 context.log.info(
-                    f"Created RayCluster {self.namespace}/{self.cluster_name}. Waiting for it to become ready..."
+                    f"Created RayCluster {self.namespace}/{self.cluster_name}. Waiting for it to become ready (timeout={self.timeout:.0f}s)..."
                 )
 
                 self._wait_raycluster_ready()
@@ -335,15 +350,10 @@ class KubeRayCluster(BaseKubeRayClusterResource):
             else:
                 self._context = None
 
-            yield self
         except BaseException as e:
             context.log.critical(f"Couldn't create or connect to RayCluster {self.namespace}/{self.cluster_name}!")
             self._maybe_cleanup_raycluster(context)
             raise e
-
-        self._maybe_cleanup_raycluster(context)
-        if self._context is not None:
-            self._context.disconnect()
 
     def _wait_raycluster_ready(self):
         import kubernetes
@@ -392,7 +402,7 @@ class KubeRayCluster(BaseKubeRayClusterResource):
                 w.stop()
                 return
 
-    def _maybe_cleanup_raycluster(self, context: InitResourceContext):
+    def _maybe_cleanup_raycluster(self, context: InitResourceContext | OpOrAssetExecutionContext):
         assert context.log is not None
 
         if not self.skip_cleanup and cast(DagsterRun, context.dagster_run).status != DagsterRunStatus.FAILURE:
