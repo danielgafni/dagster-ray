@@ -12,7 +12,7 @@
 
 [Ray](https://github.com/ray-project/ray) integration for [Dagster](https://github.com/dagster-io/dagster).
 
-`dagster-ray` allows orchestrating distributed Ray compute from Dagster pipelines. It includes:
+`dagster-ray` orchestrates distributed Ray compute from Dagster pipelines. It includes:
 
 - `RayRunLauncher` - a `RunLauncher` which submits Dagster runs as isolated Ray jobs (in cluster mode) to a Ray cluster.
 
@@ -33,7 +33,11 @@
 Documentation can be found below.
 
 > [!NOTE]
-> This project is in early development. APIs are unstable and can change at any time. Contributions are very welcome! See the [Development](#development) section below.
+> This project is ready for production use, but some APIs may change over time (with deprecation cycle).
+
+# Contributing
+
+Contributions are very welcome! See the [Development](#development) section below to get started with the codebase locally.
 
 # Feature Matrix
 
