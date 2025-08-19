@@ -57,7 +57,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v6
         with:
-          version: 0.8.11
+          version: 0.8.12
           enable-cache: true
       - name: Set up Python ${{ matrix.py }}
         run: uv python install ${{ matrix.py }} && uv python pin ${{ matrix.py }} && uv venv --python ${{ matrix.py }}
@@ -88,7 +88,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v6
         with:
-          version: 0.8.11
+          version: 0.8.12
           enable-cache: true
       - name: Run pre-commit hooks
         run: SKIP=basedpyright uv run  --with pre-commit --with ruff pre-commit run --all-files
@@ -108,7 +108,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v6
         with:
-          version: 0.8.11
+          version: 0.8.12
           enable-cache: true
       - name: Set up Python ${{ matrix.py }}
         run: uv python install ${{ matrix.py }} && uv python pin ${{ matrix.py }}
@@ -140,7 +140,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v6
         with:
-          version: 0.8.11
+          version: 0.8.12
           enable-cache: true
       - name: Set up Python
         run: uv python install $PYTHON_VERSION && uv python pin $PYTHON_VERSION
