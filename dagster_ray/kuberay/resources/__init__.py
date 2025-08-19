@@ -1,16 +1,18 @@
+from dagster_ray.kuberay.configs import RayClusterConfig, RayClusterSpec, RayJobConfig, RayJobSpec
 from dagster_ray.kuberay.resources.raycluster import (
     KubeRayCluster,
-    RayClusterClient,
     RayClusterClientResource,
-    RayClusterConfig,
 )
-from dagster_ray.kuberay.resources.rayjob import KubeRayJobClientResource, RayJobClient
+from dagster_ray.kuberay.resources.rayjob import KubeRayInteractiveJob, KubeRayJobClientResource
 
 __all__ = [
     "KubeRayCluster",
     "RayClusterClientResource",
-    "RayClusterClient",
     "RayClusterConfig",
     "KubeRayJobClientResource",
-    "RayJobClient",
+    "RayJobConfig",
+    "RayJobSpec",
+    "RayClusterSpec",
+    "RayClusterConfig",
+    "KubeRayInteractiveJob",
 ]

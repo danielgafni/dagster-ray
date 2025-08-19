@@ -148,12 +148,12 @@ class BaseKubeRayClient(Generic[T_Status]):
             namespace=namespace,
         )
 
-    def uodate(self, name: str, ray_patch: Any, namespace: str):
+    def update(self, name: str, namespace: str, body: Any):
         return self._api.patch_namespaced_custom_object(
             group=self.group,
             version=self.version,
             plural=self.plural,
             name=name,
-            body=ray_patch,
+            body=body,
             namespace=namespace,
         )
