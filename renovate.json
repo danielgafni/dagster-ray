@@ -3,6 +3,7 @@
   "extends": [
     "config:recommended"
   ],
+  "schedule": ["schedule:monthly"],
   "labels": ["dependencies"],
   "reviewers": ["danielgafni"],
   "packageRules": [
@@ -15,14 +16,7 @@
     {
       "matchPackageNames": ["ray"],
       "matchUpdateTypes": ["minor"],
-      "addLabels": ["ray"],
-      "schedule": ["every friday"]
-    },
-    {
-      "matchPackageNames": ["pyright", "ruff"],
-      "matchUpdateTypes": ["minor"],
-      "addLabels": ["lint"],
-      "schedule": ["every friday"]
+      "addLabels": ["ray"]
     }
   ],
   "lockFileMaintenance": {
