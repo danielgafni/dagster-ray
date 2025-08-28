@@ -130,10 +130,10 @@ class BaseKubeRayClient(Generic[T_Status]):
                 return {}
             raise
 
-    def create(self, body: Any, namespace: str) -> Any:
+    def create(self, body: dict[str, Any], namespace: str) -> Any:
         return self._api.create_namespaced_custom_object(
             group=self.group,
-            version=self.version,
+            version=body.get("apiVersion", f"{self.group}/{self.version}").split("/")[1],
             plural=self.plural,
             body=body,
             namespace=namespace,

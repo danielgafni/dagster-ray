@@ -240,7 +240,7 @@ def downstream_unpartitioned(upstream: Dict[str, str]) -> None:
 
 ### `PipesRayJobClient`
 
-A general-purpose Ray job client that can be used to submit Ray jobs and receive logs and Dagster events from them. It doesn't manage the cluser lifecycle and can be used with any Ray cluster.
+A general-purpose Ray job client that can be used to submit Ray jobs and receive logs and Dagster events from them. It doesn't manage the cluster lifecycle and can be used with any Ray cluster.
 
 Examples:
 
@@ -486,20 +486,22 @@ definitions = Definitions(
 Larger cluster with auto-scaling enabled:
 
 ```python
-from dagster_ray.kuberay import KubeRayCluster, RayClusterConfig
+from dagster_ray.kuberay import KubeRayCluster, RayClusterConfig, KubeRaySpec
 
 ray_cluster = KubeRayCluster(
     ray_cluster=RayClusterConfig(
-        enable_in_tree_autoscaling=True,
-        worker_group_specs=[
-            {
-                "groupName": "workers",
-                "replicas": 2,
-                "minReplicas": 1,
-                "maxReplicas": 10,
-                # ...
-            }
-        ],
+        spec=KubeRaySpec(
+            enable_in_tree_autoscaling=True,
+            worker_group_specs=[
+                {
+                    "groupName": "workers",
+                    "replicas": 2,
+                    "minReplicas": 1,
+                    "maxReplicas": 10,
+                    # ...
+                }
+            ],
+        )
     )
 )
 ```
