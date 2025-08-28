@@ -58,12 +58,12 @@ def cleanup_kuberay_clusters_op(
         label_selector=config.label_selector,
     )["items"]
 
-    # filter clusters by current runs using dagster.io/run_id label
+    # filter clusters by current runs using dagster.io/run-id label
 
     old_cluster_names = [
         cluster["metadata"]["name"]
         for cluster in clusters
-        if not any(run.run_id == cluster["metadata"]["labels"]["dagster.io/run_id"] for run in current_runs)
+        if not any(run.run_id == cluster["metadata"]["labels"]["dagster.io/run-id"] for run in current_runs)
     ]
 
     for cluster_name in old_cluster_names:

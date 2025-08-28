@@ -1,25 +1,79 @@
+from __future__ import annotations
+
+import hashlib
+import random
 import re
+import string
 from typing import Any
+
+import dagster._check as check
+
+_INVALID_CHARS_PATTERN = re.compile(r"[^a-zA-Z0-9\-_.]")
+_LEADING_TRAILING_NON_ALNUM_PATTERN = re.compile(r"^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$")
 
 
 def normalize_k8s_label_values(labels: dict[str, str]) -> dict[str, str]:
-    # prevent errors like:
-    # Invalid value: \"daniel@anam.ai\": a valid label must be an empty string or consist of alphanumeric characters, '-', '_' or '.', and must start and end with an alphanumeric character (e.g. 'MyValue',  or 'my_value',  or '12345', regex used for validation is '(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?')
-    # and comply with the 63 character limit
+    """Normalize label values to comply with Kubernetes requirements.
 
-    cleanup_regex = re.compile(r"[^a-zA-Z0-9-_.]+")
+    K8s label values must match: (([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?
+    - Start and end with alphanumeric
+    - Middle can contain alphanumeric, -, _, .
+    - Max 63 characters
+    - Empty string is valid
 
-    banned_starting_characters = ["-", "_", "."]
+    Additionally, key starting with `dagster/` are replaced with `dagster.io/`
+    """
+    normalized = {}
 
     for key, value in labels.items():
-        # -daniel~!@my.domain -> daniel-my-domain
-        with_maybe_bad_start = cleanup_regex.sub("", value.replace("@", "-").replace(".", "-"))
-        while with_maybe_bad_start and with_maybe_bad_start[0] in banned_starting_characters:
-            with_maybe_bad_start = with_maybe_bad_start[1:]
-        labels[key] = with_maybe_bad_start[:63]
+        if not value:  # Empty string is valid
+            normalized[key] = value
+            continue
 
-    return labels
+        # Replace common email symbols for better readability
+        value = value.replace("@", "-at-")
+        value = value.replace("+", "-plus-")
+
+        # Replace remaining invalid characters with hyphen
+        value = _INVALID_CHARS_PATTERN.sub("-", value)
+
+        # Collapse multiple consecutive hyphens into a single hyphen
+        value = re.sub(r"-+", "-", value)
+
+        # Remove leading/trailing non-alphanumeric characters
+        value = _LEADING_TRAILING_NON_ALNUM_PATTERN.sub("", value)
+
+        # Truncate to 63 characters
+        normalized[key] = value[:63]
+
+    # replace keys starting with `dagster/` with `dagster.io/`
+    normalized_with_fixed_dagster_keys = {}
+    for key, value in normalized.items():
+        if key.startswith("dagster/"):
+            normalized_with_fixed_dagster_keys[f"dagster.io/{key[8:]}"] = value
+        else:
+            normalized_with_fixed_dagster_keys[key] = value
+    return normalized_with_fixed_dagster_keys
 
 
 def remove_none_from_dict(d: dict[str, Any]) -> dict[str, Any]:
     return {k: v for k, v in d.items() if v is not None}
+
+
+def get_k8s_object_name(run_id: str, step_key: str | None = None):
+    """Creates a unique (short!) identifier to name k8s objects based on run ID and step key(s).
+
+    K8s Job names are limited to 63 characters, because they are used as labels. For more info, see:
+
+    https://kubernetes.io/docs/concepts/overview/working-with-objects/names/
+    """
+    check.str_param(run_id, "run_id")
+    check.opt_str_param(step_key, "step_key")
+    if not step_key:
+        letters = string.ascii_lowercase
+        step_key = "".join(random.choice(letters) for i in range(20))
+
+    # Creates 32-bit signed int, so could be negative
+    name_hash = hashlib.md5((run_id + step_key).encode("utf-8"))
+
+    return name_hash.hexdigest()[:8]

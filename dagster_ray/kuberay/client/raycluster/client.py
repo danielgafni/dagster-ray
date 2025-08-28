@@ -139,6 +139,9 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
             status = get_status_with_retry()
             state = status.get("state")
 
+            if not state:
+                continue
+
             # https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/observability.html#raycluster-status-conditions
             conditions = list(reversed(status.get("conditions", [])))
 

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- [:bomb: breaking] injected `dagster.io/run_id` Kubernetes label has been renamed to `dagster.io/run-id`. Keys starting with `dagster/` have been converted to `dagster.io/`.
 - [:bomb: breaking] `dagster_ray.kuberay` Configurations have been unified with KubeRay APIs.
 
 ### Added

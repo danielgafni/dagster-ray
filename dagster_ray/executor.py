@@ -34,7 +34,7 @@ from packaging.version import Version
 from pydantic import Field
 
 from dagster_ray.config import RayExecutionConfig, RayJobSubmissionClientConfig
-from dagster_ray.kuberay.resources import get_k8s_object_name
+from dagster_ray.kuberay.utils import get_k8s_object_name
 from dagster_ray.run_launcher import RayRunLauncher
 from dagster_ray.utils import resolve_env_vars_list
 
