@@ -7,7 +7,7 @@ authors = [
     {name = "Daniel Gafni", email = "danielgafni16@gmail.com"},
 ]
 license = {text = "Apache-2.0"}
-requires-python = ">=3.9,<3.13"
+requires-python = ">=3.13,<3.14"
 readme = "README.md"
 keywords = [
     "dagster",
