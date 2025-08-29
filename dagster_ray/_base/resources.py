@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import uuid
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Union, cast
 
@@ -40,6 +39,9 @@ class BaseRayResource(ConfigurableResource, ABC):
     dashboard_port: int = Field(
         default=8265, description="Dashboard port for connection. Make sure to match with the actual available port."
     )
+    env_vars: dict[str, str] | None = Field(
+        default_factory=dict, description="Environment variables to pass to the Ray cluster."
+    )
     enable_tracing: bool = Field(
         default=False,
         description="Enable tracing: inject `RAY_PROFILING=1` and `RAY_task_events_report_interval_ms=0` into the Ray cluster configuration. This allows using `ray.timeline()` to fetch recorded task events. Learn more: https://docs.ray.io/en/latest/ray-core/api/doc/ray.timeline.html#ray-timeline",
@@ -52,14 +54,12 @@ class BaseRayResource(ConfigurableResource, ABC):
         default=False,
         description="Enable post-mortem debugging: inject `RAY_DEBUG_POST_MORTEM=1` into the Ray cluster configuration. Learn more: https://docs.ray.io/en/latest/ray-observability/ray-distributed-debugger.html",
     )
+    skip_setup: bool = Field(
+        default=False,
+        description="Skip Ray cluster creation before step execution. If this is set to True, a manual call to .create_and_wait is required.",
+    )
 
     _context: RayBaseContext | None = PrivateAttr()
-
-    def setup_for_execution(self, context: InitResourceContext) -> None:
-        raise NotImplementedError(
-            "This is an abstract resource, it's not meant to be provided directly. "
-            "Use a backend-specific resource instead."
-        )
 
     @property
     def context(self) -> RayBaseContext:
@@ -121,13 +121,8 @@ class BaseRayResource(ConfigurableResource, ABC):
         tags = get_dagster_tags(context)
         return tags
 
-    def _get_step_key(self, context: InitResourceContext | OpOrAssetExecutionContext) -> str:
-        # just return a random string
-        # since we want a fresh cluster every time
-        return str(uuid.uuid4())
-
     def get_env_vars_to_inject(self) -> dict[str, str]:
-        vars: dict[str, str] = {}
+        vars: dict[str, str] = self.env_vars or {}
         if self.enable_debug_post_mortem:
             vars["RAY_DEBUG_POST_MORTEM"] = "1"
         if self.enable_tracing:
@@ -136,3 +131,6 @@ class BaseRayResource(ConfigurableResource, ABC):
         if self.enable_actor_task_logging:
             vars["RAY_ENABLE_RECORD_ACTOR_TASK_LOGGING"] = "1"
         return vars
+
+    def create_and_wait(self, context: InitResourceContext | OpOrAssetExecutionContext):
+        pass

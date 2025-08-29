@@ -67,8 +67,6 @@ def test_debug_mode():
 def test_runtime_env_env_var(ray_init_options: dict[str, Any]):
     import ray
 
-    ray.init
-
     @ray.remote
     def my_func():
         assert os.environ["FOO"] == "BAR"
