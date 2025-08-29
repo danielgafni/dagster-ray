@@ -46,11 +46,11 @@ def normalize_k8s_label_values(labels: dict[str, str]) -> dict[str, str]:
         # Truncate to 63 characters
         normalized[key] = value[:63]
 
-    # replace keys starting with `dagster/` with `dagster.io/`
+    # replace keys starting with `dagster.io/` with `dagster/`
     normalized_with_fixed_dagster_keys = {}
     for key, value in normalized.items():
-        if key.startswith("dagster/"):
-            normalized_with_fixed_dagster_keys[f"dagster.io/{key[8:]}"] = value
+        if key.startswith("dagster.io/"):
+            normalized_with_fixed_dagster_keys[f"dagster/{key[11:]}"] = value
         else:
             normalized_with_fixed_dagster_keys[key] = value
     return normalized_with_fixed_dagster_keys

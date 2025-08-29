@@ -112,7 +112,7 @@ class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
 
     def get_dagster_tags(self, context: InitResourceContext | OpOrAssetExecutionContext) -> dict[str, str]:
         tags = super().get_dagster_tags(context=context)
-        tags.update({"dagster.io/deployment": self.deployment_name})
+        tags.update({"dagster/deployment": self.deployment_name})
         return tags
 
     @contextlib.contextmanager

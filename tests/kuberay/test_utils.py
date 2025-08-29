@@ -17,4 +17,4 @@ def test_normalize_k8s_label_values(snapshot):
 
 
 def test_normalize_k8s_label_values_important_labels():
-    assert normalize_k8s_label_values({"dagster/run-id": "12345"}) == {"dagster.io/run-id": "12345"}
+    assert normalize_k8s_label_values({"dagster/run-id": "12345"}) == {"dagster/run-id": "12345"}
