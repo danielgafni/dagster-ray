@@ -364,7 +364,7 @@ To run `ray` code in client mode (from the Dagster Python process directly), use
 
 To run `ray` code in job mode, use the `PipesKubeRayJobClient` with Dagster Pipes (see the [Pipes](#pipes) section).
 
-> [!Note]
+> [!NOTE]
 > While client mode is typically considered less reliable than job mode, in practice I (@danielgafni) did not encounter **any** stability issues with it over a few years of running Ray in production.
 
 The public objects can be imported from `dagster_ray.kuberay` module.
@@ -459,9 +459,13 @@ pipes_kube_rayjob_client = PipesKubeRayJobClient(..., port_forward=not in_k8s)
 `KubeRayCluster` can be used for running Ray computations on Kubernetes in client (interactive) mode. Requires stable persistent connection through the duration of the Dagster step.
 
 When added as resource dependency to an `@op/@asset`, the `KubeRayCluster`:
- - Creates a dedicated `RayCluster` for the Dagster step and waits for it to become ready (unless `skip_setup` is set to `True`)
- - Connects to the cluster in client mode with `ray.init` (unless `skip_init` is set to `True`)
- - Deletes the cluster after step execution (unless `skip_cleanup` is set to `True`)
+ - Creates (controlled with `Lifecycle.create`) a dedicated `RayCluster` for the Dagster step
+ - Waits for it to become ready
+ - Connects to the cluster in client mode with `ray.init`
+ - Deletes the cluster after step execution (unless `cleanup` is set to `False`)
+
+> ![NOTE]
+> These actions happen automatically by default, but this is configurable. The user may proceed with them manually on-demand.
 
 `RayCluster` comes with minimal default configuration, matching `KubeRay` defaults.
 
@@ -511,11 +515,11 @@ ray_cluster = KubeRayCluster(
 )
 ```
 
-Defer cluster creation to user land:
+Defer cluster creation:
 
 ```python
 from dagster import asset, Definitions
-from dagster_ray import RayResource
+from dagster_ray import RayResource, Lifecycle
 from dagster_ray.kuberay import KubeRayCluster
 import ray
 
@@ -525,14 +529,16 @@ def my_asset(
     ray_cluster: RayResource,
 ):
     if i_want_to_create_raycluster_now():
-        ray_cluster.create_and_wait(context)
+        ray_cluster.create(context)
+        ray_cluster.wait(context)
         ray.get(ray.put(42))  # interact with the Ray cluster!
     else:
         context.log.info("Skipping cluster creation")
 
 
 definitions = Definitions(
-    resources={"ray_cluster": KubeRayCluster(skip_setup=True)}, assets=[my_asset]
+    resources={"ray_cluster": KubeRayCluster(lifecycle=Lifecycle(create=False))},
+    assets=[my_asset],
 )
 ```
 
@@ -546,9 +552,12 @@ This resource combines the benefits of `KubeRayCluster` with `RayJob` features:
 - Timeouts via `activeDeadlineSeconds`
 
 When added as resource dependency to an `@op/@asset`, the `KubeRayInteractiveJob`:
-- Creates a suspended `RayJob` and waits for the underlying `RayCluster` to become ready
-- Connects to the cluster in client mode with `ray.init` and annotates the `RayJob` with the job submission ID
-- The normal `RayJob` lifecycle continues afterwards
+- Creates a "paused" `RayJob`
+- Waits for the underlying `RayCluster` to become ready
+- Connects to the cluster in client mode with `ray.init` and annotates the `RayJob` with the job submission ID. The normal `RayJob` lifecycle continues afterwards.
+
+> ![NOTE]
+> These actions happen automatically by default, but this is configurable. The user may proceed with them manually on-demand.
 
 Examples:
 

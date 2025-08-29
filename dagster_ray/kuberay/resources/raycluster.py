@@ -74,15 +74,13 @@ class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
     The cluster is automatically deleted after steps execution
     """
 
-    skip_init: bool = Field(default=False, description="Do not run `ray.init` automatically")
     skip_cleanup: bool = Field(default=False, description="Skip `RayCluster` deletion after step execution")
     ray_cluster: RayClusterConfig = Field(
-        default_factory=RayClusterConfig, description="Configuration for the Kubernetes `RayCluster` CR"
+        default_factory=RayClusterConfig, description="Kubernetes `RayCluster` CR configuration."
     )
     client: RayClusterClientResource = Field(
         default_factory=RayClusterClientResource, description="Kubernetes `RayCluster` client"
     )
-
     log_cluster_conditions: bool = Field(
         default=True,
         description="Whether to log RayCluster conditions while waiting for the RayCluster to become ready. For more information, see https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/observability.html#raycluster-status-conditions.",
@@ -93,13 +91,13 @@ class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
 
     @property
     def host(self) -> str:
-        if self._host is None:
+        if not hasattr(self, "_host"):
             raise ValueError(f"{self.__class__.__name__} not initialized")
         return self._host
 
     @property
     def cluster_name(self) -> str:
-        if self._cluster_name is None and self.ray_cluster.metadata.get("name") is None:
+        if not hasattr(self, "_cluster_name") and self.ray_cluster.metadata.get("name") is None:
             raise ValueError(f"{self.__class__.__name__} not initialized")
         elif (name := self.ray_cluster.metadata.get("name")) is not None:
             return name
@@ -120,8 +118,12 @@ class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
         assert context.log is not None
         assert context.dagster_run is not None
 
-        if not self.skip_setup:
-            self.create_and_wait(context)
+        if self.lifecycle.create:
+            self.create(context)
+            if self.lifecycle.wait:
+                self.wait(context)
+                if self.lifecycle.connect:
+                    self.connect(context)
 
         yield self
 
@@ -130,7 +132,7 @@ class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
             self._context.disconnect()
 
     @override
-    def create_and_wait(self, context: InitResourceContext | OpOrAssetExecutionContext):
+    def create(self, context: InitResourceContext | OpOrAssetExecutionContext):
         assert context.log is not None
         assert context.dagster_run is not None
 
@@ -144,7 +146,7 @@ class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
             ):
                 k8s_manifest = self.ray_cluster.to_k8s(
                     context,
-                    image=(self.image or context.dagster_run.tags["dagster/image"]),
+                    image=(self.image or context.dagster_run.tags.get("dagster/image")),
                     labels=normalize_k8s_label_values(self.get_dagster_tags(context)),
                     env_vars=self.get_env_vars_to_inject(),
                 )
@@ -158,25 +160,29 @@ class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
                 context.log.info(
                     f"Created RayCluster {self.namespace}/{self.cluster_name}. Waiting for it to become ready (timeout={self.timeout:.0f}s)..."
                 )
+        except BaseException as e:
+            context.log.critical(f"Couldn't create RayCluster {self.namespace}/{self.cluster_name}!")
+            self._maybe_cleanup_raycluster(context)
+            raise e
 
-                self._wait_raycluster_ready()
+    def wait(self, context: InitResourceContext | OpOrAssetExecutionContext):
+        assert context.log is not None
+        assert context.dagster_run is not None
 
-                self._host = self.client.client.get_status(name=self.cluster_name, namespace=self.namespace)[  # pyright: ignore
-                    "head"
-                ]["serviceIP"]
+        try:
+            self._wait_raycluster_ready()
 
-                msg = f"RayCluster {self.namespace}/{self.cluster_name} is ready! Connection command:\n"
-                msg += f"kubectl -n {self.namespace} port-forward svc/{self.cluster_name}-head-svc 8265:8265 6379:6379 10001:10001"
+            self._host = self.client.client.get_status(name=self.cluster_name, namespace=self.namespace)[  # pyright: ignore
+                "head"
+            ]["serviceIP"]
 
-                context.log.info(msg)
+            msg = f"RayCluster {self.namespace}/{self.cluster_name} is ready! Connection command:\n"
+            msg += f"kubectl -n {self.namespace} port-forward svc/{self.cluster_name}-head-svc 8265:8265 6379:6379 10001:10001"
 
-            if not self.skip_init:
-                self.init_ray(context)
-            else:
-                self._context = None
+            context.log.info(msg)
 
         except BaseException as e:
-            context.log.critical(f"Couldn't create or connect to RayCluster {self.namespace}/{self.cluster_name}!")
+            context.log.critical(f"Couldn't connect to RayCluster {self.namespace}/{self.cluster_name}!")
             self._maybe_cleanup_raycluster(context)
             raise e
 
@@ -191,11 +197,14 @@ class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
     def _maybe_cleanup_raycluster(self, context: InitResourceContext | OpOrAssetExecutionContext):
         assert context.log is not None
 
-        if not self.skip_cleanup and cast(DagsterRun, context.dagster_run).status != DagsterRunStatus.FAILURE:
+        if (
+            not self.skip_cleanup
+            and hasattr(self, "_cluster_name")
+            and cast(DagsterRun, context.dagster_run).status != DagsterRunStatus.FAILURE
+        ):
             self.client.client.delete(self.cluster_name, namespace=self.namespace)
             context.log.info(f"Deleted RayCluster {self.namespace}/{self.cluster_name}")
         else:
             context.log.warning(
-                f"Skipping RayCluster {self.cluster_name} deletion because `disable_cluster_cleanup` "
-                f"config parameter is set to `True` and the run has failed."
+                f"Skipping RayCluster {self.cluster_name} deletion because `lifecycle.create` config parameter is set to `False` and the run has failed."
             )

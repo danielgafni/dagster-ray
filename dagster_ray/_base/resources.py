@@ -3,6 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Union, cast
 
+import dagster as dg
 from dagster import AssetExecutionContext, ConfigurableResource, InitResourceContext, OpExecutionContext
 from pydantic import Field, PrivateAttr
 
@@ -14,7 +15,7 @@ from typing_extensions import TypeAlias
 
 from dagster_ray._base.utils import get_dagster_tags
 from dagster_ray.config import RayDataExecutionOptions
-from dagster_ray.utils import _process_dagster_env_vars
+from dagster_ray.utils import _process_dagster_env_vars, get_current_job_id
 
 if TYPE_CHECKING:
     from ray._private.worker import BaseContext as RayBaseContext  # noqa
@@ -22,11 +23,28 @@ if TYPE_CHECKING:
 OpOrAssetExecutionContext: TypeAlias = Union[OpExecutionContext, AssetExecutionContext]
 
 
+class Lifecycle(dg.Config):
+    create: bool = Field(
+        default=True,
+        description="Whether to create the resource. If set to `False`, the user can manually call `.create` instead.",
+    )
+    wait: bool = Field(
+        default=True,
+        description="Whether to wait for the remote Ray cluster to become ready to accept connections. If set to `False`, the user can manually call `.wait` instead.",
+    )
+    connect: bool = Field(
+        default=True,
+        description="Whether to run `ray.init` against the remote Ray cluster. If set to `False`, the user can manually call `.connect` instead.",
+    )
+
+
 class BaseRayResource(ConfigurableResource, ABC):
     """
     Base class for Ray Resources.
     Defines the common interface and some utility methods.
     """
+
+    lifecycle: Lifecycle = Field(default_factory=Lifecycle, description="Actions to perform during resource setup.")
 
     ray_init_options: dict[str, Any] = Field(
         default_factory=dict,
@@ -53,10 +71,6 @@ class BaseRayResource(ConfigurableResource, ABC):
     enable_debug_post_mortem: bool = Field(
         default=False,
         description="Enable post-mortem debugging: inject `RAY_DEBUG_POST_MORTEM=1` into the Ray cluster configuration. Learn more: https://docs.ray.io/en/latest/ray-observability/ray-distributed-debugger.html",
-    )
-    skip_setup: bool = Field(
-        default=False,
-        description="Skip Ray cluster creation before step execution. If this is set to True, a manual call to .create_and_wait is required.",
     )
 
     _context: RayBaseContext | None = PrivateAttr()
@@ -85,12 +99,16 @@ class BaseRayResource(ConfigurableResource, ABC):
         Returns the Ray Job ID for the current job which was created with `ray.init()`.
         :return:
         """
-        import ray
+        return get_current_job_id()
 
-        return ray.get_runtime_context().get_job_id()
+    def create(self, context: InitResourceContext | OpOrAssetExecutionContext):
+        pass
+
+    def wait(self, context: InitResourceContext | OpOrAssetExecutionContext):
+        pass
 
     @retry(stop=stop_after_delay(120), retry=retry_if_exception_type(ConnectionError), reraise=True)
-    def init_ray(self, context: OpOrAssetExecutionContext | InitResourceContext) -> RayBaseContext:
+    def connect(self, context: OpOrAssetExecutionContext | InitResourceContext) -> RayBaseContext:
         assert context.log is not None
 
         import ray
@@ -114,7 +132,7 @@ class BaseRayResource(ConfigurableResource, ABC):
         )
         self.data_execution_options.apply()
         self.data_execution_options.apply_remote()
-        context.log.info("Initialized Ray!")
+        context.log.info("Initialized Ray in client mode!")
         return cast("RayBaseContext", self._context)
 
     def get_dagster_tags(self, context: InitResourceContext | OpOrAssetExecutionContext) -> dict[str, str]:
@@ -131,6 +149,3 @@ class BaseRayResource(ConfigurableResource, ABC):
         if self.enable_actor_task_logging:
             vars["RAY_ENABLE_RECORD_ACTOR_TASK_LOGGING"] = "1"
         return vars
-
-    def create_and_wait(self, context: InitResourceContext | OpOrAssetExecutionContext):
-        pass

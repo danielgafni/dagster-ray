@@ -6,7 +6,7 @@ import dagster as dg
 from dagster import ConfigurableResource, InitResourceContext
 from dagster._annotations import beta
 from pydantic import Field, PrivateAttr
-from typing_extensions import Self
+from typing_extensions import Self, override
 
 from dagster_ray._base.resources import BaseRayResource, OpOrAssetExecutionContext
 from dagster_ray.kuberay.client import RayJobClient
@@ -14,7 +14,6 @@ from dagster_ray.kuberay.client.base import load_kubeconfig
 from dagster_ray.kuberay.configs import RayJobConfig, RayJobSpec
 from dagster_ray.kuberay.resources.base import BaseKubeRayResourceConfig
 from dagster_ray.kuberay.utils import normalize_k8s_label_values
-from dagster_ray.utils import get_current_job_id
 
 if TYPE_CHECKING:
     from ray._private.worker import BaseContext as RayBaseContext  # noqa
@@ -62,13 +61,13 @@ class KubeRayInteractiveJob(BaseKubeRayResourceConfig, BaseRayResource):
         default=True,
         description="Whether to log `RayCluster` conditions while waiting for the RayCluster to become ready. For more information, see https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/observability.html#raycluster-status-conditions.",
     )
-    skip_init: bool = Field(default=False, description="Do not run `ray.init` automatically")
 
     _job_name: str = PrivateAttr()
     _cluster_name: str = PrivateAttr()
     _host: str = PrivateAttr()
 
     @property
+    @override
     def host(self) -> str:
         if not hasattr(self, "_host"):
             raise ValueError(f"{self.__class__.__name__} not initialized")
@@ -84,6 +83,7 @@ class KubeRayInteractiveJob(BaseKubeRayResourceConfig, BaseRayResource):
             return self._job_name
 
     @property
+    @override
     def cluster_name(self) -> str:
         if not hasattr(self, "_cluster_name"):
             raise ValueError(f"{self.__class__.__name__} not initialized")
@@ -91,9 +91,11 @@ class KubeRayInteractiveJob(BaseKubeRayResourceConfig, BaseRayResource):
             return self._cluster_name
 
     @property
+    @override
     def namespace(self) -> str:
         return self.ray_job.namespace
 
+    @override
     def get_dagster_tags(self, context: "InitResourceContext | OpOrAssetExecutionContext") -> dict[str, str]:
         tags = super().get_dagster_tags(context=context)
         tags.update({"dagster/deployment": self.deployment_name})
@@ -104,15 +106,20 @@ class KubeRayInteractiveJob(BaseKubeRayResourceConfig, BaseRayResource):
         assert context.log is not None
         assert context.dagster_run is not None
 
-        if not self.skip_setup:
-            self.create_and_wait(context)
+        if self.lifecycle.create:
+            self.create(context)
+            if self.lifecycle.wait:
+                self.wait(context)
+                if self.lifecycle.connect:
+                    self.connect(context)
 
         yield self
 
         if self._context is not None:
             self._context.disconnect()
 
-    def create_and_wait(self, context: "InitResourceContext | OpOrAssetExecutionContext"):
+    @override
+    def create(self, context: "InitResourceContext | OpOrAssetExecutionContext"):
         assert context.log is not None
         assert context.dagster_run is not None
 
@@ -121,7 +128,7 @@ class KubeRayInteractiveJob(BaseKubeRayResourceConfig, BaseRayResource):
         try:
             k8s_manifest = self.ray_job.to_k8s(
                 context,
-                image=(self.image or context.dagster_run.tags["dagster/image"]),
+                image=(self.image or context.dagster_run.tags.get("dagster/image")),
                 labels=normalize_k8s_label_values(self.get_dagster_tags(context)),
             )
 
@@ -139,7 +146,16 @@ class KubeRayInteractiveJob(BaseKubeRayResourceConfig, BaseRayResource):
             context.log.info(
                 f"Created RayJob {self.namespace}/{self.job_name}. Waiting for it to become ready (timeout={self.timeout:.0f}s)..."
             )
+        except BaseException as e:
+            context.log.critical(f"Couldn't create RayJob {self.namespace}/{self.job_name}!")
+            raise e
 
+    @override
+    def wait(self, context: "OpOrAssetExecutionContext | InitResourceContext"):
+        assert context.log is not None
+        assert context.dagster_run is not None
+
+        try:
             self.client.wait_until_ready(
                 name=self.job_name, namespace=self.namespace, log_cluster_conditions=self.log_cluster_conditions
             )
@@ -153,30 +169,25 @@ class KubeRayInteractiveJob(BaseKubeRayResourceConfig, BaseRayResource):
 
             context.log.info(msg)
 
-            if not self.skip_init:
-                self.init_ray(context)
-            else:
-                self._context = None
-
         except BaseException as e:
             context.log.critical(
-                f"Couldn't create RayJob {self.namespace}/{self.job_name} or connect to RayCluster {self.namespace}/{self.cluster_name}!"
+                f"Couldn't connect to RayCluster {self.namespace}/{self.cluster_name} associated with RayJob {self.namespace}/{self.job_name}!"
             )
             raise e
 
-    def init_ray(self, context: "OpOrAssetExecutionContext | InitResourceContext") -> "RayBaseContext":
+    @override
+    def connect(self, context: "OpOrAssetExecutionContext | InitResourceContext") -> "RayBaseContext":
         """Connect to Ray and place a `ray.io/job-submission-id` annotation on the `RayJob` to bind the client session to the `RayJob` CR. Requires KubeRay 1.3.0.
 
         This procedure is described in https://github.com/ray-project/kuberay/pull/2364
         """
-        ray_context = super().init_ray(context)
+        ray_context = super().connect(context)
 
         # now get the job id and annotate it
-        job_id = get_current_job_id()
         self.client.update(
             name=self.job_name,
             namespace=self.namespace,
-            body={"metadata": {"annotations": {"ray.io/job-submission-id": job_id}}},
+            body={"metadata": {"annotations": {"ray.io/job-submission-id": self.runtime_job_id}}},
         )
 
         return ray_context

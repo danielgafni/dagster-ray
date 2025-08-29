@@ -8,6 +8,7 @@ from packaging.version import Version
 from pytest_kubernetes.providers import AClusterManager
 
 from dagster_ray import RayResource
+from dagster_ray._base.resources import Lifecycle
 from dagster_ray.kuberay import (
     KubeRayCluster,
     KubeRayInteractiveJob,
@@ -21,7 +22,7 @@ MIN_KUBERAY_VERSION = "1.3.0"
 
 
 @pytest.fixture(scope="session")
-def interative_rayjob_resource(
+def interactive_rayjob_resource(
     k8s_with_kuberay: AClusterManager,
     dagster_ray_image: str,
     head_group_spec: dict[str, Any],
@@ -41,7 +42,7 @@ def interative_rayjob_resource(
             ),
         ),
         redis_port=get_random_free_port(),
-        skip_init=True,
+        lifecycle=Lifecycle(connect=False),
     )
 
 
@@ -64,7 +65,7 @@ def ensure_rayjob_correctness(
         # now we can access the head node
         # hack the _host attribute to point to the port-forwarded address
         rayjob._host = "127.0.0.1"
-        rayjob.init_ray(context)  # normally this would happen automatically during resource setup
+        rayjob.connect(context)  # normally this would happen automatically during resource setup
         assert rayjob.context is not None
 
         # make sure a @remote function runs inside the cluster
@@ -76,7 +77,7 @@ def ensure_rayjob_correctness(
 
 
 def test_interactive_rayjob(
-    interative_rayjob_resource: KubeRayCluster,
+    interactive_rayjob_resource: KubeRayCluster,
     k8s_with_kuberay: AClusterManager,
 ):
     @asset
@@ -95,5 +96,5 @@ def test_interactive_rayjob(
 
     materialize_to_memory(
         [my_asset],
-        resources={"interactive_rayjob": interative_rayjob_resource},
+        resources={"interactive_rayjob": interactive_rayjob_resource},
     )
