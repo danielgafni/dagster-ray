@@ -72,7 +72,7 @@ def ensure_rayjob_correctness(
         assert rayjob.cluster_name in ray.get(get_hostname.remote())
 
         rayjob_description = rayjob.client.get(rayjob.job_name, namespace=rayjob.namespace)
-        assert rayjob_description["metadata"]["labels"]["dagster.io/run-id"] == context.run_id
+        assert rayjob_description["metadata"]["labels"]["dagster/run-id"] == context.run_id
 
 
 def test_interactive_rayjob(
