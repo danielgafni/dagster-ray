@@ -13,9 +13,12 @@ from dagster_ray.kuberay import (
     KubeRayCluster,
     KubeRayInteractiveJob,
 )
-from dagster_ray.kuberay.client.rayjob.client import RayJobClient
 from dagster_ray.kuberay.configs import RayClusterSpec
-from dagster_ray.kuberay.resources.rayjob import InteractiveRayJobConfig, InteractiveRayJobSpec
+from dagster_ray.kuberay.resources.rayjob import (
+    InteractiveRayJobConfig,
+    InteractiveRayJobSpec,
+    KubeRayJobClientResource,
+)
 from tests.kuberay.utils import NAMESPACE, get_random_free_port
 
 MIN_KUBERAY_VERSION = "1.3.0"
@@ -34,7 +37,7 @@ def interactive_rayjob_resource(
 
     return KubeRayInteractiveJob(
         image=dagster_ray_image,
-        client=RayJobClient(kubeconfig_file=str(k8s_with_kuberay.kubeconfig)),
+        client=KubeRayJobClientResource(kubeconfig_file=str(k8s_with_kuberay.kubeconfig)),
         ray_job=InteractiveRayJobConfig(
             metadata={"namespace": NAMESPACE},
             spec=InteractiveRayJobSpec(

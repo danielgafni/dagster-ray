@@ -51,7 +51,7 @@ class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
     ray_cluster: RayClusterConfig = Field(
         default_factory=RayClusterConfig, description="Kubernetes `RayCluster` CR configuration."
     )
-    client: RayClusterClient = Field(  # pyright: ignore[reportAssignmentType]
+    client: dg.ResourceDependency[RayClusterClient] = Field(  # pyright: ignore[reportAssignmentType]
         default_factory=RayClusterClient, description="Kubernetes `RayCluster` client"
     )
     log_cluster_conditions: bool = Field(

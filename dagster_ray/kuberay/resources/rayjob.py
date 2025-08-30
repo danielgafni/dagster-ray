@@ -50,7 +50,7 @@ class KubeRayInteractiveJob(BaseKubeRayResourceConfig, BaseRayResource):
     ray_job: InteractiveRayJobConfig = Field(
         default_factory=InteractiveRayJobConfig, description="Configuration for the Kubernetes `RayJob` CR"
     )
-    client: RayJobClient = Field(  # pyright: ignore[reportAssignmentType]
+    client: dg.ResourceDependency[RayJobClient] = Field(  # pyright: ignore[reportAssignmentType]
         default_factory=RayJobClient, description="Kubernetes `RayJob` client"
     )
 

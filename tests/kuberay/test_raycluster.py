@@ -29,7 +29,7 @@ def ray_cluster_resource(
         # have have to first run port-forwarding with minikube
         # we can only init ray after that
         lifecycle=Lifecycle(connect=False),
-        client=RayClusterClient(kubeconfig_file=str(k8s_with_kuberay.kubeconfig)),
+        client=KubeRayClusterClientResource(kubeconfig_file=str(k8s_with_kuberay.kubeconfig)),
         ray_cluster=RayClusterConfig(
             metadata={"namespace": NAMESPACE},
             spec=RayClusterSpec(head_group_spec=head_group_spec, worker_group_specs=worker_group_specs),
@@ -55,7 +55,7 @@ def ray_cluster_resource_skip_cleanup(
             connect=False,
             cleanup="never",
         ),
-        client=RayClusterClient(kubeconfig_file=str(k8s_with_kuberay.kubeconfig)),
+        client=KubeRayClusterClientResource(kubeconfig_file=str(k8s_with_kuberay.kubeconfig)),
         ray_cluster=RayClusterConfig(
             metadata={"namespace": NAMESPACE},
             spec=RayClusterSpec(head_group_spec=head_group_spec, worker_group_specs=worker_group_specs),
@@ -78,7 +78,7 @@ def ray_cluster_resource_skip_create(
         # have have to first run port-forwarding with minikube
         # we can only init ray after that
         lifecycle=Lifecycle(create=False),
-        client=RayClusterClient(kubeconfig_file=str(k8s_with_kuberay.kubeconfig)),
+        client=KubeRayClusterClientResource(kubeconfig_file=str(k8s_with_kuberay.kubeconfig)),
         ray_cluster=RayClusterConfig(
             metadata={"namespace": NAMESPACE},
             spec=RayClusterSpec(head_group_spec=head_group_spec, worker_group_specs=worker_group_specs),
@@ -101,7 +101,7 @@ def ray_cluster_resource_skip_wait(
         # have have to first run port-forwarding with minikube
         # we can only init ray after that
         lifecycle=Lifecycle(wait=False),
-        client=RayClusterClient(kubeconfig_file=str(k8s_with_kuberay.kubeconfig)),
+        client=KubeRayClusterClientResource(kubeconfig_file=str(k8s_with_kuberay.kubeconfig)),
         ray_cluster=RayClusterConfig(
             metadata={"namespace": NAMESPACE},
             spec=RayClusterSpec(head_group_spec=head_group_spec, worker_group_specs=worker_group_specs),
@@ -267,13 +267,13 @@ def test_kuberay_cleanup_job(
     )["items"]
 
 
-def test_ray_cluster_builder_debug():
+def test_ray_cluster_builder_debug(dagster_ray_image: str):
     kuberay_cluster = KubeRayCluster(enable_debug_post_mortem=True)
     kuberay_cluster._cluster_name = "test-cluster"
     context = dg.build_init_resource_context()
 
     ray_cluster_config = kuberay_cluster.ray_cluster.to_k8s(
-        context, env_vars=kuberay_cluster.get_env_vars_to_inject(), labels={"foo": "bar"}
+        context, env_vars=kuberay_cluster.get_env_vars_to_inject(), labels={"foo": "bar"}, image=dagster_ray_image
     )
     assert ray_cluster_config["metadata"]["labels"]["foo"] == "bar"
     for group_spec in [ray_cluster_config["spec"]["headGroupSpec"], *ray_cluster_config["spec"]["workerGroupSpecs"]]:
@@ -282,7 +282,9 @@ def test_ray_cluster_builder_debug():
 
     kuberay_cluster = KubeRayCluster(enable_tracing=True)
     kuberay_cluster._cluster_name = "test-cluster"
-    ray_cluster_config = kuberay_cluster.ray_cluster.to_k8s(context, env_vars=kuberay_cluster.get_env_vars_to_inject())
+    ray_cluster_config = kuberay_cluster.ray_cluster.to_k8s(
+        context, env_vars=kuberay_cluster.get_env_vars_to_inject(), image=dagster_ray_image
+    )
     for group_spec in [ray_cluster_config["spec"]["headGroupSpec"], *ray_cluster_config["spec"]["workerGroupSpecs"]]:
         for container in group_spec["template"]["spec"]["containers"]:
             assert {"name": "RAY_PROFILING", "value": "1"} in container["env"], container
@@ -290,8 +292,7 @@ def test_ray_cluster_builder_debug():
     kuberay_cluster = KubeRayCluster(enable_actor_task_logging=True)
     kuberay_cluster._cluster_name = "test-cluster"
     ray_cluster_config = kuberay_cluster.ray_cluster.to_k8s(
-        context,
-        env_vars=kuberay_cluster.get_env_vars_to_inject(),
+        context, env_vars=kuberay_cluster.get_env_vars_to_inject(), image=dagster_ray_image
     )
     kuberay_cluster._cluster_name = "test-cluster"
     for group_spec in [ray_cluster_config["spec"]["headGroupSpec"], *ray_cluster_config["spec"]["workerGroupSpecs"]]:
