@@ -43,7 +43,7 @@ class KubeRayClusterClientResource(dg.ConfigurableResource[RayClusterClient]):
 
 
 @beta
-class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
+class KubeRayCluster(BaseRayResource, BaseKubeRayResourceConfig):
     """
     Provides a `RayCluster` for Dagster steps.
     """

@@ -42,7 +42,7 @@ class InteractiveRayJobConfig(RayJobConfig):
 
 
 @beta
-class KubeRayInteractiveJob(BaseKubeRayResourceConfig, BaseRayResource):
+class KubeRayInteractiveJob(BaseRayResource, BaseKubeRayResourceConfig):
     """
     Provides a `RayJob` for Dagster steps.
     """
