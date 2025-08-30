@@ -45,8 +45,7 @@ class InteractiveRayJobConfig(RayJobConfig):
 @beta
 class KubeRayInteractiveJob(BaseKubeRayResourceConfig, BaseRayResource):
     """
-    Provides a `RayJob` for the current step selection
-    The cluster is automatically deleted after steps execution
+    Provides a `RayJob` for Dagster steps.
     """
 
     ray_job: InteractiveRayJobConfig = Field(

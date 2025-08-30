@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Union, cast
+from typing import TYPE_CHECKING, Any, Literal, Union, cast
 
 import dagster as dg
 from dagster import AssetExecutionContext, ConfigurableResource, InitResourceContext, OpExecutionContext
@@ -35,6 +35,9 @@ class Lifecycle(dg.Config):
     connect: bool = Field(
         default=True,
         description="Whether to run `ray.init` against the remote Ray cluster. If set to `False`, the user can manually call `.connect` instead.",
+    )
+    cleanup: Literal["never", "except_failure", "always"] = Field(
+        default="always", description="Whether to delete the resource after Dagster step completion."
     )
 
 
