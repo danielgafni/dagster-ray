@@ -3,7 +3,7 @@ from collections.abc import Generator
 from typing import TYPE_CHECKING, Literal
 
 import dagster as dg
-from dagster import ConfigurableResource, InitResourceContext
+from dagster import InitResourceContext
 from dagster._annotations import beta
 from pydantic import Field, PrivateAttr
 from typing_extensions import Self, override
@@ -23,15 +23,14 @@ if TYPE_CHECKING:
 
 
 @beta
-class KubeRayJobClientResource(ConfigurableResource[RayJobClient]):
+class KubeRayJobClientResource(dg.ConfigurableResource[RayJobClient]):
     kube_context: "str | None" = None
     kubeconfig_file: "str | None" = None
 
-    @contextlib.contextmanager
-    def yield_for_execution(self, context: InitResourceContext) -> Generator[RayJobClient, None, None]:
+    def create_resource(self, context: InitResourceContext) -> RayJobClient:
         load_kubeconfig(context=self.kube_context, config_file=self.kubeconfig_file)
 
-        yield RayJobClient(context=self.kube_context, config_file=self.kubeconfig_file)
+        return RayJobClient(context=self.kube_context, config_file=self.kubeconfig_file)
 
 
 class InteractiveRayJobSpec(RayJobSpec):
@@ -51,9 +50,8 @@ class KubeRayInteractiveJob(BaseKubeRayResourceConfig, BaseRayResource):
     ray_job: InteractiveRayJobConfig = Field(
         default_factory=InteractiveRayJobConfig, description="Configuration for the Kubernetes `RayJob` CR"
     )
-    client: dg.ResourceDependency[RayJobClient] = Field(
-        # default_factory=KubeRayJobClientResource,
-        description="Kubernetes `RayJob` client"
+    client: dg.ResourceDependency[RayJobClient] = Field(  # pyright: ignore[reportAssignmentType]
+        default_factory=KubeRayJobClientResource, description="Kubernetes `RayJob` client"
     )
 
     log_cluster_conditions: bool = Field(

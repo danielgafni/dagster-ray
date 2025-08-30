@@ -5,7 +5,8 @@ import sys
 from collections.abc import Generator
 from typing import TYPE_CHECKING, cast
 
-from dagster import ConfigurableResource, InitResourceContext
+import dagster as dg
+from dagster import InitResourceContext
 from dagster._annotations import beta
 from pydantic import Field, PrivateAttr
 from typing_extensions import override
@@ -27,44 +28,18 @@ from dagster_ray._base.resources import BaseRayResource, OpOrAssetExecutionConte
 from dagster_ray.kuberay.client.base import load_kubeconfig
 
 if TYPE_CHECKING:
-    import kubernetes
+    pass
 
 
 @beta
-class RayClusterClientResource(ConfigurableResource[RayClusterClient]):
+class RayClusterClientResource(dg.ConfigurableResource[RayClusterClient]):
     kube_context: str | None = None
     kubeconfig_file: str | None = None
 
-    _raycluster_client: RayClusterClient = PrivateAttr()
-    _k8s_api: kubernetes.client.CustomObjectsApi = PrivateAttr()
-    _k8s_core_api: kubernetes.client.CoreV1Api = PrivateAttr()
-
-    @property
-    def client(self) -> RayClusterClient:
-        if not hasattr(self, "_raycluster_client"):
-            raise ValueError(f"{self.__class__.__name__} not initialized")
-        return self._raycluster_client
-
-    @property
-    def k8s(self) -> kubernetes.client.CustomObjectsApi:
-        if not hasattr(self, "_k8s_api"):
-            raise ValueError(f"{self.__class__.__name__} not initialized")
-        return self._k8s_api
-
-    @property
-    def k8s_core(self) -> kubernetes.client.CoreV1Api:
-        if not hasattr(self, "_k8s_core_api"):
-            raise ValueError(f"{self.__class__.__name__} not initialized")
-        return self._k8s_core_api
-
-    def setup_for_execution(self, context: InitResourceContext) -> None:
-        import kubernetes
-
+    def create_resource(self, context: InitResourceContext) -> RayClusterClient:
         load_kubeconfig(context=self.kube_context, config_file=self.kubeconfig_file)
 
-        self._raycluster_client = RayClusterClient(context=self.kube_context, config_file=self.kubeconfig_file)
-        self._k8s_api = kubernetes.client.CustomObjectsApi()
-        self._k8s_core_api = kubernetes.client.CoreV1Api()
+        return RayClusterClient(context=self.kube_context, config_file=self.kubeconfig_file)
 
 
 @beta
@@ -76,7 +51,7 @@ class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
     ray_cluster: RayClusterConfig = Field(
         default_factory=RayClusterConfig, description="Kubernetes `RayCluster` CR configuration."
     )
-    client: RayClusterClientResource = Field(
+    client: dg.ResourceDependency[RayClusterClient] = Field(  # pyright: ignore[reportAssignmentType]
         default_factory=RayClusterClientResource, description="Kubernetes `RayCluster` client"
     )
     log_cluster_conditions: bool = Field(
@@ -151,7 +126,7 @@ class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
 
         try:
             # just a safety measure, no need to recreate the cluster for step retries or smth
-            if not self.client.client.get(
+            if not self.client.get(
                 name=self.cluster_name,
                 namespace=self.namespace,
             ):
@@ -164,7 +139,7 @@ class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
 
                 k8s_manifest["metadata"]["name"] = self.cluster_name
 
-                resource = self.client.client.create(body=k8s_manifest, namespace=self.namespace)
+                resource = self.client.create(body=k8s_manifest, namespace=self.namespace)
                 if not resource:
                     raise RuntimeError(f"Couldn't create RayCluster {self.namespace}/{self.cluster_name}")
 
@@ -182,7 +157,7 @@ class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
         try:
             self._wait_raycluster_ready()
 
-            self._host = self.client.client.get_status(name=self.cluster_name, namespace=self.namespace)[  # pyright: ignore
+            self._host = self.client.get_status(name=self.cluster_name, namespace=self.namespace)[  # pyright: ignore
                 "head"
             ]["serviceIP"]
 
@@ -197,7 +172,7 @@ class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
             raise e
 
     def _wait_raycluster_ready(self):
-        self.client.client.wait_until_ready(
+        self.client.wait_until_ready(
             self.cluster_name,
             namespace=self.namespace,
             timeout=self.timeout,
@@ -212,11 +187,11 @@ class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
         elif not self.created:
             return
         elif self.lifecycle.cleanup == "always":
-            self.client.client.delete(self.cluster_name, namespace=self.namespace)
+            self.client.delete(self.cluster_name, namespace=self.namespace)
             context.log.info(f"Deleted RayCluster {self.namespace}/{self.cluster_name}")
         elif (
             self.lifecycle.cleanup == "except_failure"
             and cast(DagsterRun, context.dagster_run).status != DagsterRunStatus.FAILURE
         ):
-            self.client.client.delete(self.cluster_name, namespace=self.namespace)
+            self.client.delete(self.cluster_name, namespace=self.namespace)
             context.log.info(f"Deleted RayCluster {self.namespace}/{self.cluster_name}")
