@@ -34,7 +34,7 @@ def interactive_rayjob_resource(
 
     return KubeRayInteractiveJob(
         image=dagster_ray_image,
-        client=RayJobClient(config_file=str(k8s_with_kuberay.kubeconfig)),
+        client=RayJobClient(kubeconfig_file=str(k8s_with_kuberay.kubeconfig)),
         ray_job=InteractiveRayJobConfig(
             metadata={"namespace": NAMESPACE},
             spec=InteractiveRayJobSpec(

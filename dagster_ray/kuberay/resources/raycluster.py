@@ -32,14 +32,14 @@ if TYPE_CHECKING:
 
 
 @beta
-class RayClusterClientResource(dg.ConfigurableResource[RayClusterClient]):
+class KubeRayClusterClientResource(dg.ConfigurableResource[RayClusterClient]):
     kube_context: str | None = None
     kubeconfig_file: str | None = None
 
     def create_resource(self, context: InitResourceContext) -> RayClusterClient:
         load_kubeconfig(context=self.kube_context, config_file=self.kubeconfig_file)
 
-        return RayClusterClient(context=self.kube_context, config_file=self.kubeconfig_file)
+        return RayClusterClient(context=self.kube_context, kubeconfig_file=self.kubeconfig_file)
 
 
 @beta
@@ -52,7 +52,7 @@ class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
         default_factory=RayClusterConfig, description="Kubernetes `RayCluster` CR configuration."
     )
     client: dg.ResourceDependency[RayClusterClient] = Field(  # pyright: ignore[reportAssignmentType]
-        default_factory=RayClusterClientResource, description="Kubernetes `RayCluster` client"
+        default_factory=RayClusterClient, description="Kubernetes `RayCluster` client"
     )
     log_cluster_conditions: bool = Field(
         default=True,

@@ -30,7 +30,7 @@ class KubeRayJobClientResource(dg.ConfigurableResource[RayJobClient]):
     def create_resource(self, context: InitResourceContext) -> RayJobClient:
         load_kubeconfig(context=self.kube_context, config_file=self.kubeconfig_file)
 
-        return RayJobClient(context=self.kube_context, config_file=self.kubeconfig_file)
+        return RayJobClient(context=self.kube_context, kubeconfig_file=self.kubeconfig_file)
 
 
 class InteractiveRayJobSpec(RayJobSpec):
@@ -51,7 +51,7 @@ class KubeRayInteractiveJob(BaseKubeRayResourceConfig, BaseRayResource):
         default_factory=InteractiveRayJobConfig, description="Configuration for the Kubernetes `RayJob` CR"
     )
     client: dg.ResourceDependency[RayJobClient] = Field(  # pyright: ignore[reportAssignmentType]
-        default_factory=KubeRayJobClientResource, description="Kubernetes `RayJob` client"
+        default_factory=RayJobClient, description="Kubernetes `RayJob` client"
     )
 
     log_cluster_conditions: bool = Field(

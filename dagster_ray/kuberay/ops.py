@@ -2,7 +2,7 @@ from dagster import Config, DagsterRunStatus, OpExecutionContext, RunsFilter, op
 from pydantic import Field
 
 from dagster_ray._base.constants import DEFAULT_DEPLOYMENT_NAME
-from dagster_ray.kuberay.resources import RayClusterClientResource
+from dagster_ray.kuberay.resources import KubeRayClusterClientResource
 
 
 class DeleteKubeRayClustersConfig(Config):
@@ -14,7 +14,7 @@ class DeleteKubeRayClustersConfig(Config):
 def delete_kuberay_clusters_op(
     context: OpExecutionContext,
     config: DeleteKubeRayClustersConfig,
-    kuberay_client: RayClusterClientResource,
+    kuberay_client: KubeRayClusterClientResource,
 ) -> None:
     for cluster_name in config.cluster_names:
         try:
@@ -41,7 +41,7 @@ class CleanupKuberayClustersConfig(Config):
 def cleanup_kuberay_clusters_op(
     context: OpExecutionContext,
     config: CleanupKuberayClustersConfig,
-    kuberay_client: RayClusterClientResource,
+    kuberay_client: KubeRayClusterClientResource,
 ) -> None:
     current_runs = context.instance.get_runs(
         filters=RunsFilter(
