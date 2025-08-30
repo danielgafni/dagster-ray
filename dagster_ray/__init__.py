@@ -1,4 +1,4 @@
-from dagster_ray._base.resources import BaseRayResource
+from dagster_ray._base.resources import BaseRayResource, Lifecycle
 from dagster_ray.executor import ray_executor
 from dagster_ray.io_manager import RayIOManager
 from dagster_ray.pipes import PipesRayJobClient, PipesRayJobMessageReader
@@ -9,6 +9,7 @@ RayResource = BaseRayResource
 
 
 __all__ = [
+    "Lifecycle",
     "RayResource",
     "RayRunLauncher",
     "RayIOManager",

@@ -50,7 +50,7 @@ class LocalRay(BaseRayResource):
 
         context.log.debug("Connecting to a local Ray cluster...")
 
-        self.init_ray(context)
+        self.connect(context)
 
         yield self
 

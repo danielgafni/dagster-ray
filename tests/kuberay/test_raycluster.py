@@ -8,6 +8,7 @@ from dagster import AssetExecutionContext, RunConfig, asset, materialize_to_memo
 from pytest_kubernetes.providers import AClusterManager
 
 from dagster_ray import RayResource
+from dagster_ray._base.resources import Lifecycle
 from dagster_ray.kuberay import KubeRayCluster, RayClusterClientResource, RayClusterConfig, cleanup_kuberay_clusters
 from dagster_ray.kuberay.client import RayClusterClient
 from dagster_ray.kuberay.configs import RayClusterSpec
@@ -28,7 +29,7 @@ def ray_cluster_resource(
         image=dagster_ray_image,
         # have have to first run port-forwarding with minikube
         # we can only init ray after that
-        skip_init=True,
+        lifecycle=Lifecycle(connect=False),
         client=RayClusterClientResource(kubeconfig_file=str(k8s_with_kuberay.kubeconfig)),
         ray_cluster=RayClusterConfig(
             metadata={"namespace": NAMESPACE},
@@ -51,7 +52,7 @@ def ray_cluster_resource_skip_cleanup(
         image=dagster_ray_image,
         # have have to first run port-forwarding with minikube
         # we can only init ray after that
-        skip_init=True,
+        lifecycle=Lifecycle(connect=False),
         skip_cleanup=True,
         client=RayClusterClientResource(kubeconfig_file=str(k8s_with_kuberay.kubeconfig)),
         ray_cluster=RayClusterConfig(
@@ -63,7 +64,7 @@ def ray_cluster_resource_skip_cleanup(
 
 
 @pytest.fixture(scope="session")
-def ray_cluster_resource_skip_setup(
+def ray_cluster_resource_skip_create(
     k8s_with_kuberay: AClusterManager,
     dagster_ray_image: str,
     head_group_spec: dict[str, Any],
@@ -75,8 +76,30 @@ def ray_cluster_resource_skip_setup(
         image=dagster_ray_image,
         # have have to first run port-forwarding with minikube
         # we can only init ray after that
-        skip_setup=True,
-        skip_init=True,
+        lifecycle=Lifecycle(create=False),
+        client=RayClusterClientResource(kubeconfig_file=str(k8s_with_kuberay.kubeconfig)),
+        ray_cluster=RayClusterConfig(
+            metadata={"namespace": NAMESPACE},
+            spec=RayClusterSpec(head_group_spec=head_group_spec, worker_group_specs=worker_group_specs),
+        ),
+        redis_port=redis_port,
+    )
+
+
+@pytest.fixture(scope="session")
+def ray_cluster_resource_skip_wait(
+    k8s_with_kuberay: AClusterManager,
+    dagster_ray_image: str,
+    head_group_spec: dict[str, Any],
+    worker_group_specs: list[dict[str, Any]],
+) -> KubeRayCluster:
+    redis_port = get_random_free_port()
+
+    return KubeRayCluster(
+        image=dagster_ray_image,
+        # have have to first run port-forwarding with minikube
+        # we can only init ray after that
+        lifecycle=Lifecycle(wait=False),
         client=RayClusterClientResource(kubeconfig_file=str(k8s_with_kuberay.kubeconfig)),
         ray_cluster=RayClusterConfig(
             metadata={"namespace": NAMESPACE},
@@ -105,7 +128,7 @@ def ensure_kuberay_cluster_correctness(
         # now we can access the head node
         # hack the _host attribute to point to the port-forwarded address
         ray_cluster._host = "127.0.0.1"
-        ray_cluster.init_ray(context)  # normally this would happen automatically during resource setup
+        ray_cluster.connect(context)  # normally this would happen automatically during resource setup
         assert ray_cluster.context is not None
 
         # make sure a @remote function runs inside the cluster
@@ -155,16 +178,17 @@ def test_kuberay_cluster_resource(
     )
 
 
-def test_kuberay_cluster_resource_skip_setup(
-    ray_cluster_resource_skip_setup: KubeRayCluster,
+def test_kuberay_cluster_resource_skip_create(
+    ray_cluster_resource_skip_create: KubeRayCluster,
     k8s_with_kuberay: AClusterManager,
 ):
     @asset
     def my_asset(context: AssetExecutionContext, ray_cluster: RayResource) -> None:
         assert isinstance(ray_cluster, KubeRayCluster)
 
-        # call setup manually
-        ray_cluster.create_and_wait(context)
+        # call create and wait manually
+        ray_cluster.create(context)
+        ray_cluster.wait(context)
 
         ensure_kuberay_cluster_correctness(
             ray_cluster,
@@ -174,7 +198,30 @@ def test_kuberay_cluster_resource_skip_setup(
 
     materialize_to_memory(
         [my_asset],
-        resources={"ray_cluster": ray_cluster_resource_skip_setup},
+        resources={"ray_cluster": ray_cluster_resource_skip_create},
+    )
+
+
+def test_kuberay_cluster_resource_skip_wait(
+    ray_cluster_resource_skip_wait: KubeRayCluster,
+    k8s_with_kuberay: AClusterManager,
+):
+    @asset
+    def my_asset(context: AssetExecutionContext, ray_cluster: RayResource) -> None:
+        assert isinstance(ray_cluster, KubeRayCluster)
+
+        # call wait manually
+        ray_cluster.wait(context)
+
+        ensure_kuberay_cluster_correctness(
+            ray_cluster,
+            k8s_with_kuberay,
+            context,
+        )
+
+    materialize_to_memory(
+        [my_asset],
+        resources={"ray_cluster": ray_cluster_resource_skip_wait},
     )
 
 
