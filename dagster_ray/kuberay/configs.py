@@ -197,6 +197,7 @@ class RayJobSpec(dg.PermissiveConfig):
     backoff_limit: int = 0
     ray_cluster_spec: RayClusterSpec | None = Field(default_factory=RayClusterSpec)
     submitter_pod_template: dict[str, Any] | None = None
+    metadata: dict[str, Any] | None = None
     cluster_selector: dict[str, str] | None = None
     managed_by: str | None = None
     deletion_strategy: dict[str, Any] | None = None
@@ -223,6 +224,7 @@ class RayJobSpec(dg.PermissiveConfig):
                 "activeDeadlineSeconds": self.active_deadline_seconds,
                 "backoffLimit": self.backoff_limit,
                 "submitterPodTemplate": self.submitter_pod_template,
+                "metadata": self.metadata,
                 "clusterSelector": self.cluster_selector,
                 "managedBy": self.managed_by,
                 "deletionStrategy": self.deletion_strategy,

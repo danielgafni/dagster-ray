@@ -7,8 +7,7 @@ import ray  # noqa: TID253
 from dagster import AssetExecutionContext, RunConfig, asset, materialize_to_memory
 from pytest_kubernetes.providers import AClusterManager
 
-from dagster_ray import RayResource
-from dagster_ray._base.resources import Lifecycle
+from dagster_ray import Lifecycle, RayResource
 from dagster_ray.kuberay import KubeRayCluster, RayClusterClientResource, RayClusterConfig, cleanup_kuberay_clusters
 from dagster_ray.kuberay.client import RayClusterClient
 from dagster_ray.kuberay.configs import RayClusterSpec
@@ -52,8 +51,10 @@ def ray_cluster_resource_skip_cleanup(
         image=dagster_ray_image,
         # have have to first run port-forwarding with minikube
         # we can only init ray after that
-        lifecycle=Lifecycle(connect=False),
-        skip_cleanup=True,
+        lifecycle=Lifecycle(
+            connect=False,
+            cleanup="never",
+        ),
         client=RayClusterClientResource(kubeconfig_file=str(k8s_with_kuberay.kubeconfig)),
         ray_cluster=RayClusterConfig(
             metadata={"namespace": NAMESPACE},

@@ -26,7 +26,7 @@ class RayExecutionConfig(Config):
 
 class RayJobSubmissionClientConfig(Config):
     address: str = Field(..., description="The address of the Ray cluster to connect to.")
-    metadata: dict[str, Any] | None = Field(
+    metadata: dict[str, str] | None = Field(
         default=None,
         description="""Arbitrary metadata to store along with all jobs. New metadata
             specified per job will be merged with the global metadata provided here
