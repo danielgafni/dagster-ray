@@ -27,7 +27,7 @@ def get_dagster_tags(
             if resource_def is context.resource_def:
                 # inject the resource key used for this KubeRay resource
                 # this enables e.g reusing the same `RayCluster` across Dagster steps that require it without recreating the cluster
-                labels["dagster/resource_key"] = resource_key
+                labels["dagster/resource-key"] = resource_key
     else:
         labels.update(
             **context.run.dagster_execution_info,
