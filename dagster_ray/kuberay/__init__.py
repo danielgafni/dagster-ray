@@ -4,16 +4,16 @@ from dagster_ray.kuberay.ops import cleanup_kuberay_clusters_op, delete_kuberay_
 from dagster_ray.kuberay.pipes import PipesKubeRayJobClient
 from dagster_ray.kuberay.resources import (
     KubeRayCluster,
+    KubeRayClusterClientResource,
     KubeRayInteractiveJob,
     KubeRayJobClientResource,
-    RayClusterClientResource,
 )
 from dagster_ray.kuberay.schedules import cleanup_kuberay_clusters_daily
 
 __all__ = [
     "KubeRayCluster",
     "RayClusterConfig",
-    "RayClusterClientResource",
+    "KubeRayClusterClientResource",
     "PipesKubeRayJobClient",
     "cleanup_kuberay_clusters",
     "delete_kuberay_clusters",
