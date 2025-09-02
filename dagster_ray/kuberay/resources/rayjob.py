@@ -156,10 +156,18 @@ class KubeRayInteractiveJob(BaseKubeRayResourceConfig, BaseRayResource):
 
         try:
             self.client.wait_until_ready(
-                name=self.job_name, namespace=self.namespace, log_cluster_conditions=self.log_cluster_conditions
+                name=self.job_name,
+                namespace=self.namespace,
+                log_cluster_conditions=self.log_cluster_conditions,
+                timeout=self.timeout,
+                poll_interval=self.poll_interval,
             )
-            self._cluster_name = self.client.get_ray_cluster_name(self.job_name, self.namespace)
-            self._host = self.client.ray_cluster_client.get_status(name=self.cluster_name, namespace=self.namespace)[  # pyright: ignore
+            self._cluster_name = self.client.get_ray_cluster_name(
+                self.job_name, self.namespace, timeout=self.timeout, poll_interval=self.poll_interval
+            )
+            self._host = self.client.ray_cluster_client.get_status(
+                name=self.cluster_name, namespace=self.namespace, timeout=self.timeout, poll_interval=self.poll_interval
+            )[  # pyright: ignore
                 "head"
             ]["serviceIP"]
 

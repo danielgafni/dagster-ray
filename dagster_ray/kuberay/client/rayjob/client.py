@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import time
 from collections.abc import Iterator
-from typing import TYPE_CHECKING, Literal, TypedDict
+from typing import TYPE_CHECKING, Any, Literal, TypedDict, cast
 
 from typing_extensions import NotRequired
 
@@ -23,7 +23,8 @@ logger = logging.getLogger(__name__)
 
 
 class RayJobStatus(TypedDict):
-    jobId: str
+    jobId: NotRequired[str]
+    rayJobInfo: NotRequired[dict[str, Any]]
     jobDeploymentStatus: str
     rayClusterName: str
     rayClusterStatus: RayClusterStatus
@@ -33,6 +34,8 @@ class RayJobStatus(TypedDict):
     endTime: NotRequired[str]
     jobStatus: NotRequired[Literal["PENDING", "RUNNING", "SUCCEEDED", "FAILED", "STOPPED"]]
     message: NotRequired[str]
+    failed: NotRequired[int]
+    succeeded: NotRequired[int]
 
 
 class RayJobClient(BaseKubeRayClient[RayJobStatus]):
@@ -50,11 +53,14 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
 
         super().__init__(group=GROUP, version=VERSION, kind=KIND, plural=PLURAL, api_client=api_client)
 
-    def get_ray_cluster_name(self, name: str, namespace: str) -> str:
-        return self.get_status(name, namespace)["rayClusterName"]
+    def get_ray_cluster_name(self, name: str, namespace: str, timeout: float, poll_interval: float = 1.0) -> str:
+        return self.get_status(name, namespace, timeout=timeout, poll_interval=poll_interval)["rayClusterName"]
 
-    def get_job_sumission_id(self, name: str, namespace: str) -> str:
-        return self.get_status(name, namespace)["jobId"]
+    def get_job_submission_id(
+        self, name: str, namespace: str, timeout: float, poll_interval: float = 1.0
+    ) -> str | None:
+        """Returns the ray job submission ID. It may be missing for mode: InteractiveMode."""
+        return self.get_status(name, namespace, timeout=timeout, poll_interval=poll_interval).get("jobId")
 
     @property
     def ray_cluster_client(self) -> RayClusterClient:
@@ -64,16 +70,19 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
         self,
         name: str,
         namespace: str,
-        timeout: int = 600,
-        poll_interval: float = 5,
+        timeout: float = 600,
+        poll_interval: float = 1.0,
         log_cluster_conditions: bool = False,
     ) -> tuple[str, RayClusterEndpoints]:
         """Wait until the RayCluster attached to the RayJob is ready.
 
         This doesn't necessarily mean that the cluster has already taken a job, just that it is ready to accept connections.
         """
-        ray_cluster_name = self.get_ray_cluster_name(name, namespace)
+        ray_cluster_name = self.get_ray_cluster_name(name, namespace, timeout=timeout, poll_interval=poll_interval)
         ray_cluster_client = self.ray_cluster_client
+        ray_cluster_client.wait_until_exists(
+            name=ray_cluster_name, namespace=namespace, timeout=timeout, poll_interval=poll_interval
+        )
         return ray_cluster_client.wait_until_ready(
             ray_cluster_name,
             namespace=namespace,
@@ -86,8 +95,8 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
         self,
         name: str,
         namespace: str,
-        timeout: int = 600,
-        poll_interval: int = 5,
+        timeout: float = 600,
+        poll_interval: float = 1.0,
         terminate_on_timeout: bool = True,
         port_forward: bool = False,
         log_cluster_conditions: bool = False,
@@ -134,8 +143,8 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
         self,
         name: str,
         namespace: str,
-        timeout: int = 600,
-        poll_interval: int = 10,
+        timeout: float = 600,
+        poll_interval: float = 1.0,
     ):
         start_time = time.time()
 
@@ -155,23 +164,47 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
 
             time.sleep(poll_interval)
 
-    def get_job_logs(self, name: str, namespace: str, timeout: int = 60 * 60, port_forward: bool = False) -> str:
+    def get_job_logs(
+        self,
+        name: str,
+        namespace: str,
+        timeout: float = 60 * 60,
+        poll_interval: float = 1.0,
+        port_forward: bool = False,
+    ) -> str:
         self._wait_for_job_submission(name, namespace, timeout=timeout)
         with self.ray_cluster_client.job_submission_client(
-            name=self.get_ray_cluster_name(name, namespace), namespace=namespace, port_forward=port_forward
+            name=self.get_ray_cluster_name(name, namespace, timeout=timeout, poll_interval=poll_interval),
+            namespace=namespace,
+            port_forward=port_forward,
         ) as job_submission_client:
-            return job_submission_client.get_job_logs(job_id=self.get_job_sumission_id(name, namespace))
+            return job_submission_client.get_job_logs(
+                job_id=cast(
+                    str, self.get_job_submission_id(name, namespace, timeout=timeout, poll_interval=poll_interval)
+                )
+            )
 
     def tail_job_logs(
-        self, name: str, namespace: str, timeout: int = 60 * 60, port_forward: bool = False
+        self,
+        name: str,
+        namespace: str,
+        timeout: float = 60 * 60,
+        poll_interval: float = 1.0,
+        port_forward: bool = False,
     ) -> Iterator[str]:
         import asyncio
 
         self._wait_for_job_submission(name, namespace, timeout=timeout)
         with self.ray_cluster_client.job_submission_client(
-            name=self.get_ray_cluster_name(name, namespace), namespace=namespace, port_forward=port_forward
+            name=self.get_ray_cluster_name(name, namespace, timeout=timeout, poll_interval=poll_interval),
+            namespace=namespace,
+            port_forward=port_forward,
         ) as job_submission_client:
-            async_tailer = job_submission_client.tail_job_logs(job_id=self.get_job_sumission_id(name, namespace))
+            async_tailer = job_submission_client.tail_job_logs(
+                job_id=cast(
+                    str, self.get_job_submission_id(name, namespace, timeout=timeout, poll_interval=poll_interval)
+                )
+            )
 
             # Backward compatible sync generator
             def tail_logs() -> Iterator[str]:
@@ -183,14 +216,20 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
 
             yield from tail_logs()
 
-    def terminate(self, name: str, namespace: str, port_forward: bool = False) -> bool:
+    def terminate(
+        self, name: str, namespace: str, timeout: float = 10.0, poll_interval: float = 1.0, port_forward: bool = False
+    ) -> bool:
         """
         Unlike the .delete method, this won't remove the Kubernetes object, but will instead stop the Ray Job.
         """
         with self.ray_cluster_client.job_submission_client(
-            name=self.get_ray_cluster_name(name, namespace), namespace=namespace, port_forward=port_forward
+            name=self.get_ray_cluster_name(name, namespace, timeout=timeout, poll_interval=poll_interval),
+            namespace=namespace,
+            port_forward=port_forward,
         ) as job_submission_client:
-            job_id = self.get_job_sumission_id(name, namespace)
+            job_id = cast(
+                str, self.get_job_submission_id(name, namespace, timeout=timeout, poll_interval=poll_interval)
+            )
 
             job_submitted = False
 

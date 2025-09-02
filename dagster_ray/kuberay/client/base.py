@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import time
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 
 if TYPE_CHECKING:
     from kubernetes import client
@@ -42,7 +42,9 @@ class BaseKubeRayClient(Generic[T_Status]):
         self._api = client.CustomObjectsApi(api_client=api_client)
         self._core_v1_api = client.CoreV1Api(api_client=api_client)
 
-    def wait_for_service_endpoints(self, service_name: str, namespace: str, poll_interval: int = 5, timeout: int = 600):
+    def wait_for_service_endpoints(
+        self, service_name: str, namespace: str, poll_interval: float = 1, timeout: float = 600
+    ):
         from kubernetes.client import ApiException
 
         start_time = time.time()
@@ -63,33 +65,34 @@ class BaseKubeRayClient(Generic[T_Status]):
             elapsed_time = time.time() - start_time
             if elapsed_time > timeout:
                 raise TimeoutError(
-                    f"Timed out waiting for endpoints for service {service_name} in namespace {namespace}"
+                    f"Timed out ({timeout:.1f}s) waiting for endpoints for service {service_name} in namespace {namespace}"
                 )
 
             time.sleep(poll_interval)
 
-    def get_status(self, name: str, namespace: str, timeout: int = 60, poll_interval: int = 5) -> T_Status:
-        from kubernetes.client import ApiException
+    def get_status(self, name: str, namespace: str, timeout: float = 60, poll_interval: float = 1.0) -> T_Status:
+        start_time = time.time()
 
-        while timeout > 0:
-            try:
-                resource: Any = self._api.get_namespaced_custom_object_status(
+        while timeout > time.time() - start_time:
+            resource = cast(
+                dict[str, Any],
+                self._api.get_namespaced_custom_object_status(
                     group=self.group,
                     version=self.version,
                     plural=self.plural,
                     name=name,
                     namespace=namespace,
-                )
-            except ApiException:
-                raise
+                ),
+            )
 
             if resource.get("status"):
                 return resource["status"]
             else:
                 time.sleep(poll_interval)
-                timeout -= poll_interval
-
-        raise TimeoutError(f"Timed out waiting for status of {self.kind} {name} in namespace {namespace}")
+        else:
+            raise TimeoutError(
+                f"Timed out ({timeout:.1f}s) waiting for status of {self.kind} {name} in namespace {namespace}"
+            )
 
     def list(self, namespace: str, label_selector: str = "", async_req: bool = False) -> dict[str, Any]:
         from kubernetes.client import ApiException
@@ -156,4 +159,23 @@ class BaseKubeRayClient(Generic[T_Status]):
             name=name,
             body=body,
             namespace=namespace,
+        )
+
+    def wait_until_exists(self, name: str, namespace: str, timeout: float = 60.0, poll_interval: float = 1.0) -> None:
+        from kubernetes.client import ApiException
+
+        start_time = time.time()
+
+        while not timeout < time.time() - start_time:
+            try:
+                self.get(name=name, namespace=namespace)
+                return
+            except ApiException as e:
+                if e.status == 404:
+                    time.sleep(poll_interval)
+                else:
+                    raise
+
+        raise TimeoutError(
+            f"Timed out ({timeout:.1f}s) waiting for existance of {self.kind} {name} in namespace {namespace}"
         )

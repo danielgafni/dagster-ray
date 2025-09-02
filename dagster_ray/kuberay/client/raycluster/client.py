@@ -112,7 +112,7 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
         self,
         name: str,
         namespace: str,
-        timeout: int,
+        timeout: float,
         image: str | None = None,
         poll_interval: float = 5.0,
         log_cluster_conditions: bool = False,
@@ -163,7 +163,7 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
             time.sleep(poll_interval)
         else:
             raise TimeoutError(
-                f"Timed out ({timeout}s) waiting for RayCluster {namespace}/{name} to be ready. Status: {status}"
+                f"Timed out ({timeout:.1f}s) waiting for RayCluster {namespace}/{name} to be ready. Status: {status}"
             )
 
     @contextmanager
@@ -253,7 +253,7 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
 
     @contextmanager
     def job_submission_client(
-        self, name: str, namespace: str, port_forward: bool = False, timeout: int = 60
+        self, name: str, namespace: str, port_forward: bool = False, timeout: float = 60
     ) -> Iterator[JobSubmissionClient]:
         """
         Returns a JobSubmissionClient object that can be used to interact with Ray jobs running in the KubeRay cluster.
