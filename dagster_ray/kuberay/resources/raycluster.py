@@ -168,9 +168,7 @@ class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
                 if not resource:
                     raise RuntimeError(f"Couldn't create RayCluster {self.namespace}/{self.cluster_name}")
 
-                context.log.info(
-                    f"Created RayCluster {self.namespace}/{self.cluster_name}. Waiting for it to become ready (timeout={self.timeout:.0f}s)..."
-                )
+                context.log.info(f"Created RayCluster {self.namespace}/{self.cluster_name}.")
         except BaseException:
             context.log.critical(f"Couldn't create RayCluster {self.namespace}/{self.cluster_name}!")
             raise
@@ -180,6 +178,9 @@ class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
         assert context.dagster_run is not None
 
         try:
+            context.log.info(
+                f"Waiting for RayCluster {self.namespace}/{self.cluster_name} to become ready (timeout={self.timeout:.0f}s)..."
+            )
             self._wait_raycluster_ready()
 
             self._host = self.client.client.get_status(
