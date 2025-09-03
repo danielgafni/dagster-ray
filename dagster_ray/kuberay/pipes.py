@@ -33,7 +33,7 @@ from dagster_ray.pipes import (
 if TYPE_CHECKING:
     from ray.job_submission import JobSubmissionClient
 
-OpOrAssetExecutionContext: TypeAlias = Union[OpExecutionContext, AssetExecutionContext]
+DagsterExecutionContext: TypeAlias = Union[OpExecutionContext, AssetExecutionContext]
 
 
 @beta
@@ -86,7 +86,7 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
     def run(  # type: ignore
         self,
         *,
-        context: OpOrAssetExecutionContext,
+        context: DagsterExecutionContext,
         ray_job: dict[str, Any],
         extras: PipesExtras | None = None,
     ) -> PipesClientCompletedInvocation:
@@ -156,12 +156,12 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
                         self._terminate(context, start_response)
                     raise
 
-    def get_dagster_tags(self, context: OpOrAssetExecutionContext) -> dict[str, str]:
+    def get_dagster_tags(self, context: DagsterExecutionContext) -> dict[str, str]:
         tags = get_dagster_tags(context)
         return tags
 
     def _enrich_ray_job(
-        self, context: OpOrAssetExecutionContext, session: PipesSession, ray_job: dict[str, Any]
+        self, context: DagsterExecutionContext, session: PipesSession, ray_job: dict[str, Any]
     ) -> dict[str, Any]:
         env_vars = session.get_bootstrap_env_vars()
 
@@ -192,7 +192,7 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
         return ray_job
 
     def _start(
-        self, context: OpOrAssetExecutionContext, session: PipesSession, ray_job: dict[str, Any]
+        self, context: DagsterExecutionContext, session: PipesSession, ray_job: dict[str, Any]
     ) -> dict[str, Any]:
         name = ray_job["metadata"]["name"]
         namespace = ray_job["metadata"]["namespace"]
@@ -218,7 +218,7 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
             name=ray_job["metadata"]["name"],
         )
 
-    def _wait_for_completion(self, context: OpOrAssetExecutionContext, start_response: dict[str, Any]) -> RayJobStatus:
+    def _wait_for_completion(self, context: DagsterExecutionContext, start_response: dict[str, Any]) -> RayJobStatus:
         context.log.info("[pipes] Waiting for RayJob to complete...")
 
         name = start_response["metadata"]["name"]
@@ -247,7 +247,7 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
 
             time.sleep(self.poll_interval)
 
-    def _terminate(self, context: OpOrAssetExecutionContext, start_response: dict[str, Any]) -> None:
+    def _terminate(self, context: DagsterExecutionContext, start_response: dict[str, Any]) -> None:
         name = start_response["metadata"]["name"]
         namespace = start_response["metadata"]["namespace"]
 

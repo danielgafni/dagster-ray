@@ -16,7 +16,7 @@ else:
 
 from ray._private.worker import BaseContext as RayBaseContext  # noqa
 
-from dagster_ray._base.resources import BaseRayResource
+from dagster_ray._base.resources import BaseRayResource, AnyDagsterContext
 
 
 class LocalRay(BaseRayResource):
@@ -25,6 +25,12 @@ class LocalRay(BaseRayResource):
     Is useful for testing and local development.
     Provides the same interface as actual Resources.
     """
+
+    def _create(self, context: AnyDagsterContext):
+        return
+
+    def _wait(self, context: AnyDagsterContext):
+        return
 
     @property
     def host(self) -> str:
