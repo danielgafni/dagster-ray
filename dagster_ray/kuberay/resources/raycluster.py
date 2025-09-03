@@ -14,6 +14,7 @@ from dagster_ray.kuberay.client import RayClusterClient
 from dagster_ray.kuberay.configs import RayClusterConfig
 from dagster_ray.kuberay.resources.base import BaseKubeRayResourceConfig
 from dagster_ray.kuberay.utils import normalize_k8s_label_values
+from dagster_ray.types import AnyDagsterContext
 
 if sys.version_info >= (3, 11):
     from typing import Self
@@ -23,8 +24,9 @@ else:
 from dagster import DagsterRun, DagsterRunStatus
 from ray._private.worker import BaseContext as RayBaseContext  # noqa
 
-from dagster_ray._base.resources import BaseRayResource, OpOrAssetExecutionContext
+from dagster_ray._base.resources import BaseRayResource
 from dagster_ray.kuberay.client.base import load_kubeconfig
+from dagster_ray.types import DagsterExecutionContext
 
 if TYPE_CHECKING:
     import kubernetes
@@ -103,18 +105,10 @@ class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
             return self._cluster_name
 
     @property
-    def created(self) -> bool:
-        return hasattr(self, "_cluster_name")
-
-    @property
-    def ready(self) -> bool:
-        return hasattr(self, "_host")
-
-    @property
     def namespace(self) -> str:
         return self.ray_cluster.namespace
 
-    def get_dagster_tags(self, context: InitResourceContext | OpOrAssetExecutionContext) -> dict[str, str]:
+    def get_dagster_tags(self, context: InitResourceContext | DagsterExecutionContext) -> dict[str, str]:
         tags = super().get_dagster_tags(context=context)
         tags.update({"dagster/deployment": self.deployment_name})
         return tags
@@ -143,7 +137,7 @@ class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
             raise e
 
     @override
-    def create(self, context: InitResourceContext | OpOrAssetExecutionContext):
+    def _create(self, context: AnyDagsterContext):
         assert context.log is not None
         assert context.dagster_run is not None
 
@@ -175,12 +169,19 @@ class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
             context.log.critical(f"Couldn't create RayCluster {self.namespace}/{self.cluster_name}!")
             raise
 
-    def wait(self, context: InitResourceContext | OpOrAssetExecutionContext):
+    @override
+    def _wait(self, context: AnyDagsterContext):
         assert context.log is not None
         assert context.dagster_run is not None
 
         try:
-            self._wait_raycluster_ready()
+            self.client.client.wait_until_ready(
+                self.cluster_name,
+                namespace=self.namespace,
+                timeout=self.timeout,
+                poll_interval=self.poll_interval,
+                log_cluster_conditions=self.log_cluster_conditions,
+            )
 
             self._host = self.client.client.get_status(
                 name=self.cluster_name, namespace=self.namespace, timeout=self.timeout, poll_interval=self.poll_interval
@@ -198,16 +199,7 @@ class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
             self.cleanup(context)
             raise e
 
-    def _wait_raycluster_ready(self):
-        self.client.client.wait_until_ready(
-            self.cluster_name,
-            namespace=self.namespace,
-            timeout=self.timeout,
-            poll_interval=self.poll_interval,
-            log_cluster_conditions=self.log_cluster_conditions,
-        )
-
-    def cleanup(self, context: InitResourceContext | OpOrAssetExecutionContext):
+    def cleanup(self, context: AnyDagsterContext):
         assert context.log is not None
 
         if self.lifecycle.cleanup == "never":

@@ -1,26 +1,24 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Literal, Union, cast
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import dagster as dg
-from dagster import AssetExecutionContext, ConfigurableResource, InitResourceContext, OpExecutionContext
+from dagster import ConfigurableResource
 from pydantic import Field, PrivateAttr
 
 # yes, `python-client` is actually the KubeRay package name
 # https://github.com/ray-project/kuberay/issues/2078
 from requests.exceptions import ConnectionError
 from tenacity import retry, retry_if_exception_type, stop_after_delay
-from typing_extensions import TypeAlias
 
 from dagster_ray._base.utils import get_dagster_tags
 from dagster_ray.config import RayDataExecutionOptions
+from dagster_ray.types import AnyDagsterContext
 from dagster_ray.utils import _process_dagster_env_vars, get_current_job_id
 
 if TYPE_CHECKING:
     from ray._private.worker import BaseContext as RayBaseContext  # noqa
-
-OpOrAssetExecutionContext: TypeAlias = Union[OpExecutionContext, AssetExecutionContext]
 
 
 class Lifecycle(dg.Config):
@@ -78,6 +76,10 @@ class BaseRayResource(ConfigurableResource, ABC):
 
     _context: RayBaseContext | None = PrivateAttr()
 
+    _created: bool = PrivateAttr()
+    _ready: bool = PrivateAttr()
+    _connected: bool = PrivateAttr()
+
     @property
     def context(self) -> RayBaseContext:
         assert self._context is not None, "RayClusterResource not initialized"
@@ -104,14 +106,38 @@ class BaseRayResource(ConfigurableResource, ABC):
         """
         return get_current_job_id()
 
-    def create(self, context: InitResourceContext | OpOrAssetExecutionContext):
+    @property
+    def created(self) -> bool:
+        return hasattr(self, "_created") and self._created
+
+    @property
+    def ready(self) -> bool:
+        return hasattr(self, "_ready") and self._ready
+
+    @property
+    def connected(self) -> bool:
+        return hasattr(self, "_connected") and self._connected
+
+    @abstractmethod
+    def _create(self, context: AnyDagsterContext):
         pass
 
-    def wait(self, context: InitResourceContext | OpOrAssetExecutionContext):
+    def create(self, context: AnyDagsterContext):
+        self._create(context)
+        self._created = True
+
+    @abstractmethod
+    def _wait(self, context: AnyDagsterContext):
         pass
+
+    def wait(self, context: AnyDagsterContext):
+        if not self.created:
+            self.create(context)
+        self._wait(context)
+        self._ready = True
 
     @retry(stop=stop_after_delay(120), retry=retry_if_exception_type(ConnectionError), reraise=True)
-    def connect(self, context: OpOrAssetExecutionContext | InitResourceContext) -> RayBaseContext:
+    def _connect(self, context: AnyDagsterContext) -> RayBaseContext:
         assert context.log is not None
 
         import ray
@@ -138,7 +164,16 @@ class BaseRayResource(ConfigurableResource, ABC):
         context.log.info("Initialized Ray in client mode!")
         return cast("RayBaseContext", self._context)
 
-    def get_dagster_tags(self, context: InitResourceContext | OpOrAssetExecutionContext) -> dict[str, str]:
+    def connect(self, context: AnyDagsterContext) -> RayBaseContext:
+        if not self.ready:
+            self.create(context)
+            self.wait(context)
+
+        ray_context = self._connect(context)
+        self._connected = True
+        return ray_context
+
+    def get_dagster_tags(self, context: AnyDagsterContext) -> dict[str, str]:
         tags = get_dagster_tags(context)
         return tags
 

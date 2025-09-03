@@ -9,10 +9,10 @@ import time
 from collections.abc import AsyncIterator, Generator, Iterator
 from contextlib import contextmanager
 from functools import partial
-from typing import TYPE_CHECKING, Any, TypedDict, Union, cast
+from typing import TYPE_CHECKING, Any, TypedDict, cast
 
 import dagster._check as check
-from dagster import AssetExecutionContext, OpExecutionContext, PipesClient
+from dagster import PipesClient
 from dagster._annotations import beta
 from dagster._core.definitions.resource_annotation import TreatAsResourceParam
 from dagster._core.errors import DagsterExecutionInterruptedError
@@ -29,17 +29,15 @@ from dagster._core.pipes.utils import (
     open_pipes_session,
 )
 from dagster_pipes import PipesDefaultMessageWriter, PipesExtras, PipesParams
-from typing_extensions import NotRequired, TypeAlias
+from typing_extensions import NotRequired
 
 from dagster_ray._base.utils import get_dagster_tags
+from dagster_ray.types import DagsterExecutionContext
 
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from ray.job_submission import JobStatus, JobSubmissionClient
-
-
-OpOrAssetExecutionContext: TypeAlias = Union[OpExecutionContext, AssetExecutionContext]
 
 
 PIPES_LAUNCHED_EXTRAS_RAY_ADDRESS_KEY = "ray_address"
@@ -259,7 +257,7 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
     def run(  # type: ignore
         self,
         *,
-        context: OpOrAssetExecutionContext,
+        context: DagsterExecutionContext,
         submit_job_params: SubmitJobParams,
         extras: PipesExtras | None = None,
     ) -> PipesClientCompletedInvocation:
@@ -293,12 +291,12 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
                     self._terminate(context, job_id)
                 raise
 
-    def get_dagster_tags(self, context: OpOrAssetExecutionContext) -> dict[str, str]:
+    def get_dagster_tags(self, context: DagsterExecutionContext) -> dict[str, str]:
         tags = get_dagster_tags(context)
         return tags
 
     def _enrich_submit_job_params(
-        self, context: OpOrAssetExecutionContext, session: PipesSession, submit_job_params: SubmitJobParams
+        self, context: DagsterExecutionContext, session: PipesSession, submit_job_params: SubmitJobParams
     ) -> EnrichedSubmitJobParams:
         runtime_env = submit_job_params.get("runtime_env", {})
         metadata = submit_job_params.get("metadata", {})
@@ -316,7 +314,7 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
         return cast(EnrichedSubmitJobParams, submit_job_params)
 
     def _start(
-        self, context: OpOrAssetExecutionContext, session: PipesSession, submit_job_params: EnrichedSubmitJobParams
+        self, context: DagsterExecutionContext, session: PipesSession, submit_job_params: EnrichedSubmitJobParams
     ) -> str:
         submission_id = submit_job_params["submission_id"]
 
@@ -337,7 +335,7 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
 
         return job_id
 
-    def _wait_for_completion(self, context: OpOrAssetExecutionContext, job_id: str) -> JobStatus:
+    def _wait_for_completion(self, context: DagsterExecutionContext, job_id: str) -> JobStatus:
         from ray.job_submission import JobStatus
 
         context.log.info(f"[pipes] Waiting for RayJob {job_id} to complete...")
@@ -356,7 +354,7 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
 
             time.sleep(self.poll_interval)
 
-    def _terminate(self, context: OpOrAssetExecutionContext, job_id: str) -> None:
+    def _terminate(self, context: DagsterExecutionContext, job_id: str) -> None:
         context.log.info(f"[pipes] Terminating RayJob {job_id} ...")
         self.client.stop_job(job_id)
         context.log.info(f"[pipes] Ray job {job_id} terminated.")
