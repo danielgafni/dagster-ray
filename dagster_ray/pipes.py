@@ -243,8 +243,8 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
         context_injector: PipesContextInjector | None = None,
         message_reader: PipesMessageReader | None = None,
         forward_termination: bool = True,
-        timeout: int = 600,
-        poll_interval: int = 5,
+        timeout: float = 600,
+        poll_interval: float = 1,
     ):
         self.client = client
         self._context_injector = context_injector or PipesEnvContextInjector()

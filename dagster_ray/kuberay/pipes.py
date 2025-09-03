@@ -60,8 +60,8 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
         context_injector: PipesContextInjector | None = None,
         message_reader: PipesMessageReader | None = None,
         forward_termination: bool = True,
-        timeout: int = 600,
-        poll_interval: int = 5,
+        timeout: float = 600,
+        poll_interval: float = 1,
         port_forward: bool = False,
     ):
         self.client: RayJobClient = client or RayJobClient()
@@ -107,13 +107,15 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
             ray_job = self._enrich_ray_job(context, session, ray_job)
             start_response = self._start(context, session, ray_job)
             start_status = cast(RayJobStatus, start_response["status"])
-            ray_job_id = start_status["jobId"]
+            ray_job_id = start_status["jobId"]  # pyright: ignore[reportTypedDictNotRequiredAccess]
 
             name = ray_job["metadata"]["name"]
             namespace = ray_job["metadata"]["namespace"]
 
             with self.client.ray_cluster_client.job_submission_client(
-                name=self.client.get_ray_cluster_name(name=name, namespace=namespace),
+                name=self.client.get_ray_cluster_name(
+                    name=name, namespace=namespace, timeout=self.timeout, poll_interval=self.poll_interval
+                ),
                 namespace=namespace,
                 port_forward=self.port_forward,
             ) as job_submission_client:

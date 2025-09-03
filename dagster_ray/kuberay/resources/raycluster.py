@@ -182,7 +182,9 @@ class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
         try:
             self._wait_raycluster_ready()
 
-            self._host = self.client.client.get_status(name=self.cluster_name, namespace=self.namespace)[  # pyright: ignore
+            self._host = self.client.client.get_status(
+                name=self.cluster_name, namespace=self.namespace, timeout=self.timeout, poll_interval=self.poll_interval
+            )[  # pyright: ignore
                 "head"
             ]["serviceIP"]
 
@@ -201,6 +203,7 @@ class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
             self.cluster_name,
             namespace=self.namespace,
             timeout=self.timeout,
+            poll_interval=self.poll_interval,
             log_cluster_conditions=self.log_cluster_conditions,
         )
 
