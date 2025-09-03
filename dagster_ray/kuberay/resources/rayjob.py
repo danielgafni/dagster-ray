@@ -142,9 +142,7 @@ class KubeRayInteractiveJob(BaseKubeRayResourceConfig, BaseRayResource):
                 if not resource:
                     raise RuntimeError(f"Couldn't create RayJob {self.namespace}/{self.cluster_name}")
 
-            context.log.info(
-                f"Created RayJob {self.namespace}/{self.job_name}. Waiting for it to become ready (timeout={self.timeout:.0f}s)..."
-            )
+            context.log.info(f"Created RayJob {self.namespace}/{self.job_name}.")
         except BaseException as e:
             context.log.critical(f"Couldn't create RayJob {self.namespace}/{self.job_name}!")
             raise e
@@ -155,6 +153,9 @@ class KubeRayInteractiveJob(BaseKubeRayResourceConfig, BaseRayResource):
         assert context.dagster_run is not None
 
         try:
+            context.log.info(
+                f"Waiting for RayJob {self.namespace}/{self.job_name} to become ready (timeout={self.timeout:.0f}s)..."
+            )
             self.client.wait_until_ready(
                 name=self.job_name,
                 namespace=self.namespace,
@@ -184,17 +185,17 @@ class KubeRayInteractiveJob(BaseKubeRayResourceConfig, BaseRayResource):
 
     @override
     def connect(self, context: "OpOrAssetExecutionContext | InitResourceContext") -> "RayBaseContext":
-        """Connect to Ray and place a `ray.io/job-submission-id` annotation on the `RayJob` to bind the client session to the `RayJob` CR. Requires KubeRay 1.3.0.
+        """Connect to Ray and set `RayJobSpec.jobId` to bind the client session to the `RayJob` CR. Requires KubeRay 1.3.0.
 
         This procedure is described in https://github.com/ray-project/kuberay/pull/2364
         """
         ray_context = super().connect(context)
 
-        # now get the job id and annotate it
+        # now point the RayJob at our ray job
         self.client.update(
             name=self.job_name,
             namespace=self.namespace,
-            body={"metadata": {"annotations": {"ray.io/job-submission-id": self.runtime_job_id}}},
+            body={"spec": {"jobId": self.runtime_job_id}},
         )
 
         return ray_context

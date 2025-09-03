@@ -1,4 +1,5 @@
 import socket
+import time
 from typing import Any, cast
 
 import pytest
@@ -51,7 +52,7 @@ def get_hostname():
     return socket.gethostname()
 
 
-def ensure_rayjob_correctness(
+def ensure_interactive_rayjob_correctness(
     rayjob: KubeRayInteractiveJob,
     k8s_with_kuberay: AClusterManager,
     context: AssetExecutionContext,
@@ -62,11 +63,18 @@ def ensure_rayjob_correctness(
         target_port=10001,
         namespace=rayjob.namespace,
     ):
+        assert rayjob.client.get_status(rayjob.job_name, rayjob.namespace)["jobDeploymentStatus"] == "Waiting"  # pyright: ignore[reportTypedDictNotRequiredAccess]
+
         # now we can access the head node
         # hack the _host attribute to point to the port-forwarded address
         rayjob._host = "127.0.0.1"
         rayjob.connect(context)  # normally this would happen automatically during resource setup
         assert rayjob.context is not None
+
+        time.sleep(1)
+
+        job_status = rayjob.client.get_status(rayjob.job_name, rayjob.namespace).get("jobStatus")
+        assert job_status == "RUNNING", job_status
 
         # make sure a @remote function runs inside the cluster
         # not in localhost
@@ -88,7 +96,7 @@ def test_interactive_rayjob(
 
         assert isinstance(interactive_rayjob, KubeRayInteractiveJob)
 
-        ensure_rayjob_correctness(
+        ensure_interactive_rayjob_correctness(
             interactive_rayjob,
             k8s_with_kuberay,
             context,
