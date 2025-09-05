@@ -2,6 +2,7 @@ import socket
 import time
 from typing import Any, cast
 
+import dagster as dg
 import pytest
 import ray  # noqa: TID253
 from dagster import AssetExecutionContext, asset, materialize_to_memory
@@ -20,6 +21,20 @@ from dagster_ray.kuberay.resources.rayjob import InteractiveRayJobConfig, Intera
 from tests.kuberay.utils import NAMESPACE, get_random_free_port
 
 MIN_KUBERAY_VERSION = "1.3.0"
+
+
+def test_instantiate_defaults():
+    _ = KubeRayInteractiveJob()
+
+
+def test_no_lifecycle(dagster_instance: dg.DagsterInstance):
+    interactive_rayjob = KubeRayInteractiveJob(lifecycle=Lifecycle(create=False, wait=False, connect=False))
+
+    @dg.asset
+    def my_asset(interactive_rayjob: KubeRayInteractiveJob) -> None:
+        return
+
+    dg.materialize(assets=[my_asset], resources={"interactive_rayjob": interactive_rayjob}, instance=dagster_instance)
 
 
 @pytest.fixture(scope="session")

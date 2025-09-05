@@ -35,7 +35,7 @@
 Documentation can be found below.
 
 > [!NOTE]
-> This project is ready for production use, but some APIs may change between minor releases. A deprecation warning will be given in advance for such changes.
+> This project is ready for production use, but some APIs may change between minor releases.
 
 # Contributing
 
