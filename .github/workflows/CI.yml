@@ -21,9 +21,34 @@ env:
   UV_SYSTEM_PYTHON: "1"
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    # Set job outputs to values from filter step
+    outputs:
+      src: ${{ steps.filter.outputs.src }}
+    steps:
+    - uses: dorny/paths-filter@v3
+      id: filter
+      with:
+        filters: |
+          src:
+            - 'dagster_ray/**'
+            - 'tests/**'
+            - 'examles/**'
+            - pyproject.toml
+            - uv.lock
+            - .pre-commit-config.yaml
+            - Dockerfile
+            - .dockerignore
+            - .github/workflows/CI.yml
+
   test:
     name: Test Python ${{ matrix.py }} - Ray ${{ matrix.ray }} - Dagster ${{ matrix.dagster }} - KubeRay ${{ matrix.kuberay }}
     runs-on: ${{ matrix.os }}-latest
+    needs: changes
+    if: ${{ needs.changes.outputs.src == 'true' }}
     strategy:
       fail-fast: false
       matrix:
@@ -76,6 +101,8 @@ jobs:
   lint:
     name: Lint ${{ matrix.py }}
     runs-on: ${{ matrix.os }}-latest
+    needs: changes
+    if: ${{ needs.changes.outputs.src == 'true' }}
     strategy:
       fail-fast: false
       matrix:
@@ -96,6 +123,8 @@ jobs:
   typecheck:
     name: Typecheck ${{ matrix.py }}
     runs-on: ${{ matrix.os }}-latest
+    needs: changes
+    if: ${{ needs.changes.outputs.src == 'true' }}
     strategy:
       fail-fast: false
       matrix:
@@ -124,31 +153,3 @@ jobs:
     steps:
       - name: Success
         run: echo "QA Succeeded!"
-
-  publish:
-    needs: qa_success
-    if: contains(github.ref, 'refs/tags/')
-    name: Publish to PyPI
-    runs-on: ubuntu-latest
-    environment:
-      name: release
-    permissions:
-      # IMPORTANT: this permission is mandatory for trusted publishing
-      id-token: write
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
-        with:
-          version: 0.8.12
-          enable-cache: true
-      - name: Set up Python
-        run: uv python install $PYTHON_VERSION && uv python pin $PYTHON_VERSION
-        env:
-          PYTHON_VERSION: 3.11.9
-      - name: Generate Version
-        run: export VERSION=$(uv run dunamai from any --style pep440) && echo "Version is $VERSION" && echo "VERSION=$VERSION" >> $GITHUB_ENV
-      - name: Replace version in code
-        run: uv run hatch version $VERSION
-      - name: Publish to PyPI
-        run: uv build && uv publish
