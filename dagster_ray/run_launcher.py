@@ -134,7 +134,7 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
             ).get_command_args()
         )
 
-        # wrap the json in quotes to prevent erros with shell commands
+        # wrap the json in quotes to prevent errors with shell commands
         args[-1] = "'" + args[-1] + "'"
 
         self._launch_ray_job(submission_id, " ".join(args), run)

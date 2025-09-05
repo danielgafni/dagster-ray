@@ -27,11 +27,9 @@ class KubeRayJobClientResource(ConfigurableResource[RayJobClient]):
     kube_context: "str | None" = None
     kubeconfig_file: "str | None" = None
 
-    @contextlib.contextmanager
-    def yield_for_execution(self, context: InitResourceContext) -> Generator[RayJobClient, None, None]:
+    def create_resource(self, context: dg.InitResourceContext):
         load_kubeconfig(context=self.kube_context, config_file=self.kubeconfig_file)
-
-        yield RayJobClient(context=self.kube_context, config_file=self.kubeconfig_file)
+        return RayJobClient(context=self.kube_context, config_file=self.kubeconfig_file)
 
 
 class InteractiveRayJobSpec(RayJobSpec):
@@ -43,7 +41,7 @@ class InteractiveRayJobConfig(RayJobConfig):
 
 
 @beta
-class KubeRayInteractiveJob(BaseKubeRayResourceConfig, BaseRayResource):
+class KubeRayInteractiveJob(BaseRayResource, BaseKubeRayResourceConfig):
     """
     Provides a `RayJob` for Dagster steps.
     """
@@ -51,9 +49,8 @@ class KubeRayInteractiveJob(BaseKubeRayResourceConfig, BaseRayResource):
     ray_job: InteractiveRayJobConfig = Field(
         default_factory=InteractiveRayJobConfig, description="Configuration for the Kubernetes `RayJob` CR"
     )
-    client: dg.ResourceDependency[RayJobClient] = Field(
-        # default_factory=KubeRayJobClientResource,
-        description="Kubernetes `RayJob` client"
+    client: dg.ResourceDependency[RayJobClient] = Field(  # pyright: ignore[reportAssignmentType]
+        default_factory=KubeRayJobClientResource, description="Kubernetes `RayJob` client"
     )
 
     log_cluster_conditions: bool = Field(
