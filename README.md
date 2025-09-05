@@ -464,7 +464,7 @@ When added as resource dependency to an `@op/@asset`, the `KubeRayCluster`:
  - Connects to the cluster in client mode with `ray.init`
  - Deletes the cluster after step execution (unless `cleanup` is set to `False`)
 
-> ![NOTE]
+> [!NOTE]
 > These actions happen automatically by default, but this is configurable. The user may proceed with them manually on-demand.
 
 `RayCluster` comes with minimal default configuration, matching `KubeRay` defaults.
@@ -554,9 +554,9 @@ This resource combines the benefits of `KubeRayCluster` with `RayJob` features:
 When added as resource dependency to an `@op/@asset`, the `KubeRayInteractiveJob`:
 - Creates a "paused" `RayJob`
 - Waits for the underlying `RayCluster` to become ready
-- Connects to the cluster in client mode with `ray.init` and annotates the `RayJob` with the job submission ID. The normal `RayJob` lifecycle continues afterwards.
+- Connects to the cluster in client mode with `ray.init` and sets `.spec.jobId` on the `RayJob` to the job submission ID. The normal `RayJob` lifecycle continues afterwards.
 
-> ![NOTE]
+> [!NOTE]
 > These actions happen automatically by default, but this is configurable. The user may proceed with them manually on-demand.
 
 Examples:
