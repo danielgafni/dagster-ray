@@ -1,6 +1,6 @@
 import socket
 import time
-from typing import Any, cast
+from typing import Any, Literal, cast
 
 import dagster as dg
 import pytest
@@ -23,12 +23,19 @@ from tests.kuberay.utils import NAMESPACE, get_random_free_port
 MIN_KUBERAY_VERSION = "1.3.0"
 
 
+@pytest.fixture(scope="session")
+def rayjob_client(k8s_with_kuberay: AClusterManager) -> RayJobClient:
+    return RayJobClient(config_file=str(k8s_with_kuberay.kubeconfig))
+
+
 def test_instantiate_defaults():
     _ = KubeRayInteractiveJob()
 
 
-def test_no_lifecycle(dagster_instance: dg.DagsterInstance):
-    interactive_rayjob = KubeRayInteractiveJob(lifecycle=Lifecycle(create=False, wait=False, connect=False))
+def test_no_lifecycle(dagster_instance: dg.DagsterInstance, rayjob_client: RayJobClient):
+    interactive_rayjob = KubeRayInteractiveJob(
+        client=rayjob_client, lifecycle=Lifecycle(create=False, wait=False, connect=False)
+    )
 
     @dg.asset
     def my_asset(interactive_rayjob: KubeRayInteractiveJob) -> None:
@@ -37,9 +44,67 @@ def test_no_lifecycle(dagster_instance: dg.DagsterInstance):
     dg.materialize(assets=[my_asset], resources={"interactive_rayjob": interactive_rayjob}, instance=dagster_instance)
 
 
+@pytest.mark.parametrize("cleanup", ["always", "never", "except_failure", "on_interrupt"])
+@pytest.mark.parametrize("wait", [True, False])
+@pytest.mark.parametrize("interrupt", [True, False])
+@pytest.mark.slow
+def test_cleanup(
+    kuberay_version: str,
+    dagster_instance: dg.DagsterInstance,
+    rayjob_client: RayJobClient,
+    dagster_ray_image: str,
+    wait: bool,
+    cleanup: Literal["always", "never", "except_failure", "on_interrupt"],
+    interrupt: bool,
+):
+    if Version(kuberay_version) < Version(MIN_KUBERAY_VERSION):
+        pytest.skip(f"KubeRay {MIN_KUBERAY_VERSION} is required to use interactive mode with RayJob")
+
+    interactive_rayjob = KubeRayInteractiveJob(
+        image=dagster_ray_image,
+        client=rayjob_client,
+        redis_port=get_random_free_port(),
+        ray_job=InteractiveRayJobConfig(
+            metadata={"namespace": NAMESPACE},
+        ),
+        lifecycle=Lifecycle(create=True, wait=wait, connect=False, cleanup=cleanup),
+    )
+
+    @dg.asset
+    def my_asset(interactive_rayjob: KubeRayInteractiveJob) -> None:
+        if interrupt:
+            raise KeyboardInterrupt("Intentional interruption")
+
+    res = dg.materialize(
+        assets=[my_asset],
+        resources={"interactive_rayjob": interactive_rayjob},
+        instance=dagster_instance,
+        raise_on_error=False,
+    )
+
+    jobs = rayjob_client.list(namespace=interactive_rayjob.namespace, label_selector=f"dagster/run-id={res.run_id}")[
+        "items"
+    ]
+
+    if cleanup == "always":
+        assert len(jobs) == 0
+    elif cleanup == "never":
+        assert len(jobs) == 1
+    elif cleanup == "except_failure":
+        if res.success:
+            assert len(jobs) == 0
+        else:
+            assert len(jobs) == 1
+    elif cleanup == "on_interrupt":
+        if interrupt:
+            assert len(jobs) == 0
+        else:
+            assert len(jobs) == 1
+
+
 @pytest.fixture(scope="session")
 def interactive_rayjob_resource(
-    k8s_with_kuberay: AClusterManager,
+    rayjob_client: RayJobClient,
     dagster_ray_image: str,
     head_group_spec: dict[str, Any],
     worker_group_specs: list[dict[str, Any]],
@@ -50,7 +115,7 @@ def interactive_rayjob_resource(
 
     return KubeRayInteractiveJob(
         image=dagster_ray_image,
-        client=RayJobClient(config_file=str(k8s_with_kuberay.kubeconfig)),
+        client=rayjob_client,
         ray_job=InteractiveRayJobConfig(
             metadata={"namespace": NAMESPACE},
             spec=InteractiveRayJobSpec(
