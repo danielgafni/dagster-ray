@@ -75,6 +75,10 @@ class BaseRayResource(ConfigurableResource, ABC):
         default=False,
         description="Enable post-mortem debugging: inject `RAY_DEBUG_POST_MORTEM=1` into the Ray cluster configuration. Learn more: https://docs.ray.io/en/latest/ray-observability/ray-distributed-debugger.html",
     )
+    enable_legacy_debugger: bool = Field(
+        default=False,
+        description="Enable legacy debugger: inject `RAY_DEBUG=legacy` into the Ray cluster configuration. Learn more: https://docs.ray.io/en/latest/ray-observability/user-guides/debug-apps/ray-debugging.html#using-the-ray-debugger",
+    )
 
     _context: RayBaseContext | None = PrivateAttr()
 
@@ -151,4 +155,6 @@ class BaseRayResource(ConfigurableResource, ABC):
             vars["RAY_task_events_report_interval_ms"] = "0"
         if self.enable_actor_task_logging:
             vars["RAY_ENABLE_RECORD_ACTOR_TASK_LOGGING"] = "1"
+        if self.enable_legacy_debugger:
+            vars["RAY_DEBUG"] = "legacy"
         return vars
