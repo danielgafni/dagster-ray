@@ -1,6 +1,6 @@
 import contextlib
 from collections.abc import Generator
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, Optional
 
 import dagster as dg
 from dagster import ConfigurableResource, InitResourceContext
@@ -8,12 +8,13 @@ from dagster._annotations import beta
 from pydantic import Field, PrivateAttr
 from typing_extensions import Self, override
 
-from dagster_ray._base.resources import BaseRayResource, OpOrAssetExecutionContext
+from dagster_ray._base.resources import BaseRayResource, Lifecycle
 from dagster_ray.kuberay.client import RayJobClient
 from dagster_ray.kuberay.client.base import load_kubeconfig
 from dagster_ray.kuberay.configs import RayJobConfig, RayJobSpec
 from dagster_ray.kuberay.resources.base import BaseKubeRayResourceConfig
 from dagster_ray.kuberay.utils import normalize_k8s_label_values
+from dagster_ray.types import AnyDagsterContext
 
 if TYPE_CHECKING:
     from ray._private.worker import BaseContext as RayBaseContext  # noqa
@@ -24,8 +25,8 @@ if TYPE_CHECKING:
 
 @beta
 class KubeRayJobClientResource(ConfigurableResource[RayJobClient]):
-    kube_context: "str | None" = None
-    kubeconfig_file: "str | None" = None
+    kube_context: Optional[str] = None
+    kubeconfig_file: Optional[str] = None
 
     def create_resource(self, context: dg.InitResourceContext):
         load_kubeconfig(context=self.kube_context, config_file=self.kubeconfig_file)
@@ -45,6 +46,13 @@ class KubeRayInteractiveJob(BaseRayResource, BaseKubeRayResourceConfig):
     """
     Provides a `RayJob` for Dagster steps.
     """
+
+    lifecycle: Lifecycle = Field(
+        default_factory=lambda: Lifecycle(
+            cleanup="on_interrupt"  # RayJob has it's own lifecycle management so it makes sense to only interfere when the step has been cancelled, otherwise it will be left in Waiting state (see https://github.com/ray-project/kuberay/issues/4037)
+        ),
+        description="Actions to perform during resource setup.",
+    )
 
     ray_job: InteractiveRayJobConfig = Field(
         default_factory=InteractiveRayJobConfig, description="Configuration for the Kubernetes `RayJob` CR"
@@ -92,7 +100,7 @@ class KubeRayInteractiveJob(BaseRayResource, BaseKubeRayResourceConfig):
         return self.ray_job.namespace
 
     @override
-    def get_dagster_tags(self, context: "InitResourceContext | OpOrAssetExecutionContext") -> dict[str, str]:
+    def get_dagster_tags(self, context: AnyDagsterContext) -> dict[str, str]:
         tags = super().get_dagster_tags(context=context)
         tags.update({"dagster/deployment": self.deployment_name})
         return tags
@@ -102,20 +110,31 @@ class KubeRayInteractiveJob(BaseRayResource, BaseKubeRayResourceConfig):
         assert context.log is not None
         assert context.dagster_run is not None
 
-        if self.lifecycle.create:
-            self.create(context)
-            if self.lifecycle.wait:
-                self.wait(context)
-                if self.lifecycle.connect:
-                    self.connect(context)
+        try:
+            if self.lifecycle.create:
+                self.create(context)
+                if self.lifecycle.wait:
+                    self.wait(context)
+                    if self.lifecycle.connect:
+                        self.connect(context)
 
-        yield self
+            yield self
 
-        if self._context is not None:
+            self.cleanup(context, None)
+
+        except BaseException as e:
+            if hasattr(self, "_job_name") and self._job_name is not None:
+                context.log.error(f"Unexpected error during RayJob {self.namespace}/{self.job_name} execution.")
+            else:
+                context.log.error(f"Unexpected error during RayJob execution in namespace {self.namespace}.")
+            self.cleanup(context, e)
+            raise e
+
+        if hasattr(self, "_context") and self._context is not None:
             self._context.disconnect()
 
     @override
-    def create(self, context: "InitResourceContext | OpOrAssetExecutionContext"):
+    def create(self, context: AnyDagsterContext):
         assert context.log is not None
         assert context.dagster_run is not None
 
@@ -145,7 +164,7 @@ class KubeRayInteractiveJob(BaseRayResource, BaseKubeRayResourceConfig):
             raise e
 
     @override
-    def wait(self, context: "OpOrAssetExecutionContext | InitResourceContext"):
+    def wait(self, context: AnyDagsterContext):
         assert context.log is not None
         assert context.dagster_run is not None
 
@@ -175,13 +194,16 @@ class KubeRayInteractiveJob(BaseRayResource, BaseKubeRayResourceConfig):
             context.log.info(msg)
 
         except BaseException as e:
-            context.log.critical(
-                f"Couldn't connect to RayCluster {self.namespace}/{self.cluster_name} associated with RayJob {self.namespace}/{self.job_name}!"
-            )
+            if hasattr(self, "_cluster_name"):
+                context.log.critical(
+                    f"Couldn't connect to RayCluster {self.namespace}/{self.cluster_name} associated with RayJob {self.namespace}/{self.job_name}!"
+                )
+            else:
+                context.log.critical(f"Couldn't wait for RayJob {self.namespace}/{self.job_name} to become ready!")
             raise e
 
     @override
-    def connect(self, context: "OpOrAssetExecutionContext | InitResourceContext") -> "RayBaseContext":
+    def connect(self, context: AnyDagsterContext) -> "RayBaseContext":
         """Connect to Ray and set `RayJobSpec.jobId` to bind the client session to the `RayJob` CR. Requires KubeRay 1.3.0.
 
         This procedure is described in https://github.com/ray-project/kuberay/pull/2364
@@ -196,3 +218,25 @@ class KubeRayInteractiveJob(BaseRayResource, BaseKubeRayResourceConfig):
         )
 
         return ray_context
+
+    def cleanup(self, context: AnyDagsterContext, exception: Optional[BaseException]):
+        assert context.log is not None
+
+        if self.lifecycle.cleanup == "never":
+            to_delete = False
+        elif not hasattr(self, "_job_name") or self._job_name is None:
+            to_delete = False
+        elif self.lifecycle.cleanup == "always":
+            to_delete = True
+        elif self.lifecycle.cleanup == "except_failure" and exception is None:
+            to_delete = True
+        elif self.lifecycle.cleanup == "on_interrupt" and isinstance(exception, KeyboardInterrupt):
+            to_delete = True
+        else:
+            to_delete = False
+
+        if to_delete:
+            self.client.delete(self.job_name, namespace=self.namespace)
+            context.log.info(
+                f'Deleted RayJob {self.namespace}/{self.job_name} according to cleanup policy "{self.lifecycle.cleanup}"'
+            )

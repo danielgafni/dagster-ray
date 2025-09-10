@@ -10,8 +10,6 @@ from dagster_ray import LocalRay, RayResource
 def test_runtime_env():
     import ray
 
-    ray.init
-
     @ray.remote
     def my_func():
         assert os.environ["FOO"] == "BAR"
@@ -32,8 +30,6 @@ def test_runtime_env():
 
 def test_debug_mode():
     import ray
-
-    ray.init
 
     @ray.remote
     def my_func():

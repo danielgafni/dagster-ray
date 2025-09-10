@@ -112,6 +112,11 @@ exclude = [
 ]
 [tool.ruff.lint]
 extend-select = ["I", "TID252", "TID253", "UP", "FA100", "FA102", "PYI044", "F404"]
+ignore = [
+    "FA100",  # from __future__ import annotations breaks pydantic
+    "FA102" # from __future__ import annotations breaks pydantic
+]
+
 [tool.ruff.lint.isort]
 known-first-party = ["dagster_ray", "tests"]
 

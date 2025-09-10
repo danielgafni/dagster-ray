@@ -220,3 +220,26 @@ def k8s_with_raycluster(
         name=PERSISTENT_RAY_CLUSTER_NAME,
         namespace=NAMESPACE,
     )
+
+
+@pytest.fixture(autouse=True)
+def ray_shutdown():
+    """Ensure there is not existing Ray connection both before and after each test,
+
+    since all the tests in this module are using remote Ray clusters."""
+    try:
+        import ray
+
+        if ray.is_initialized():
+            ray.shutdown()
+    except ImportError:
+        pass
+
+    yield
+    try:
+        import ray
+
+        if ray.is_initialized():
+            ray.shutdown()
+    except ImportError:
+        pass

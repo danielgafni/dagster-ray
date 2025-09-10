@@ -3,7 +3,7 @@ from __future__ import annotations
 import contextlib
 import sys
 from collections.abc import Generator
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 from dagster import ConfigurableResource, InitResourceContext
 from dagster._annotations import beta
@@ -20,10 +20,9 @@ if sys.version_info >= (3, 11):
 else:
     from typing_extensions import Self
 
-from dagster import DagsterRun, DagsterRunStatus
 from ray._private.worker import BaseContext as RayBaseContext  # noqa
 
-from dagster_ray._base.resources import BaseRayResource, OpOrAssetExecutionContext
+from dagster_ray._base.resources import BaseRayResource, Lifecycle, OpOrAssetExecutionContext
 from dagster_ray.kuberay.client.base import load_kubeconfig
 
 if TYPE_CHECKING:
@@ -72,6 +71,10 @@ class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
     """
     Provides a `RayCluster` for Dagster steps.
     """
+
+    lifecycle: Lifecycle = Field(
+        default_factory=lambda: Lifecycle(cleanup="always"), description="Actions to perform during resource setup."
+    )
 
     ray_cluster: RayClusterConfig = Field(
         default_factory=RayClusterConfig, description="Kubernetes `RayCluster` CR configuration."
@@ -134,12 +137,12 @@ class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
 
             yield self
 
-            self.cleanup(context)
+            self.cleanup(context, None)
 
-            if self._context is not None:
+            if hasattr(self, "_context") and self._context is not None:
                 self._context.disconnect()
         except BaseException as e:
-            self.cleanup(context)
+            self.cleanup(context, e)
             raise e
 
     @override
@@ -196,7 +199,7 @@ class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
 
         except BaseException as e:
             context.log.critical(f"Couldn't connect to RayCluster {self.namespace}/{self.cluster_name}!")
-            self.cleanup(context)
+            self.cleanup(context, e)
             raise e
 
     def _wait_raycluster_ready(self):
@@ -208,19 +211,24 @@ class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
             log_cluster_conditions=self.log_cluster_conditions,
         )
 
-    def cleanup(self, context: InitResourceContext | OpOrAssetExecutionContext):
+    def cleanup(self, context: InitResourceContext | OpOrAssetExecutionContext, exception: BaseException | None):
         assert context.log is not None
 
         if self.lifecycle.cleanup == "never":
-            return
+            to_delete = False
         elif not self.created:
-            return
+            to_delete = False
         elif self.lifecycle.cleanup == "always":
+            to_delete = True
+        elif self.lifecycle.cleanup == "except_failure" and exception is None:
+            to_delete = True
+        elif self.lifecycle.cleanup == "on_interrupt" and isinstance(exception, KeyboardInterrupt):
+            to_delete = True
+        else:
+            to_delete = False
+
+        if to_delete:
             self.client.client.delete(self.cluster_name, namespace=self.namespace)
-            context.log.info(f"Deleted RayCluster {self.namespace}/{self.cluster_name}")
-        elif (
-            self.lifecycle.cleanup == "except_failure"
-            and cast(DagsterRun, context.dagster_run).status != DagsterRunStatus.FAILURE
-        ):
-            self.client.client.delete(self.cluster_name, namespace=self.namespace)
-            context.log.info(f"Deleted RayCluster {self.namespace}/{self.cluster_name}")
+            context.log.info(
+                f'Deleted RayCluster {self.namespace}/{self.cluster_name} according to cleanup policy "{self.lifecycle.cleanup}"'
+            )
