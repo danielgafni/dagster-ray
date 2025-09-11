@@ -149,8 +149,16 @@ jobs:
 
   qa_success:
     name: QA Success
-    needs: [ test, lint ]
-    runs-on: ubuntu-latest
+    if: always()
+    needs:
+    - test
+    - lint
+    - typecheck
+    runs-on: Ubuntu-latest
     steps:
-      - name: Success
-        run: echo "QA Succeeded!"
+    - name: Decide whether the needed jobs succeeded or failed
+      uses: re-actors/alls-green@release/v1
+      with:
+        allowed-failures: ""
+        allowed-skips: lint, test, typecheck
+        jobs: ${{ toJSON(needs) }}
