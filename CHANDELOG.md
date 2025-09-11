@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - added `enable_legacy_debugger` configuration parameter to subclasses of `RayResource`
 
+## Fixes
+- removed `ignore_reinit_error` from `RayResource` init options: it's potentially dangerous, for example in case the user has accidentally connected to another Ray cluster (including local ray) before initializing the resource.
+
 ## 0.1.0
 
 ### Changed
