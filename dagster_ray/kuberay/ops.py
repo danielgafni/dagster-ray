@@ -1,8 +1,9 @@
+import dagster as dg
 from dagster import Config, DagsterRunStatus, OpExecutionContext, RunsFilter, op
 from pydantic import Field
 
 from dagster_ray._base.constants import DEFAULT_DEPLOYMENT_NAME
-from dagster_ray.kuberay.resources import RayClusterClientResource
+from dagster_ray.kuberay.client.raycluster.client import RayClusterClient
 
 
 class DeleteKubeRayClustersConfig(Config):
@@ -14,12 +15,12 @@ class DeleteKubeRayClustersConfig(Config):
 def delete_kuberay_clusters_op(
     context: OpExecutionContext,
     config: DeleteKubeRayClustersConfig,
-    kuberay_client: RayClusterClientResource,
+    kuberay_client: dg.ResourceParam[RayClusterClient],
 ) -> None:
     for cluster_name in config.cluster_names:
         try:
-            if kuberay_client.client.get(name=cluster_name, namespace=config.namespace).get("items"):
-                kuberay_client.client.delete(name=cluster_name, namespace=config.namespace)
+            if kuberay_client.get(name=cluster_name, namespace=config.namespace).get("items"):
+                kuberay_client.delete(name=cluster_name, namespace=config.namespace)
                 context.log.info(f"RayCluster {config.namespace}/{cluster_name} deleted!")
             else:
                 context.log.warning(f"RayCluster {config.namespace}/{cluster_name} doesn't exist")
@@ -41,7 +42,7 @@ class CleanupKuberayClustersConfig(Config):
 def cleanup_kuberay_clusters_op(
     context: OpExecutionContext,
     config: CleanupKuberayClustersConfig,
-    kuberay_client: RayClusterClientResource,
+    kuberay_client: dg.ResourceParam[RayClusterClient],
 ) -> None:
     current_runs = context.instance.get_runs(
         filters=RunsFilter(
@@ -53,7 +54,7 @@ def cleanup_kuberay_clusters_op(
         )
     )
 
-    clusters = kuberay_client.client.list(
+    clusters = kuberay_client.list(
         namespace=config.namespace,
         label_selector=config.label_selector,
     )["items"]
@@ -68,7 +69,7 @@ def cleanup_kuberay_clusters_op(
 
     for cluster_name in old_cluster_names:
         try:
-            kuberay_client.client.delete(name=cluster_name, namespace=config.namespace)
+            kuberay_client.delete(name=cluster_name, namespace=config.namespace)
             context.log.info(f"RayCluster {config.namespace}/{cluster_name} deleted!")
         except:  # noqa
             context.log.exception(f"Couldn't delete RayCluster {config.namespace}/{cluster_name}")

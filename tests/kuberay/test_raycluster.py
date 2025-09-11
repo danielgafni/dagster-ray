@@ -146,7 +146,7 @@ def ensure_kuberay_cluster_correctness(
         # not in localhost
         assert ray_cluster.name in ray.get(get_hostname.remote())
 
-        ray_cluster_description = ray_cluster.client.client.get(ray_cluster.name, namespace=ray_cluster.namespace)
+        ray_cluster_description = ray_cluster.client.get(ray_cluster.name, namespace=ray_cluster.namespace)
         assert ray_cluster_description["metadata"]["labels"]["dagster/run-id"] == context.run_id
 
 
