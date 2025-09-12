@@ -36,8 +36,9 @@ class Lifecycle(dg.Config):
         default=True,
         description="Whether to run `ray.init` against the remote Ray cluster. If set to `False`, the user can manually call `.connect` instead.",
     )
-    cleanup: Literal["never", "except_failure", "always"] = Field(
-        default="always", description="Whether to delete the resource after Dagster step completion."
+    cleanup: Literal["never", "except_failure", "always", "on_interrupt"] = Field(
+        default="always",
+        description="Resource cleanup policy. Determines when the resource should be deleted after Dagster step execution or during interruption.",
     )
 
 

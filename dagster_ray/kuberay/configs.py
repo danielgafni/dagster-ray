@@ -200,7 +200,9 @@ class RayJobSpec(dg.PermissiveConfig):
     metadata: dict[str, Any] | None = None
     cluster_selector: dict[str, str] | None = None
     managed_by: str | None = None
-    deletion_strategy: dict[str, Any] | None = None
+    deletion_strategy: dict[str, Any] | None = Field(
+        default_factory=lambda: {"onFailure": {"policy": "DeleteCluster"}, "onSuccess": {"policy": "DeleteCluster"}}
+    )
     runtime_env_yaml: str | None = None
     job_id: str | None = None
     submission_mode: Literal["K8sJobMode", "HTTPMode", "InteractiveMode"] = "K8sJobMode"
@@ -208,7 +210,7 @@ class RayJobSpec(dg.PermissiveConfig):
     entrypoint_num_cpus: float | None = None
     entrypoint_memory: float | None = None
     entrypoint_num_gpus: float | None = None
-    ttl_seconds_after_finished: int | None = 60 * 60  # 1 hour
+    ttl_seconds_after_finished: int | None = 5 * 60  # 5 minutes
     shutdown_after_job_finishes: bool = True
     suspend: bool | None = None
 

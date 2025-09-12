@@ -54,5 +54,5 @@ class LocalRay(BaseRayResource):
 
         yield self
 
-        if self._context is not None:
+        if hasattr(self, "_context") and self._context is not None:
             self._context.disconnect()

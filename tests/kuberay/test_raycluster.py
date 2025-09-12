@@ -270,7 +270,7 @@ def test_kuberay_cleanup_job(
 
 
 def test_ray_cluster_builder_debug():
-    kuberay_cluster = KubeRayCluster(enable_debug_post_mortem=True)
+    kuberay_cluster = KubeRayCluster(enable_debug_post_mortem=True, image="test")
     kuberay_cluster._cluster_name = "test-cluster"
     context = dg.build_init_resource_context()
 
