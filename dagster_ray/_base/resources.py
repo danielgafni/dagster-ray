@@ -129,8 +129,6 @@ class BaseRayResource(ConfigurableResource, ABC):
                 k: v for k, v in init_options["runtime_env"]["env_vars"].items() if v is not None
             }
 
-        init_options["ignore_reinit_error"] = init_options.get("ignore_reinit_error", True)
-
         self.data_execution_options.apply()
 
         self._context = ray.init(
