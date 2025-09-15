@@ -110,6 +110,7 @@ class KubeRayInteractiveJob(BaseRayResource, BaseKubeRayResourceConfig):
         assert context.log is not None
         assert context.dagster_run is not None
 
+        exception_during_execution = None
         try:
             if self.lifecycle.create:
                 self.create(context)
@@ -120,18 +121,17 @@ class KubeRayInteractiveJob(BaseRayResource, BaseKubeRayResourceConfig):
 
             yield self
 
-            self.cleanup(context, None)
-
         except BaseException as e:
+            exception_during_execution = e
             if hasattr(self, "_job_name") and self._job_name is not None:
                 context.log.error(f"Unexpected error during RayJob {self.namespace}/{self.job_name} execution.")
             else:
                 context.log.error(f"Unexpected error during RayJob execution in namespace {self.namespace}.")
-            self.cleanup(context, e)
             raise e
-
-        if hasattr(self, "_context") and self._context is not None:
-            self._context.disconnect()
+        finally:
+            self.cleanup(context, exception_during_execution)
+            if hasattr(self, "_context") and self._context is not None:
+                self._context.disconnect()
 
     @override
     def create(self, context: AnyDagsterContext):
