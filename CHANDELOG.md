@@ -11,11 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `KubeRayInteractiveJob.deletion_strategy` now defaults to `DeleteCluster` for both successful and failed executions. This is a reasonable default for the use case.
 - `KubeRayInteractiveJob.ttl_seconds_after_finished` now defaults to `600` seconds.
 - `KubeRayCluster.lifecycle.cleanup` now defaults to `always`
-- `KubeRayJob.lifecycle.cleanup` now defaults to `on_interrupt`. Users are advised to rely on built-in `RayJob` cleanup mechanisms, such as `ttlSecondsAfterFinished` and `deletionStrategy`.
+- `KubeRayJob.lifecycle.cleanup` now defaults to `on_exception`. Users are advised to rely on built-in `RayJob` cleanup mechanisms, such as `ttlSecondsAfterFinished` and `deletionStrategy`.
 
 # Added
 - new `enable_legacy_debugger` configuration parameter to subclasses of `RayResource`
-- new `on_interrupt` option for `lifecycle.cleanup` policy
+- new `on_exception` option for `lifecycle.cleanup` policy
 - `KubeRayInteractiveJob` now respects `lifecycle.cleanup`
 
 ## Fixes

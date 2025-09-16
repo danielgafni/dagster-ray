@@ -26,16 +26,9 @@ class BaseKubeRayResourceConfig(Config):
         default=DEFAULT_DEPLOYMENT_NAME,
         description="Dagster deployment name. Is used as a prefix for the Kubernetes resource name. Dagster Cloud variables are used to determine the default value.",
     )
-    timeout: float = Field(default=600, description="Readiness timeout in seconds")
     poll_interval: float = Field(default=1.0, description="Poll interval for various API requests")
 
-    _cluster_name: str = PrivateAttr()
     _host: str = PrivateAttr()
-
-    @property
-    @abstractmethod
-    def cluster_name(self) -> str:
-        raise NotImplementedError
 
     @property
     @abstractmethod

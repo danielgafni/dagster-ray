@@ -1,12 +1,10 @@
-import contextlib
-from collections.abc import Generator
 from typing import TYPE_CHECKING, Literal, Optional
 
 import dagster as dg
-from dagster import ConfigurableResource, InitResourceContext
+from dagster import ConfigurableResource
 from dagster._annotations import beta
 from pydantic import Field, PrivateAttr
-from typing_extensions import Self, override
+from typing_extensions import override
 
 from dagster_ray._base.resources import BaseRayResource, Lifecycle
 from dagster_ray.kuberay.client import RayJobClient
@@ -49,7 +47,7 @@ class KubeRayInteractiveJob(BaseRayResource, BaseKubeRayResourceConfig):
 
     lifecycle: Lifecycle = Field(
         default_factory=lambda: Lifecycle(
-            cleanup="on_interrupt"  # RayJob has it's own lifecycle management so it makes sense to only interfere when the step has been cancelled, otherwise it will be left in Waiting state (see https://github.com/ray-project/kuberay/issues/4037)
+            cleanup="on_exception"  # RayJob has it's own lifecycle management so it makes sense to only interfere when the step has been cancelled, otherwise it will be left in Waiting state (see https://github.com/ray-project/kuberay/issues/4037)
         ),
         description="Actions to perform during resource setup.",
     )
@@ -66,7 +64,7 @@ class KubeRayInteractiveJob(BaseRayResource, BaseKubeRayResourceConfig):
         description="Whether to log `RayCluster` conditions while waiting for the RayCluster to become ready. For more information, see https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/observability.html#raycluster-status-conditions.",
     )
 
-    _job_name: str = PrivateAttr()
+    _name: str = PrivateAttr()
     _cluster_name: str = PrivateAttr()
     _host: str = PrivateAttr()
 
@@ -78,26 +76,30 @@ class KubeRayInteractiveJob(BaseRayResource, BaseKubeRayResourceConfig):
         return self._host
 
     @property
-    def job_name(self) -> str:
-        if not hasattr(self, "_job_name"):
-            raise ValueError(f"{self.__class__.__name__} not initialized")
+    def name(self) -> str:
+        if not hasattr(self, "_name"):
+            raise ValueError(f"{self.__class__.__name__} is not initialized")
         elif (name := self.ray_job.metadata.get("name")) is not None:
             return name
         else:
-            return self._job_name
-
-    @property
-    @override
-    def cluster_name(self) -> str:
-        if not hasattr(self, "_cluster_name"):
-            raise ValueError(f"{self.__class__.__name__} not initialized")
-        else:
-            return self._cluster_name
+            return self._name
 
     @property
     @override
     def namespace(self) -> str:
         return self.ray_job.namespace
+
+    @property
+    @override
+    def display_name(self) -> str:
+        return f"RayJob {self.namespace}/{self.name}" if self.created else f"RayJob in namespace {self.namespace}"
+
+    @property
+    def cluster_name(self) -> str:
+        if not hasattr(self, "_cluster_name"):
+            raise ValueError(f"{self.__class__.__name__} not initialized")
+        else:
+            return self._cluster_name
 
     @override
     def get_dagster_tags(self, context: AnyDagsterContext) -> dict[str, str]:
@@ -105,102 +107,57 @@ class KubeRayInteractiveJob(BaseRayResource, BaseKubeRayResourceConfig):
         tags.update({"dagster/deployment": self.deployment_name})
         return tags
 
-    @contextlib.contextmanager
-    def yield_for_execution(self, context: InitResourceContext) -> Generator[Self, None, None]:
-        assert context.log is not None
-        assert context.dagster_run is not None
-
-        exception_during_execution = None
-        try:
-            if self.lifecycle.create:
-                self.create(context)
-                if self.lifecycle.wait:
-                    self.wait(context)
-                    if self.lifecycle.connect:
-                        self.connect(context)
-
-            yield self
-
-        except BaseException as e:
-            exception_during_execution = e
-            if hasattr(self, "_job_name") and self._job_name is not None:
-                context.log.error(f"Unexpected error during RayJob {self.namespace}/{self.job_name} execution.")
-            else:
-                context.log.error(f"Unexpected error during RayJob execution in namespace {self.namespace}.")
-            raise e
-        finally:
-            self.cleanup(context, exception_during_execution)
-            if hasattr(self, "_context") and self._context is not None:
-                self._context.disconnect()
-
     @override
     def create(self, context: AnyDagsterContext):
         assert context.log is not None
         assert context.dagster_run is not None
 
-        self._job_name = self.ray_job.metadata.get("name") or self._get_step_name(context)
+        self._name = self.ray_job.metadata.get("name") or self._get_step_name(context)
 
-        try:
-            k8s_manifest = self.ray_job.to_k8s(
-                context,
-                image=(self.image or context.dagster_run.tags.get("dagster/image")),
-                labels=normalize_k8s_label_values(self.get_dagster_tags(context)),
-            )
+        k8s_manifest = self.ray_job.to_k8s(
+            context,
+            image=(self.image or context.dagster_run.tags.get("dagster/image")),
+            labels=normalize_k8s_label_values(self.get_dagster_tags(context)),
+        )
 
-            k8s_manifest["metadata"]["name"] = self.job_name
+        k8s_manifest["metadata"]["name"] = self.name
 
-            if not self.client.get(
-                name=self.job_name,
-                namespace=self.namespace,
-            ):
-                resource = self.client.create(body=k8s_manifest, namespace=self.namespace)
+        if not self.client.get(
+            name=self.name,
+            namespace=self.namespace,
+        ):
+            resource = self.client.create(body=k8s_manifest, namespace=self.namespace)
 
-                if not resource:
-                    raise RuntimeError(f"Couldn't create RayJob {self.namespace}/{self.cluster_name}")
-
-            context.log.info(f"Created RayJob {self.namespace}/{self.job_name}.")
-        except BaseException as e:
-            context.log.critical(f"Couldn't create RayJob {self.namespace}/{self.job_name}!")
-            raise e
+            if not resource:
+                raise RuntimeError(f"Couldn't create {self.display_name}")
 
     @override
     def wait(self, context: AnyDagsterContext):
         assert context.log is not None
         assert context.dagster_run is not None
 
-        try:
-            context.log.info(
-                f"Waiting for RayJob {self.namespace}/{self.job_name} to become ready (timeout={self.timeout:.0f}s)..."
-            )
-            self.client.wait_until_ready(
-                name=self.job_name,
-                namespace=self.namespace,
-                log_cluster_conditions=self.log_cluster_conditions,
-                timeout=self.timeout,
-                poll_interval=self.poll_interval,
-            )
-            self._cluster_name = self.client.get_ray_cluster_name(
-                self.job_name, self.namespace, timeout=self.timeout, poll_interval=self.poll_interval
-            )
-            self._host = self.client.ray_cluster_client.get_status(
-                name=self.cluster_name, namespace=self.namespace, timeout=self.timeout, poll_interval=self.poll_interval
-            )[  # pyright: ignore
-                "head"
-            ]["serviceIP"]
+        self.client.wait_until_ready(
+            name=self.name,
+            namespace=self.namespace,
+            log_cluster_conditions=self.log_cluster_conditions,
+            timeout=self.timeout,
+            poll_interval=self.poll_interval,
+        )
+        self._cluster_name = self.client.get_ray_cluster_name(
+            self.name, self.namespace, timeout=self.timeout, poll_interval=self.poll_interval
+        )
+        self._host = self.client.ray_cluster_client.get_status(
+            name=self.cluster_name, namespace=self.namespace, timeout=self.timeout, poll_interval=self.poll_interval
+        )[  # pyright: ignore
+            "head"
+        ]["serviceIP"]
 
-            msg = f"RayJob {self.namespace}/{self.job_name} has created a RayCluster {self.namespace}/{self.cluster_name}! Connection command:\n"
-            msg += f"kubectl -n {self.namespace} port-forward svc/{self.cluster_name}-head-svc 8265:8265 6379:6379 10001:10001"
+        msg = f"RayJob {self.namespace}/{self.name} has created a RayCluster {self.namespace}/{self.cluster_name}! Connection command:\n"
+        msg += (
+            f"kubectl -n {self.namespace} port-forward svc/{self.cluster_name}-head-svc 8265:8265 6379:6379 10001:10001"
+        )
 
-            context.log.info(msg)
-
-        except BaseException as e:
-            if hasattr(self, "_cluster_name"):
-                context.log.critical(
-                    f"Couldn't connect to RayCluster {self.namespace}/{self.cluster_name} associated with RayJob {self.namespace}/{self.job_name}!"
-                )
-            else:
-                context.log.critical(f"Couldn't wait for RayJob {self.namespace}/{self.job_name} to become ready!")
-            raise e
+        context.log.info(msg)
 
     @override
     def connect(self, context: AnyDagsterContext) -> "RayBaseContext":
@@ -212,31 +169,13 @@ class KubeRayInteractiveJob(BaseRayResource, BaseKubeRayResourceConfig):
 
         # now point the RayJob at our ray job
         self.client.update(
-            name=self.job_name,
+            name=self.name,
             namespace=self.namespace,
             body={"spec": {"jobId": self.runtime_job_id}},
         )
 
         return ray_context
 
-    def cleanup(self, context: AnyDagsterContext, exception: Optional[BaseException]):
-        assert context.log is not None
-
-        if self.lifecycle.cleanup == "never":
-            to_delete = False
-        elif not hasattr(self, "_job_name") or self._job_name is None:
-            to_delete = False
-        elif self.lifecycle.cleanup == "always":
-            to_delete = True
-        elif self.lifecycle.cleanup == "except_failure" and exception is None:
-            to_delete = True
-        elif self.lifecycle.cleanup == "on_interrupt" and isinstance(exception, KeyboardInterrupt):
-            to_delete = True
-        else:
-            to_delete = False
-
-        if to_delete:
-            self.client.delete(self.job_name, namespace=self.namespace)
-            context.log.info(
-                f'Deleted RayJob {self.namespace}/{self.job_name} according to cleanup policy "{self.lifecycle.cleanup}"'
-            )
+    @override
+    def delete(self, context: AnyDagsterContext):
+        self.client.delete(self.name, namespace=self.namespace)

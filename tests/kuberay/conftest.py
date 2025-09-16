@@ -1,3 +1,4 @@
+import logging
 import os
 import subprocess
 import sys
@@ -18,6 +19,8 @@ from dagster_ray.kuberay.client import RayClusterClient
 from dagster_ray.kuberay.configs import DEFAULT_HEAD_GROUP_SPEC, DEFAULT_WORKER_GROUP_SPECS
 from tests import ROOT_DIR
 from tests.kuberay.utils import NAMESPACE
+
+logger = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="session")
@@ -49,7 +52,7 @@ def dagster_ray_image():
         ray_version = ray.__version__
         dagster_version = dagster.__version__
 
-        image = f"local/dagster-ray:py-{python_version}-{ray_version}-{dagster_version}"
+        image = f"local.io/registry/dagster-ray:py-{python_version}-{ray_version}-{dagster_version}"
 
         subprocess.run(
             [
@@ -77,12 +80,9 @@ def dagster_ray_image():
     return image
 
 
-# TODO: it's easy to parametrize over different versions of k8s
-# but it would take quite some time to test all of them!
-# probably should only do it in CI
 KUBERNETES_VERSION = os.getenv("PYTEST_KUBERNETES_VERSION", "1.31.0")
-
-KUBERAY_VERSIONS = os.getenv("PYTEST_KUBERAY_VERSIONS", "1.2.2").split(",")
+KUBERAY_VERSIONS = os.getenv("PYTEST_KUBERAY_VERSIONS", "1.4.0").split(",")
+KUBERNETES_CONTEXT = "pytest-dagster-ray"
 
 
 @pytest_cases.fixture(scope="session")  # type: ignore
@@ -95,8 +95,8 @@ def kuberay_version(kuberay_version_param: str):
 def k8s_with_kuberay(
     request, kuberay_helm_repo, dagster_ray_image: str, kuberay_version: str
 ) -> Iterator[AClusterManager]:
-    k8s = select_provider_manager("minikube")("dagster-ray")
-    k8s.create(ClusterOptions(api_version=KUBERNETES_VERSION))
+    k8s = select_provider_manager("minikube")(KUBERNETES_CONTEXT[7:])  # strip pytest-
+    k8s.create(ClusterOptions(api_version=KUBERNETES_VERSION), cluster_timeout=600)
     # load images in advance to avoid possible timeouts later on
     k8s.load_image(f"quay.io/kuberay/operator:v{kuberay_version}")
 
@@ -107,7 +107,9 @@ def k8s_with_kuberay(
     with tempfile.TemporaryDirectory() as tmpdir:
         image_tar = Path(tmpdir) / "dagster-ray.tar"
         subprocess.run(["docker", "image", "save", "-o", str(image_tar), dagster_ray_image], check=True)
+        logger.info(f"Loading image {dagster_ray_image} into K8s...")
         k8s.load_image(str(image_tar))
+        logger.info(f"Image {dagster_ray_image} loaded.")
 
     # init the cluster with a workload
 
@@ -124,6 +126,8 @@ def k8s_with_kuberay(
         "kuberay/kuberay-operator",
         "--version",
         kuberay_version,
+        "--timeout",
+        "10m",
     ]
 
     if Version(kuberay_version) > Version("1.3.0"):
@@ -171,6 +175,7 @@ def worker_group_specs(dagster_ray_image: str) -> list[dict[str, Any]]:
 
 
 PERSISTENT_RAY_CLUSTER_NAME = "persistent-ray-cluster"
+RAYJOB_TIMEOUT = 30
 
 
 @pytest.fixture(scope="session")
@@ -180,11 +185,9 @@ def k8s_with_raycluster(
     worker_group_specs: list[dict[str, Any]],
 ) -> Iterator[tuple[dict[str, str], AClusterManager]]:
     # create a RayCluster
-    config.load_kube_config(str(k8s_with_kuberay.kubeconfig))
+    config.load_kube_config(str(k8s_with_kuberay.kubeconfig), context=KUBERNETES_CONTEXT)
 
-    client = RayClusterClient(
-        config_file=str(k8s_with_kuberay.kubeconfig),
-    )
+    client = RayClusterClient(config_file=str(k8s_with_kuberay.kubeconfig), context=KUBERNETES_CONTEXT)
 
     client.create(
         body={

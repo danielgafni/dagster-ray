@@ -12,12 +12,19 @@ from dagster_ray.kuberay import KubeRayCluster, RayClusterClientResource, RayClu
 from dagster_ray.kuberay.client import RayClusterClient
 from dagster_ray.kuberay.configs import RayClusterSpec
 from dagster_ray.kuberay.ops import CleanupKuberayClustersConfig
+from tests.kuberay.conftest import KUBERNETES_CONTEXT
 from tests.kuberay.utils import NAMESPACE, get_random_free_port
+
+
+@pytest.fixture(scope="session")
+def raycluster_client(k8s_with_kuberay: AClusterManager):
+    return RayClusterClientResource(kubeconfig_file=str(k8s_with_kuberay.kubeconfig), kube_context=KUBERNETES_CONTEXT)
 
 
 @pytest.fixture(scope="session")
 def ray_cluster_resource(
     k8s_with_kuberay: AClusterManager,
+    raycluster_client: RayClusterClientResource,
     dagster_ray_image: str,
     head_group_spec: dict[str, Any],
     worker_group_specs: list[dict[str, Any]],
@@ -29,7 +36,7 @@ def ray_cluster_resource(
         # have have to first run port-forwarding with minikube
         # we can only init ray after that
         lifecycle=Lifecycle(connect=False),
-        client=RayClusterClientResource(kubeconfig_file=str(k8s_with_kuberay.kubeconfig)),
+        client=raycluster_client,
         ray_cluster=RayClusterConfig(
             metadata={"namespace": NAMESPACE},
             spec=RayClusterSpec(head_group_spec=head_group_spec, worker_group_specs=worker_group_specs),
@@ -44,6 +51,7 @@ def ray_cluster_resource_skip_cleanup(
     dagster_ray_image: str,
     head_group_spec: dict[str, Any],
     worker_group_specs: list[dict[str, Any]],
+    raycluster_client: RayClusterClientResource,
 ) -> KubeRayCluster:
     redis_port = get_random_free_port()
 
@@ -55,7 +63,7 @@ def ray_cluster_resource_skip_cleanup(
             connect=False,
             cleanup="never",
         ),
-        client=RayClusterClientResource(kubeconfig_file=str(k8s_with_kuberay.kubeconfig)),
+        client=raycluster_client,
         ray_cluster=RayClusterConfig(
             metadata={"namespace": NAMESPACE},
             spec=RayClusterSpec(head_group_spec=head_group_spec, worker_group_specs=worker_group_specs),
@@ -70,6 +78,7 @@ def ray_cluster_resource_skip_create(
     dagster_ray_image: str,
     head_group_spec: dict[str, Any],
     worker_group_specs: list[dict[str, Any]],
+    raycluster_client: RayClusterClientResource,
 ) -> KubeRayCluster:
     redis_port = get_random_free_port()
 
@@ -78,7 +87,7 @@ def ray_cluster_resource_skip_create(
         # have have to first run port-forwarding with minikube
         # we can only init ray after that
         lifecycle=Lifecycle(create=False),
-        client=RayClusterClientResource(kubeconfig_file=str(k8s_with_kuberay.kubeconfig)),
+        client=raycluster_client,
         ray_cluster=RayClusterConfig(
             metadata={"namespace": NAMESPACE},
             spec=RayClusterSpec(head_group_spec=head_group_spec, worker_group_specs=worker_group_specs),
@@ -93,6 +102,7 @@ def ray_cluster_resource_skip_wait(
     dagster_ray_image: str,
     head_group_spec: dict[str, Any],
     worker_group_specs: list[dict[str, Any]],
+    raycluster_client: RayClusterClientResource,
 ) -> KubeRayCluster:
     redis_port = get_random_free_port()
 
@@ -101,7 +111,7 @@ def ray_cluster_resource_skip_wait(
         # have have to first run port-forwarding with minikube
         # we can only init ray after that
         lifecycle=Lifecycle(wait=False),
-        client=RayClusterClientResource(kubeconfig_file=str(k8s_with_kuberay.kubeconfig)),
+        client=raycluster_client,
         ray_cluster=RayClusterConfig(
             metadata={"namespace": NAMESPACE},
             spec=RayClusterSpec(head_group_spec=head_group_spec, worker_group_specs=worker_group_specs),
@@ -121,7 +131,7 @@ def ensure_kuberay_cluster_correctness(
     context: AssetExecutionContext,
 ):
     with k8s_with_kuberay.port_forwarding(
-        target=f"svc/{ray_cluster.cluster_name}-head-svc",
+        target=f"svc/{ray_cluster.name}-head-svc",
         source_port=cast(int, ray_cluster.redis_port),
         target_port=10001,
         namespace=ray_cluster.namespace,
@@ -134,11 +144,9 @@ def ensure_kuberay_cluster_correctness(
 
         # make sure a @remote function runs inside the cluster
         # not in localhost
-        assert ray_cluster.cluster_name in ray.get(get_hostname.remote())
+        assert ray_cluster.name in ray.get(get_hostname.remote())
 
-        ray_cluster_description = ray_cluster.client.client.get(
-            ray_cluster.cluster_name, namespace=ray_cluster.namespace
-        )
+        ray_cluster_description = ray_cluster.client.client.get(ray_cluster.name, namespace=ray_cluster.namespace)
         assert ray_cluster_description["metadata"]["labels"]["dagster/run-id"] == context.run_id
 
 
@@ -239,11 +247,11 @@ def test_kuberay_cleanup_job(
         resources={"ray_cluster": ray_cluster_resource_skip_cleanup},
     )
 
-    kuberay_client = RayClusterClient(config_file=str(k8s_with_kuberay.kubeconfig))
+    raycluster_client = RayClusterClient(config_file=str(k8s_with_kuberay.kubeconfig), context=KUBERNETES_CONTEXT)
 
     assert (
         len(
-            kuberay_client.list(
+            raycluster_client.list(
                 namespace=ray_cluster_resource_skip_cleanup.namespace,
                 label_selector=f"dagster/run-id={result.run_id}",
             )["items"]
@@ -264,7 +272,7 @@ def test_kuberay_cleanup_job(
         ),
     )
 
-    assert not kuberay_client.list(
+    assert not raycluster_client.list(
         namespace=ray_cluster_resource_skip_cleanup.namespace, label_selector=f"dagster/run-id={result.run_id}"
     )["items"]
 
@@ -275,7 +283,7 @@ def test_ray_cluster_builder_debug():
     context = dg.build_init_resource_context()
 
     ray_cluster_config = kuberay_cluster.ray_cluster.to_k8s(
-        context, env_vars=kuberay_cluster.get_env_vars_to_inject(), labels={"foo": "bar"}
+        context, env_vars=kuberay_cluster.get_env_vars_to_inject(), labels={"foo": "bar"}, image="test"
     )
     assert ray_cluster_config["metadata"]["labels"]["foo"] == "bar"
     for group_spec in [ray_cluster_config["spec"]["headGroupSpec"], *ray_cluster_config["spec"]["workerGroupSpecs"]]:
@@ -284,7 +292,9 @@ def test_ray_cluster_builder_debug():
 
     kuberay_cluster = KubeRayCluster(enable_tracing=True)
     kuberay_cluster._cluster_name = "test-cluster"
-    ray_cluster_config = kuberay_cluster.ray_cluster.to_k8s(context, env_vars=kuberay_cluster.get_env_vars_to_inject())
+    ray_cluster_config = kuberay_cluster.ray_cluster.to_k8s(
+        context, env_vars=kuberay_cluster.get_env_vars_to_inject(), image="test"
+    )
     for group_spec in [ray_cluster_config["spec"]["headGroupSpec"], *ray_cluster_config["spec"]["workerGroupSpecs"]]:
         for container in group_spec["template"]["spec"]["containers"]:
             assert {"name": "RAY_PROFILING", "value": "1"} in container["env"], container
@@ -292,8 +302,7 @@ def test_ray_cluster_builder_debug():
     kuberay_cluster = KubeRayCluster(enable_actor_task_logging=True)
     kuberay_cluster._cluster_name = "test-cluster"
     ray_cluster_config = kuberay_cluster.ray_cluster.to_k8s(
-        context,
-        env_vars=kuberay_cluster.get_env_vars_to_inject(),
+        context, env_vars=kuberay_cluster.get_env_vars_to_inject(), image="test"
     )
     kuberay_cluster._cluster_name = "test-cluster"
     for group_spec in [ray_cluster_config["spec"]["headGroupSpec"], *ray_cluster_config["spec"]["workerGroupSpecs"]]:
