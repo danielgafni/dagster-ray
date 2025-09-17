@@ -23,6 +23,8 @@ if TYPE_CHECKING:
 
 @beta
 class KubeRayJobClientResource(ConfigurableResource[RayJobClient]):
+    """This configurable resource provides a `dagster_ray.kuberay.client.RayJobClient`."""
+
     kube_context: Optional[str] = None
     kube_config: Optional[str] = None
 
@@ -32,10 +34,14 @@ class KubeRayJobClientResource(ConfigurableResource[RayJobClient]):
 
 
 class InteractiveRayJobSpec(RayJobSpec):
+    """Same as `dagster_ray.kuberay.resources.rayjob.RayJobSpec`, but submission mode has to be `InteractiveMode`"""
+
     submission_mode: Literal["InteractiveMode"] = "InteractiveMode"  # pyright: ignore[reportIncompatibleVariableOverride]
 
 
 class InteractiveRayJobConfig(RayJobConfig):
+    """Same as `dagster_ray.kuberay.resources.rayjob.RayJobConfig`, but `spec.submission_mode` mode has to be `InteractiveMode`"""
+
     spec: InteractiveRayJobSpec = Field(default_factory=InteractiveRayJobSpec)  # pyright: ignore[reportIncompatibleVariableOverride]
 
 
@@ -43,6 +49,8 @@ class InteractiveRayJobConfig(RayJobConfig):
 class KubeRayInteractiveJob(BaseRayResource, BaseKubeRayResourceConfig):
     """
     Provides a `RayJob` for Dagster steps.
+
+    Is the recommended way to run Ray workloads with automatic cluster management. It creates a `RayJob`, connects to it in client mode and sets the `jobId` field. Cleanup is handled by the KubeRay controller or by the resource lifecycle logic.
     """
 
     lifecycle: Lifecycle = Field(

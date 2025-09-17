@@ -46,9 +46,43 @@ class Lifecycle(dg.Config):
 
 
 class BaseRayResource(ConfigurableResource, ABC):
-    """
-    Base class for Ray Resources.
-    Defines the common interface and some utility methods.
+    """Base class for Ray Resources providing a common interface for Ray cluster management.
+
+    This abstract base class defines the interface that all Ray resources must implement,
+    providing a backend-agnostic way to interact with Ray clusters. Concrete implementations
+    include LocalRay for local development and KubeRay resources for Kubernetes deployments.
+
+    The BaseRayResource handles the lifecycle of Ray clusters including creation, connection,
+    and cleanup, with configurable policies for each stage.
+
+    Examples:
+        Use as a type annotation for backend-agnostic code:
+        ```python
+        from dagster import asset
+        from dagster_ray import RayResource
+
+        @asset
+        def my_asset(ray_cluster: RayResource):
+            # Works with any Ray backend
+            import ray
+            return ray.get(ray.put("hello"))
+        ```
+
+        Manual lifecycle management:
+        ```python
+        from dagster_ray import Lifecycle
+
+        ray_resource = SomeRayResource(
+            lifecycle=Lifecycle(
+                create=False,  # Don't auto-create
+                connect=False  # Don't auto-connect
+            )
+        )
+        ```
+
+    Note:
+        This is an abstract class and cannot be instantiated directly. Use concrete
+        implementations like LocalRay or KubeRayCluster instead.
     """
 
     lifecycle: Lifecycle = Field(default_factory=Lifecycle, description="Actions to perform during resource setup.")
@@ -232,7 +266,7 @@ class BaseRayResource(ConfigurableResource, ABC):
         if self.connected and hasattr(self, "_context") and self._context is not None:
             self._context.disconnect()
 
-    def get_dagster_tags(self, context: InitResourceContext | OpOrAssetExecutionContext) -> dict[str, str]:
+    def get_dagster_tags(self, context: AnyDagsterContext) -> dict[str, str]:
         tags = get_dagster_tags(context)
         return tags
 

@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import time
-from typing import TYPE_CHECKING, Any, Union, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import dagster._check as check
 import yaml
-from dagster import AssetExecutionContext, DagsterInvariantViolationError, OpExecutionContext, PipesClient
+from dagster import DagsterInvariantViolationError, PipesClient
 from dagster._annotations import beta
 from dagster._core.definitions.resource_annotation import TreatAsResourceParam
 from dagster._core.errors import DagsterExecutionInterruptedError
@@ -17,7 +17,6 @@ from dagster._core.pipes.client import (
 from dagster._core.pipes.context import PipesSession
 from dagster._core.pipes.utils import PipesEnvContextInjector, open_pipes_session
 from dagster_pipes import PipesExtras
-from typing_extensions import TypeAlias
 
 from dagster_ray._base.utils import get_dagster_tags
 from dagster_ray.kuberay.client import RayJobClient
@@ -29,11 +28,10 @@ from dagster_ray.pipes import (
     PipesRayJobMessageReader,
     generate_job_id,
 )
+from dagster_ray.types import OpOrAssetExecutionContext
 
 if TYPE_CHECKING:
     from ray.job_submission import JobSubmissionClient
-
-OpOrAssetExecutionContext: TypeAlias = Union[OpExecutionContext, AssetExecutionContext]
 
 
 @beta
@@ -42,9 +40,9 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
 
     Args:
         context_injector (Optional[PipesContextInjector]): A context injector to use to inject
-            context into the ``RayJob``. Defaults to :py:class:`PipesEnvContextInjector`.
+            context into the ``RayJob``. Defaults to `PipesEnvContextInjector`.
         message_reader (Optional[PipesMessageReader]): A message reader to use to read messages
-            from the glue job run. Defaults to :py:class:`PipesRayJobMessageReader`.
+            from the glue job run. Defaults to `PipesRayJobMessageReader`.
         client (Optional[boto3.client]): The Kubernetes API client.
         forward_termination (bool): Whether to terminate the Ray job when the Dagster process receives a termination signal,
             or if the startup timeout is reached. Defaults to ``True``.
