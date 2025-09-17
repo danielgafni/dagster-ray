@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import contextlib
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Literal, Union, cast
+from collections.abc import Generator
+from typing import TYPE_CHECKING, Any, Literal, Optional, Union, cast
 
 import dagster as dg
 from dagster import AssetExecutionContext, ConfigurableResource, InitResourceContext, OpExecutionContext
@@ -11,10 +13,11 @@ from pydantic import Field, PrivateAttr
 # https://github.com/ray-project/kuberay/issues/2078
 from requests.exceptions import ConnectionError
 from tenacity import retry, retry_if_exception_type, stop_after_delay
-from typing_extensions import TypeAlias
+from typing_extensions import Self, TypeAlias
 
 from dagster_ray._base.utils import get_dagster_tags
 from dagster_ray.config import RayDataExecutionOptions
+from dagster_ray.types import AnyDagsterContext
 from dagster_ray.utils import _process_dagster_env_vars, get_current_job_id
 
 if TYPE_CHECKING:
@@ -36,8 +39,9 @@ class Lifecycle(dg.Config):
         default=True,
         description="Whether to run `ray.init` against the remote Ray cluster. If set to `False`, the user can manually call `.connect` instead.",
     )
-    cleanup: Literal["never", "except_failure", "always"] = Field(
-        default="always", description="Whether to delete the resource after Dagster step completion."
+    cleanup: Literal["never", "always", "on_exception"] = Field(
+        default="always",
+        description="Resource cleanup policy. Determines when the resource should be deleted after Dagster step execution or during interruption.",
     )
 
 
@@ -48,7 +52,7 @@ class BaseRayResource(ConfigurableResource, ABC):
     """
 
     lifecycle: Lifecycle = Field(default_factory=Lifecycle, description="Actions to perform during resource setup.")
-
+    timeout: float = Field(default=600.0, description="Timeout for Ray readiness in seconds")
     ray_init_options: dict[str, Any] = Field(
         default_factory=dict,
         description="Additional keyword arguments to pass to `ray.init()` call, such as `runtime_env`, `num_cpus`, etc. Dagster's `EnvVar` is supported. More details in [Ray docs](https://docs.ray.io/en/latest/ray-core/api/doc/ray.init.html).",
@@ -93,6 +97,15 @@ class BaseRayResource(ConfigurableResource, ABC):
         raise NotImplementedError()
 
     @property
+    @abstractmethod
+    def name(self) -> str:
+        raise NotImplementedError()
+
+    @property
+    def display_name(self) -> str:
+        return self.name
+
+    @property
     def ray_address(self) -> str:
         return f"ray://{self.host}:{self.redis_port}"
 
@@ -108,14 +121,63 @@ class BaseRayResource(ConfigurableResource, ABC):
         """
         return get_current_job_id()
 
-    def create(self, context: InitResourceContext | OpOrAssetExecutionContext):
+    @contextlib.contextmanager
+    def yield_for_execution(self, context: InitResourceContext) -> Generator[Self, None, None]:
+        exception_occurred = None
+        try:
+            if self.lifecycle.create:
+                self._create(context)
+                if self.lifecycle.wait:
+                    self._wait(context)
+                    if self.lifecycle.connect:
+                        self._connect(context)
+            yield self
+        except BaseException as e:
+            exception_occurred = e
+            raise
+        finally:
+            self.cleanup(context, exception_occurred)
+
+    def _create(self, context: AnyDagsterContext):
+        assert context.log is not None
+        if not self.created:
+            try:
+                self.create(context)
+                context.log.info(f"Created {self.display_name}.")
+            except BaseException:
+                context.log.exception(f"Failed to create {self.display_name}")
+                raise
+
+    def _wait(self, context: AnyDagsterContext):
+        assert context.log is not None
+        self._create(context)
+        if not self.ready:
+            context.log.info(f"Waiting for {self.display_name} to become ready (timeout={self.timeout:.0f}s)...")
+            try:
+                self.wait(context)
+            except BaseException:
+                context.log.exception(f"Failed to wait for {self.display_name} readiness")
+                raise
+
+    def _connect(self, context: AnyDagsterContext):
+        assert context.log is not None
+        self._wait(context)
+        if not self.connected:
+            try:
+                self.connect(context)
+            except BaseException:
+                context.log.exception(f"Failed to connect to {self.display_name}")
+                raise
+            context.log.info(f"Initialized Ray Client with {self.display_name}")
+
+    def create(self, context: AnyDagsterContext):
         pass
 
-    def wait(self, context: InitResourceContext | OpOrAssetExecutionContext):
+    def wait(self, context: AnyDagsterContext):
         pass
 
     @retry(stop=stop_after_delay(120), retry=retry_if_exception_type(ConnectionError), reraise=True)
-    def connect(self, context: OpOrAssetExecutionContext | InitResourceContext) -> RayBaseContext:
+    def connect(self, context: AnyDagsterContext) -> RayBaseContext:
         assert context.log is not None
 
         import ray
@@ -129,6 +191,12 @@ class BaseRayResource(ConfigurableResource, ABC):
                 k: v for k, v in init_options["runtime_env"]["env_vars"].items() if v is not None
             }
 
+        init_options["runtime_env"] = init_options.get("runtime_env", {})
+        init_options["runtime_env"]["env_vars"] = init_options["runtime_env"].get("env_vars", {})
+
+        for var, value in self.get_env_vars_to_inject().items():
+            init_options["runtime_env"]["env_vars"][var] = value
+
         self.data_execution_options.apply()
 
         self._context = ray.init(
@@ -139,6 +207,30 @@ class BaseRayResource(ConfigurableResource, ABC):
         self.data_execution_options.apply_remote()
         context.log.info("Initialized Ray in client mode!")
         return cast("RayBaseContext", self._context)
+
+    def delete(self, context: AnyDagsterContext):
+        pass
+
+    def cleanup(self, context: AnyDagsterContext, exception: Optional[BaseException]):  # noqa: UP007
+        assert context.log is not None
+
+        if self.lifecycle.cleanup == "never":
+            to_delete = False
+        elif not self.created:
+            to_delete = False
+        elif self.lifecycle.cleanup == "always":
+            to_delete = True
+        elif self.lifecycle.cleanup == "on_exception":
+            to_delete = exception is not None
+        else:
+            to_delete = False
+
+        if to_delete:
+            self.delete(context)
+            context.log.info(f'Deleted {self.display_name} according to cleanup policy "{self.lifecycle.cleanup}"')
+
+        if self.connected and hasattr(self, "_context") and self._context is not None:
+            self._context.disconnect()
 
     def get_dagster_tags(self, context: InitResourceContext | OpOrAssetExecutionContext) -> dict[str, str]:
         tags = get_dagster_tags(context)
@@ -156,3 +248,15 @@ class BaseRayResource(ConfigurableResource, ABC):
         if self.enable_legacy_debugger:
             vars["RAY_DEBUG"] = "legacy"
         return vars
+
+    @property
+    def created(self) -> bool:
+        return hasattr(self, "_name") and self._name is not None
+
+    @property
+    def ready(self) -> bool:
+        return hasattr(self, "_host") and self._host is not None
+
+    @property
+    def connected(self) -> bool:
+        return hasattr(self, "_context") and self._context is not None

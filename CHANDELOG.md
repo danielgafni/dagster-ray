@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-- added `enable_legacy_debugger` configuration parameter to subclasses of `RayResource`
+# Changed
+- `KubeRayInteractiveJob.deletion_strategy` now defaults to `DeleteCluster` for both successful and failed executions. This is a reasonable default for the use case.
+- `KubeRayInteractiveJob.ttl_seconds_after_finished` now defaults to `600` seconds.
+- `KubeRayCluster.lifecycle.cleanup` now defaults to `always`
+
+# Added
+- new `enable_legacy_debugger` configuration parameter to subclasses of `RayResource`
+- new `on_exception` option for `lifecycle.cleanup` policy. It's triggered during resource setup/cleanup (including `KeyboardInterrupt`), but not by user `@op`/`@asset` code.
+- `KubeRayInteractiveJob` now respects `lifecycle.cleanup`. It defaults to `on_exception`. Users are advised to rely on built-in `RayJob` cleanup mechanisms, such as `ttlSecondsAfterFinished` and `deletionStrategy`.
 
 ## Fixes
 - removed `ignore_reinit_error` from `RayResource` init options: it's potentially dangerous, for example in case the user has accidentally connected to another Ray cluster (including local ray) before initializing the resource.

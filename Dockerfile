@@ -1,5 +1,3 @@
-#syntax=docker/dockerfile:1.17
-
 # options: prod,dev
 ARG BUILD_DEPENDENCIES=prod
 ARG PYTHON_VERSION=3.11.7
