@@ -14,7 +14,6 @@ nav:
     - Overview: api.md
     - Core: api/core.md
     - KubeRay: api/kuberay.md
-  - Examples: examples.md
 
 theme:
   name: material

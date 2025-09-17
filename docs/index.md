@@ -124,10 +124,4 @@
 
     Complete documentation of all classes, methods, and configuration options
 
-- :material-code-braces: **[Examples](examples.md)**
-
-    ---
-
-    Basic examples of using `dagster-ray` with Dagster assets and ops
-
 </div>

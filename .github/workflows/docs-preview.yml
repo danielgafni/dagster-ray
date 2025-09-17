@@ -15,8 +15,9 @@ jobs:
     name: Deploy docs preview
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       pages: write
+      issues: write
       pull-requests: write
     steps:
       - name: Checkout
