@@ -67,7 +67,7 @@ RAY_JOB = {
 def pipes_kube_rayjob_client(k8s_with_kuberay: AClusterManager):
     return PipesKubeRayJobClient(
         client=RayJobClient(
-            config_file=str(k8s_with_kuberay.kubeconfig),
+            kube_config=str(k8s_with_kuberay.kubeconfig),
         ),
         port_forward=True,
     )

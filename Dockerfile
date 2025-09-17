@@ -8,7 +8,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN --mount=type=cache,target=/var/cache/apt \
     apt-get update && apt-get install -y git jq curl gcc python3-dev libpq-dev wget
 
-COPY --from=bitnami/kubectl:1.33.4 /opt/bitnami/kubectl/bin/kubectl /usr/local/bin/
+COPY --from=d3fk/kubectl:v1.30 /kubectl /usr/local/bin/
 
 # install uv (https://github.com/astral-sh/uv)
 # docs for using uv with Docker: https://docs.astral.sh/uv/guides/integration/docker/

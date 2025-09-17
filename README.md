@@ -609,43 +609,35 @@ ray_job = KubeRayInteractiveJob(
 > [!NOTE]
 > Requires KubeRay 1.3.0 or later for `InteractiveMode` support.
 
-### `KubeRayClient`
+### `KubeRay` clients
 
-This resource can be used to interact with the Kubernetes API Server.
+These clients can be used to interact with the Kubernetes API Server.
 
-Examples:
-
-Listing currently running `RayClusters`:
+Example:
 
 ```python
-from dagster import op, Definitions
-from dagster_ray.kuberay import KubeRayClient
+import dagster as dg
+from dagster_ray.kuberay.client import RayClusterClient, RayJobClient
+from dagster_ray.kuberay.resources import RayClusterClientResource, RayJobClientResource
 
 
-@op
-def list_ray_clusters(
-    kube_ray_client: KubeRayClient,
+@dg.asset
+def my_asset(
+    raycluster_client: dg.ResourceParam[KubeRayClusterClient],
+    rayjob_client: dg.ResourceParam[KubeRayJobClient],
 ):
-    return kube_ray_client.client.list(namespace="kuberay")
+    jobs = rayjob_client.list(namespace="kuberay")
+    raycluster_client.delete(namespace="kuberay", name="my-cluster")
+
+
+dg.materialize(
+    assets=[my_asset],
+    resources={
+        "raycluster_client": RayClusterClientResource(),
+        "rayjob_client": RayJobClientResource(),
+    },
+)
 ```
-
-## Jobs
-
-### `delete_kuberay_clusters`
-
-This `job` can be used to delete `RayClusters` from a given list of names.
-
-### `cleanup_old_ray_clusters`
-
-This `job` can be used to delete old `RayClusters` which no longer correspond to any active Dagster Runs.
-They may be left behind if the automatic cluster cleanup was disabled or failed.
-
-## Schedules
-
-Cleanup schedules can be trivially created using the `cleanup_old_ray_clusters` or `delete_kuberay_clusters` jobs.
-
-### `cleanup_old_ray_clusters`
-`dagster-ray` provides an example daily cleanup schedule.
 
 # Development
 

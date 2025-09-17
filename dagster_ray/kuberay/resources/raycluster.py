@@ -27,12 +27,12 @@ from dagster_ray.kuberay.client.base import load_kubeconfig
 @beta
 class RayClusterClientResource(ConfigurableResource[RayClusterClient]):
     kube_context: Optional[str] = None
-    kubeconfig_file: Optional[str] = None
+    kube_config: Optional[str] = None
 
     def create_resource(self, context: InitResourceContext) -> RayClusterClient:
-        load_kubeconfig(context=self.kube_context, config_file=self.kubeconfig_file)
+        load_kubeconfig(context=self.kube_context, config_file=self.kube_config)
 
-        return RayClusterClient(context=self.kube_context, config_file=self.kubeconfig_file)
+        return RayClusterClient(kube_context=self.kube_context, kube_config=self.kube_config)
 
 
 @beta

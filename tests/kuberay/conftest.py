@@ -187,7 +187,7 @@ def k8s_with_raycluster(
     # create a RayCluster
     config.load_kube_config(str(k8s_with_kuberay.kubeconfig), context=KUBERNETES_CONTEXT)
 
-    client = RayClusterClient(config_file=str(k8s_with_kuberay.kubeconfig), context=KUBERNETES_CONTEXT)
+    client = RayClusterClient(kube_config=str(k8s_with_kuberay.kubeconfig), kube_context=KUBERNETES_CONTEXT)
 
     client.create(
         body={
