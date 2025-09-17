@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `KubeRayInteractiveJob.deletion_strategy` now defaults to `DeleteCluster` for both successful and failed executions. This is a reasonable default for the use case.
 - `KubeRayInteractiveJob.ttl_seconds_after_finished` now defaults to `600` seconds.
 - `KubeRayCluster.lifecycle.cleanup` now defaults to `always`
+- [:bomb: breaking] `RayJob` and `RayCluster` clients and resources Kubernetes init parameters have been renamed to `kube_config` and `kube_context`.
 
 # Added
 - new `enable_legacy_debugger` configuration parameter to subclasses of `RayResource`

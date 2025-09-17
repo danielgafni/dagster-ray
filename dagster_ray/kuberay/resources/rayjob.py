@@ -24,11 +24,11 @@ if TYPE_CHECKING:
 @beta
 class KubeRayJobClientResource(ConfigurableResource[RayJobClient]):
     kube_context: Optional[str] = None
-    kubeconfig_file: Optional[str] = None
+    kube_config: Optional[str] = None
 
     def create_resource(self, context: dg.InitResourceContext):
-        load_kubeconfig(context=self.kube_context, config_file=self.kubeconfig_file)
-        return RayJobClient(context=self.kube_context, config_file=self.kubeconfig_file)
+        load_kubeconfig(context=self.kube_context, config_file=self.kube_config)
+        return RayJobClient(kube_context=self.kube_context, kube_config=self.kube_config)
 
 
 class InteractiveRayJobSpec(RayJobSpec):

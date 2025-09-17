@@ -18,7 +18,7 @@ from tests.kuberay.utils import NAMESPACE, get_random_free_port
 
 @pytest.fixture(scope="session")
 def raycluster_client(k8s_with_kuberay: AClusterManager):
-    return RayClusterClientResource(kubeconfig_file=str(k8s_with_kuberay.kubeconfig), kube_context=KUBERNETES_CONTEXT)
+    return RayClusterClientResource(kube_config=str(k8s_with_kuberay.kubeconfig), kube_context=KUBERNETES_CONTEXT)
 
 
 @pytest.fixture(scope="session")
@@ -173,7 +173,7 @@ def test_kuberay_cluster_resource(
         resources={"ray_cluster": ray_cluster_resource},
     )
 
-    kuberay_client = RayClusterClient(config_file=str(k8s_with_kuberay.kubeconfig))
+    kuberay_client = RayClusterClient(kube_config=str(k8s_with_kuberay.kubeconfig))
 
     # make sure the RayCluster is cleaned up
 
@@ -247,7 +247,7 @@ def test_kuberay_cleanup_job(
         resources={"ray_cluster": ray_cluster_resource_skip_cleanup},
     )
 
-    raycluster_client = RayClusterClient(config_file=str(k8s_with_kuberay.kubeconfig), context=KUBERNETES_CONTEXT)
+    raycluster_client = RayClusterClient(kube_config=str(k8s_with_kuberay.kubeconfig), kube_context=KUBERNETES_CONTEXT)
 
     assert (
         len(
@@ -261,7 +261,7 @@ def test_kuberay_cleanup_job(
 
     cleanup_kuberay_clusters.execute_in_process(
         resources={
-            "kuberay_client": RayClusterClientResource(kubeconfig_file=str(k8s_with_kuberay.kubeconfig)),
+            "kuberay_client": RayClusterClientResource(kube_config=str(k8s_with_kuberay.kubeconfig)),
         },
         run_config=RunConfig(
             ops={

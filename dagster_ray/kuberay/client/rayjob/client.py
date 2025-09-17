@@ -41,15 +41,15 @@ class RayJobStatus(TypedDict):
 class RayJobClient(BaseKubeRayClient[RayJobStatus]):
     def __init__(
         self,
-        config_file: str | None = None,
-        context: str | None = None,
+        kube_config: str | None = None,
+        kube_context: str | None = None,
         api_client: ApiClient | None = None,
     ) -> None:
         # this call must happen BEFORE creating K8s apis
-        load_kubeconfig(config_file=config_file, context=context)
+        load_kubeconfig(config_file=kube_config, context=kube_context)
 
-        self.config_file = config_file
-        self.context = context
+        self.config_file = kube_config
+        self.context = kube_context
 
         super().__init__(group=GROUP, version=VERSION, kind=KIND, plural=PLURAL, api_client=api_client)
 
@@ -64,7 +64,7 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
 
     @property
     def ray_cluster_client(self) -> RayClusterClient:
-        return RayClusterClient(config_file=self.config_file, context=self.context)
+        return RayClusterClient(kube_config=self.config_file, kube_context=self.context)
 
     def wait_until_ready(
         self,

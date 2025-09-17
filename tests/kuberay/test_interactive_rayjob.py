@@ -28,7 +28,7 @@ MIN_KUBERAY_VERSION = "1.3.0"
 
 @pytest.fixture(scope="session")
 def rayjob_client(k8s_with_kuberay: AClusterManager) -> RayJobClient:
-    return RayJobClient(config_file=str(k8s_with_kuberay.kubeconfig), context=KUBERNETES_CONTEXT)
+    return RayJobClient(kube_config=str(k8s_with_kuberay.kubeconfig), kube_context=KUBERNETES_CONTEXT)
 
 
 def test_instantiate_defaults():

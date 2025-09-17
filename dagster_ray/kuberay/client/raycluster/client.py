@@ -97,16 +97,16 @@ class RayClusterStatus(TypedDict):
 class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
     def __init__(
         self,
-        config_file: str | None = None,
-        context: str | None = None,
+        kube_config: str | None = None,
+        kube_context: str | None = None,
         api_client: ApiClient | None = None,
     ) -> None:
         super().__init__(group=GROUP, version=VERSION, kind=KIND, plural=PLURAL, api_client=api_client)
 
         # these are only used because of kubectl port-forward CLI command
         # TODO: remove kubectl usage and remove these attributes
-        self.config_file = config_file
-        self.context = context
+        self.config_file = kube_config
+        self.context = kube_context
 
     def wait_until_ready(
         self,

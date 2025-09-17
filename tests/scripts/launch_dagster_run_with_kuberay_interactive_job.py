@@ -43,7 +43,7 @@ def main():
         sys.exit(1)
 
     # Initialize the client and resource
-    client = RayJobClient(config_file=args.config_file, context=args.context)
+    client = RayJobClient(kube_config=args.config_file, kube_context=args.context)
 
     interactive_rayjob = KubeRayInteractiveJob(
         image=args.image,  # Invalid image that will cause hanging
