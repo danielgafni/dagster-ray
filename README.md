@@ -14,7 +14,7 @@
 
 `dagster-ray` enables you to orchestrate distributed Ray compute from Dagster pipelines, providing seamless integration between Dagster's orchestration capabilities and Ray's distributed computing power.
 
-> ![NOTE]
+> [!NOTE]
 > This project is ready for production use, but some APIs may change between minor releases.
 
 Learn more in the [docs](https://danielgafni.github.io/dagster-ray)
