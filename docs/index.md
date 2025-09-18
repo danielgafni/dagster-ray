@@ -8,7 +8,7 @@
 [![CI](https://github.com/danielgafni/dagster-ray/actions/workflows/CI.yml/badge.svg)](https://github.com/danielgafni/dagster-ray/actions/workflows/CI.yml)
 
 !!! info
-    This project is ready for production use, but some APIs may change between minor releases as we continue to improve the integration.
+    This project is ready for production use, but some APIs may change between minor releases.
 
 ## 🚀 Key Features
 
