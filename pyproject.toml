@@ -34,8 +34,8 @@ dynamic = ["version"]
 
 [project.urls]
 GitHub = "https://github.com/danielgafni/dagster-ray"
-documentation = "https://danielgafni.github.io/dagster-ray/"
-changelog = "https://github.com/danielgafni/dagster-ray/blob/main/CHANGELOG.md"
+Documentation = "https://danielgafni.github.io/dagster-ray/"
+Changelog = "https://github.com/danielgafni/dagster-ray/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 run_launcher = [
