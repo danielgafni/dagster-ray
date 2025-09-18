@@ -17,6 +17,8 @@
 > ![NOTE]
 > This project is ready for production use, but some APIs may change between minor releases.
 
+Learn more in the [docs](https://danielgafni.github.io/dagster-ray)
+
 ## 🚀 Key Features
 
 - **Run Launchers & Executors**: Submit Dagster runs or individual ops as Ray jobs
@@ -32,12 +34,7 @@
 pip install dagster-ray
 ```
 
-Or for KubeRay support:
-```shell
-pip install 'dagster-ray[kuberay]'
-```
-
-### Basic Example
+### Example
 
 ```python
 import dagster as dg
@@ -65,7 +62,7 @@ definitions = dg.Definitions(
 )
 ```
 
-## 📚 Documentation
+## 📚 Docs
 
 **📖 [Full Documentation](https://danielgafni.github.io/dagster-ray)**
 
@@ -93,7 +90,7 @@ uv sync --all-extras
 uv run pre-commit install
 ```
 
-## 🧪 Testing
+### 🧪 Testing
 
 ```bash
 uv run pytest
@@ -108,10 +105,10 @@ To build and serve the documentation locally:
 
 ```bash
 # Serve documentation locally
-uv run mkdocs serve
+uv run --group docs mkdocs serve
 
 # Build documentation
-uv run mkdocs build
+uv run--group docs mkdocs build
 ```
 
 The documentation is automatically deployed to GitHub Pages.
