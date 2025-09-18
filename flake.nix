@@ -10,7 +10,7 @@
         system = "x86_64-linux";
       };
       lib = pkgs.lib;
-      python = pkgs.python39;
+      python = pkgs.python310;
     in {
       default = pkgs.mkShell {
         buildInputs = [
@@ -30,7 +30,7 @@
           pkgs.gcc-unwrapped.lib
           pkgs.glibc
           pkgs.glib
-          pkgs.python39
+          pkgs.python310
         ];
         UV_PYTHON = "${python}/bin/python";
         shellHook = ''

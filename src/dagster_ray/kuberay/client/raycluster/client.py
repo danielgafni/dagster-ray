@@ -5,14 +5,13 @@ import socket
 import subprocess
 import threading
 import time
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from io import FileIO
 from queue import Queue
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
     TypedDict,
 )
 

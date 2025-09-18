@@ -28,7 +28,7 @@ def resolve_env_vars_list(env_vars: list[str] | None) -> dict[str, str]:
 
 def _process_dagster_env_vars(config: Any) -> Any:
     # If it's already one of the EnvVar types, return its value
-    if isinstance(config, (dg.EnvVar, IntEnvVar)):
+    if isinstance(config, dg.EnvVar | IntEnvVar):
         return config.get_value()
 
     # If it's exactly {"env": "FOO"}, fetch the value

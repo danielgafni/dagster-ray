@@ -1,5 +1,3 @@
-from typing import Optional
-
 import dagster as dg
 from pydantic import Field, PrivateAttr
 from typing_extensions import override
@@ -16,8 +14,8 @@ from dagster_ray.types import AnyDagsterContext
 class KubeRayClusterClientResource(dg.ConfigurableResource[RayClusterClient]):
     """This configurable resource provides a `dagster_ray.kuberay.client.RayClusterClient`."""
 
-    kube_context: Optional[str] = None
-    kube_config: Optional[str] = None
+    kube_context: str | None = None
+    kube_config: str | None = None
 
     def create_resource(self, context: dg.InitResourceContext) -> RayClusterClient:
         load_kubeconfig(context=self.kube_context, config_file=self.kube_config)
