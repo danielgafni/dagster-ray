@@ -91,9 +91,7 @@ docs = [
 
 
 [tool.hatch.build.targets.wheel]
-include = [
-  "src/dagster_ray",
-]
+packages = ["src/dagster_ray"]
 
 [tool.hatch.version]
 path = "src/dagster_ray/_version.py"
