@@ -1,0 +1,92 @@
+/* Custom styles for dagster-ray documentation */
+
+/* Comparison table styling */
+.comparison-table table {
+    font-size: 0.9em;
+    white-space: nowrap;
+}
+
+.comparison-table th {
+    text-align: center !important;
+    vertical-align: middle !important;
+    padding: 0.6rem 0.4rem !important;
+    font-weight: 600;
+    border-bottom: 2px solid var(--md-primary-fg-color);
+}
+
+.comparison-table td {
+    text-align: center !important;
+    vertical-align: middle !important;
+    padding: 0.5rem 0.4rem !important;
+}
+
+.comparison-table td:first-child {
+    text-align: left !important;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* Emoji styling in table */
+.comparison-table .twemoji {
+    width: 1.2em;
+    height: 1.2em;
+}
+
+/* Responsive table */
+@media screen and (max-width: 768px) {
+    .comparison-table {
+        overflow-x: auto;
+        display: block;
+        white-space: nowrap;
+    }
+
+    .comparison-table table {
+        font-size: 0.8em;
+    }
+
+    .comparison-table th,
+    .comparison-table td {
+        padding: 0.4rem 0.2rem !important;
+    }
+}
+
+/* Grid cards styling improvement */
+.md-typeset .grid.cards > .card-item {
+    border: 1px solid var(--md-default-fg-color--lightest);
+    border-radius: 0.2rem;
+}
+
+.md-typeset .grid.cards > .card-item:hover {
+    border-color: var(--md-accent-fg-color);
+    box-shadow: 0 0.2rem 0.5rem rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
+}
+
+/* Code block improvements */
+.md-typeset pre > code {
+    font-size: 0.85em;
+}
+
+/* Admonition styling tweaks */
+.md-typeset .admonition {
+    border-radius: 0.3rem;
+}
+
+/* Change "Functions" headings to "Methods" in API docs */
+h3[id$="-functions"] {
+    visibility: hidden;
+    position: relative;
+}
+
+h3[id$="-functions"]::before {
+    content: "Methods";
+    visibility: visible;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+h3[id$="-functions"] .headerlink {
+    visibility: visible;
+}
