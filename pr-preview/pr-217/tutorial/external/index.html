@@ -1040,8 +1040,6 @@
 </ul>
 <h2 id="localray-development-and-testing">LocalRay - Development and Testing<a class="headerlink" href="#localray-development-and-testing" title="Permanent link">&para;</a></h2>
 <p><a href="../../api/core/#dagster_ray.resources.LocalRay"><code>LocalRay</code></a> is perfect for local development and testing. It provides the same interface as other Ray resources but runs Ray locally on your machine.</p>
-<div class="admonition example">
-<p class="admonition-title">Example</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dagster</span><span class="w"> </span><span class="kn">import</span> <span class="n">asset</span><span class="p">,</span> <span class="n">Definitions</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dagster_ray</span><span class="w"> </span><span class="kn">import</span> <span class="n">LocalRay</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">ray</span>
@@ -1062,10 +1060,7 @@
 </span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>    <span class="n">assets</span><span class="o">=</span><span class="p">[</span><span class="n">batch_processing_results</span><span class="p">],</span> <span class="n">resources</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;ray_cluster&quot;</span><span class="p">:</span> <span class="n">LocalRay</span><span class="p">()}</span>
 </span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="p">)</span>
 </span></code></pre></div>
-</div>
 <p>You can customize the local Ray configuration:</p>
-<div class="admonition example">
-<p class="admonition-title">Example</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dagster_ray</span><span class="w"> </span><span class="kn">import</span> <span class="n">LocalRay</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">local_ray</span> <span class="o">=</span> <span class="n">LocalRay</span><span class="p">(</span>
@@ -1078,7 +1073,6 @@
 </span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    <span class="p">},</span>
 </span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="p">)</span>
 </span></code></pre></div>
-</div>
 <h2 id="rayrunlauncher">RayRunLauncher<a class="headerlink" href="#rayrunlauncher" title="Permanent link">&para;</a></h2>
 <p><a href="../../api/core/#dagster_ray.run_launcher.RayRunLauncher"><code>RayRunLauncher</code></a> executes entire Dagster runs as Ray jobs. This is useful for Dagster deployments that need to be fully executed on Ray.</p>
 <div class="admonition tip">

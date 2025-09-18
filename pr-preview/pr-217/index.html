@@ -918,7 +918,7 @@
 <h3 id="key-questions-to-consider">🤔 Key Questions to Consider<a class="headerlink" href="#key-questions-to-consider" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Do you want to manage Ray clusters automatically?</strong> If yes, use KubeRay components</li>
-<li><strong>Do you prefer to submit external scripts or run code directly?</strong> External scripts offer better separation of concerns and environments, but direct code is more convenient</li>
+<li><strong>Do you prefer to submit external scripts or run code directly?</strong> <a href="https://docs.ray.io/en/latest/cluster/running-applications/job-submission/index.html#ray-jobs-api">External scripts</a> offer better separation of concerns and environments, but <a href="https://docs.ray.io/en/latest/cluster/running-applications/job-submission/index.html#running-jobs-interactively">interactive code</a> is more convenient</li>
 <li><strong>Do you need per-asset configuration?</strong> Some components allow fine-grained control per asset</li>
 </ul>
 <h3 id="feature-comparison">📊 Feature Comparison<a class="headerlink" href="#feature-comparison" title="Permanent link">&para;</a></h3>
@@ -937,7 +937,7 @@
 </thead>
 <tbody>
 <tr>
-<td><strong>Manages cluster</strong></td>
+<td><strong>Manages the cluster</strong></td>
 <td style="text-align: center;">❌</td>
 <td style="text-align: center;">❌</td>
 <td style="text-align: center;">❌</td>
@@ -946,7 +946,7 @@
 <td style="text-align: center;">✅</td>
 </tr>
 <tr>
-<td><strong>Submits jobs in cluster mode</strong></td>
+<td><strong>Uses Ray Jobs API</strong></td>
 <td style="text-align: center;">✅</td>
 <td style="text-align: center;">✅</td>
 <td style="text-align: center;">✅</td>
@@ -955,7 +955,7 @@
 <td style="text-align: center;">❌</td>
 </tr>
 <tr>
-<td><strong>Per-asset enabled</strong></td>
+<td><strong>Enabled per-asset</strong></td>
 <td style="text-align: center;">❌</td>
 <td style="text-align: center;">❌</td>
 <td style="text-align: center;">✅</td>
@@ -964,7 +964,7 @@
 <td style="text-align: center;">✅</td>
 </tr>
 <tr>
-<td><strong>Per-asset configurable</strong></td>
+<td><strong>Configurable per-asset</strong></td>
 <td style="text-align: center;">❌</td>
 <td style="text-align: center;">✅</td>
 <td style="text-align: center;">✅</td>
@@ -994,14 +994,14 @@
 </table>
 </div>
 <h3 id="which-one-should-you-use">🎯 Which One Should You Use?<a class="headerlink" href="#which-one-should-you-use" title="Permanent link">&para;</a></h3>
-<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="which-one-should-you-use--external-ray-cluster" name="__tabbed_2" type="radio" /><input id="which-one-should-you-use--kubernetes--automatic-management" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="which-one-should-you-use--external-ray-cluster">🏢 External Ray Cluster</label><label for="which-one-should-you-use--kubernetes--automatic-management">☸️ Kubernetes + Automatic Management</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="which-one-should-you-use--external-ray-cluster" name="__tabbed_2" type="radio" /><input id="which-one-should-you-use--dagster-owned-ray-cluster-kuberay" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="which-one-should-you-use--external-ray-cluster">🏢 External Ray Cluster</label><label for="which-one-should-you-use--dagster-owned-ray-cluster-kuberay">☸️ Dagster-owned Ray Cluster (KubeRay)</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <p><strong>You have a Ray cluster already running</strong></p>
 <ul>
-<li>Use <code>RayRunLauncher</code> for deployment-wide Ray execution</li>
-<li>Use <code>ray_executor</code> for code location-scoped execution</li>
-<li>Use <code>PipesRayJobClient</code> to submit external Python scripts</li>
+<li>Use <a href="api/core/#dagster_ray.run_launcher.RayRunLauncher"><code>RayRunLauncher</code></a> to run the entire Dagster deployment on Ray</li>
+<li>Use <a href="api/core/#dagster_ray.executor.ray_executor"><code>ray_executor</code></a> to run specific jobs on Ray</li>
+<li>Use <a href="api/core/#dagster_ray.pipes.PipesRayJobClient"><code>PipesRayJobClient</code></a> to submit external Python scripts as Ray jobs</li>
 </ul>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
@@ -1010,9 +1010,10 @@
 </div>
 <div class="tabbed-block">
 <p><strong>You want <code>dagster-ray</code> to handle cluster lifecycle</strong></p>
+<p><code>dagster-ray</code> supports running Ray on Kubernetes with <a href="https://docs.ray.io/en/latest/cluster/kubernetes/index.html">KubeRay</a>.</p>
 <ul>
-<li>Use <code>KubeRayInteractiveJob</code> to create a <code>RayJob</code> and connect in client mode</li>
-<li>Use <code>PipesKubeRayJobClient</code> to submit external scripts as <code>RayJob</code></li>
+<li>Use <a href="api/kuberay/#dagster_ray.kuberay.KubeRayInteractiveJob">KubeRayInteractiveJob</a> to create a <code>RayJob</code> and connect in client mode</li>
+<li>Use <a href="api/kuberay/#dagster_ray.kuberay.PipesKubeRayJobClient">PipesKubeRayJobClient</a> to submit external scripts as <code>RayJob</code></li>
 </ul>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
