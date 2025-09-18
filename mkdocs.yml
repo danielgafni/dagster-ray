@@ -148,3 +148,5 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/danielgafni/dagster-ray
+  version:
+    provider: mike

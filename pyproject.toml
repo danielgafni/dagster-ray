@@ -76,6 +76,7 @@ dev = [
 docs = [
     "griffe>=1.14.0",
     "griffe-pydantic>=1.1.7",
+    "mike>=2.1.3",
     "mkdocs>=1.6.1",
     "mkdocs-gen-files>=0.5.0",
     "mkdocs-literate-nav>=0.6.2",

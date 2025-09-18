@@ -668,6 +668,7 @@ dev = [
 docs = [
     { name = "griffe" },
     { name = "griffe-pydantic" },
+    { name = "mike" },
     { name = "mkdocs" },
     { name = "mkdocs-gen-files" },
     { name = "mkdocs-literate-nav" },
@@ -713,6 +714,7 @@ dev = [
 docs = [
     { name = "griffe", specifier = ">=1.14.0" },
     { name = "griffe-pydantic", specifier = ">=1.1.7" },
+    { name = "mike", specifier = ">=2.1.3" },
     { name = "mkdocs", specifier = ">=1.6.1" },
     { name = "mkdocs-gen-files", specifier = ">=0.5.0" },
     { name = "mkdocs-literate-nav", specifier = ">=0.6.2" },
@@ -1325,11 +1327,23 @@ name = "importlib-metadata"
 version = "8.6.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "zipp", marker = "python_full_version < '3.12'" },
+    { name = "zipp" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/33/08/c1395a292bb23fd03bdf572a1357c5a733d3eecbab877641ceacab23db6e/importlib_metadata-8.6.1.tar.gz", hash = "sha256:310b41d755445d74569f993ccfc22838295d9fe005425094fad953d7f15c8580", size = 55767 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/79/9d/0fb148dc4d6fa4a7dd1d8378168d9b4cd8d4560a6fbf6f0121c5fc34eb68/importlib_metadata-8.6.1-py3-none-any.whl", hash = "sha256:02a89390c1e15fdfdc0d7c6b25cb3e62650d0494005c97d6f148bf5b9787525e", size = 26971 },
+]
+
+[[package]]
+name = "importlib-resources"
+version = "6.5.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "zipp", marker = "python_full_version < '3.10'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/cf/8c/f834fbf984f691b4f7ff60f50b514cc3de5cc08abfc3295564dd89c5e2e7/importlib_resources-6.5.2.tar.gz", hash = "sha256:185f87adef5bcc288449d98fb4fba07cea78bc036455dd44c5fc4a2fe78fed2c", size = 44693 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a4/ed/1f1afb2e9e7f38a545d628f864d562a5ae64fe6f7a10e28ffb9b185b4e89/importlib_resources-6.5.2-py3-none-any.whl", hash = "sha256:789cfdc3ed28c78b67a06acb8126751ced69a3d5f79c095a98298cd8a760ccec", size = 37461 },
 ]
 
 [[package]]
@@ -1658,6 +1672,25 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/3a/41/580bb4006e3ed0361b8151a01d324fb03f420815446c7def45d02f74c270/mergedeep-1.3.4.tar.gz", hash = "sha256:0096d52e9dad9939c3d975a774666af186eda617e6ca84df4c94dec30004f2a8", size = 4661 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/2c/19/04f9b178c2d8a15b076c8b5140708fa6ffc5601fb6f1e975537072df5b2a/mergedeep-1.3.4-py3-none-any.whl", hash = "sha256:70775750742b25c0d8f36c55aed03d24c3384d17c951b3175d898bd778ef0307", size = 6354 },
+]
+
+[[package]]
+name = "mike"
+version = "2.1.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "importlib-metadata" },
+    { name = "importlib-resources" },
+    { name = "jinja2" },
+    { name = "mkdocs" },
+    { name = "pyparsing" },
+    { name = "pyyaml" },
+    { name = "pyyaml-env-tag" },
+    { name = "verspec" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ab/f7/2933f1a1fb0e0f077d5d6a92c6c7f8a54e6128241f116dff4df8b6050bbf/mike-2.1.3.tar.gz", hash = "sha256:abd79b8ea483fb0275b7972825d3082e5ae67a41820f8d8a0dc7a3f49944e810", size = 38119 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fd/1a/31b7cd6e4e7a02df4e076162e9783620777592bea9e4bb036389389af99d/mike-2.1.3-py3-none-any.whl", hash = "sha256:d90c64077e84f06272437b464735130d380703a76a5738b152932884c60c062a", size = 33754 },
 ]
 
 [[package]]
@@ -2618,6 +2651,15 @@ wheels = [
 ]
 
 [[package]]
+name = "pyparsing"
+version = "3.2.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/98/c9/b4594e6a81371dfa9eb7a2c110ad682acf985d96115ae8b25a1d63b4bf3b/pyparsing-3.2.4.tar.gz", hash = "sha256:fff89494f45559d0f2ce46613b419f632bbb6afbdaed49696d322bcf98a58e99", size = 1098809 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/53/b8/fbab973592e23ae313042d450fc26fa24282ebffba21ba373786e1ce63b4/pyparsing-3.2.4-py3-none-any.whl", hash = "sha256:91d0fcde680d42cd031daf3a6ba20da3107e08a75de50da58360e7d94ab24d36", size = 113869 },
+]
+
+[[package]]
 name = "pyreadline3"
 version = "3.5.4"
 source = { registry = "https://pypi.org/simple" }
@@ -3450,6 +3492,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/b8/c0/392e235e4100ae3b95b5c6dac77f82b529d2760942b1e7e0981e5d8e895d/uvloop-0.21.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:88cb67cdbc0e483da00af0b2c3cdad4b7c61ceb1ee0f33fe00e09c81e3a6cb75", size = 3827185 },
     { url = "https://files.pythonhosted.org/packages/e1/24/a5da6aba58f99aed5255eca87d58d1760853e8302d390820cc29058408e3/uvloop-0.21.0-cp39-cp39-musllinux_1_2_aarch64.whl", hash = "sha256:221f4f2a1f46032b403bf3be628011caf75428ee3cc204a22addf96f586b19fd", size = 3705833 },
     { url = "https://files.pythonhosted.org/packages/1a/5c/6ba221bb60f1e6474474102e17e38612ec7a06dc320e22b687ab563d877f/uvloop-0.21.0-cp39-cp39-musllinux_1_2_x86_64.whl", hash = "sha256:2d1f581393673ce119355d56da84fe1dd9d2bb8b3d13ce792524e1607139feff", size = 3804696 },
+]
+
+[[package]]
+name = "verspec"
+version = "0.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e7/44/8126f9f0c44319b2efc65feaad589cadef4d77ece200ae3c9133d58464d0/verspec-0.1.0.tar.gz", hash = "sha256:c4504ca697b2056cdb4bfa7121461f5a0e81809255b41c03dda4ba823637c01e", size = 27123 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a4/ce/3b6fee91c85626eaf769d617f1be9d2e15c1cca027bbdeb2e0d751469355/verspec-0.1.0-py3-none-any.whl", hash = "sha256:741877d5633cc9464c45a469ae2a31e801e6dbbaa85b9675d481cda100f11c31", size = 19640 },
 ]
 
 [[package]]
