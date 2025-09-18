@@ -25,7 +25,7 @@ docs/
 
 ### Prerequisites
 
-1. **Python Environment**: Ensure you have Python 3.9+ installed
+1. **Python Environment**: Ensure you have Python 3.10+ installed
 2. **UV Package Manager**: The project uses `uv` for dependency management
 
 ### Setup Steps

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Literal, Optional
+from typing import TYPE_CHECKING, Literal
 
 import dagster as dg
 from pydantic import Field, PrivateAttr
@@ -22,8 +22,8 @@ if TYPE_CHECKING:
 class KubeRayJobClientResource(dg.ConfigurableResource[RayJobClient]):
     """This configurable resource provides a `dagster_ray.kuberay.client.RayJobClient`."""
 
-    kube_context: Optional[str] = None
-    kube_config: Optional[str] = None
+    kube_context: str | None = None
+    kube_config: str | None = None
 
     def create_resource(self, context: dg.InitResourceContext):
         load_kubeconfig(context=self.kube_context, config_file=self.kube_config)

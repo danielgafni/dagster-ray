@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
-from typing import TYPE_CHECKING, Any, Optional, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import dagster as dg
 from dagster._core.definitions.executor_definition import multiple_process_executor_requirements
@@ -184,7 +184,7 @@ class RayStepHandler(StepHandler):
         else:
             remote_job_origin = run.external_job_origin  # type: ignore
 
-        remote_job_origin = cast(Optional[RemoteJobOrigin], remote_job_origin)
+        remote_job_origin = cast(RemoteJobOrigin | None, remote_job_origin)
 
         if remote_job_origin:
             labels["dagster/code-location"] = remote_job_origin.repository_origin.code_location_origin.location_name
