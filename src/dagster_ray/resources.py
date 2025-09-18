@@ -9,7 +9,6 @@ if sys.version_info >= (3, 11):
 else:
     pass
 
-from ray._private.worker import BaseContext as RayBaseContext  # noqa
 
 from dagster_ray._base.resources import BaseRayResource
 

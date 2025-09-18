@@ -1,25 +1,16 @@
-import sys
 from typing import Optional
 
 import dagster as dg
 from pydantic import Field, PrivateAttr
 from typing_extensions import override
 
+from dagster_ray._base.resources import BaseRayResource, Lifecycle
 from dagster_ray.kuberay.client import RayClusterClient
+from dagster_ray.kuberay.client.base import load_kubeconfig
 from dagster_ray.kuberay.configs import RayClusterConfig
 from dagster_ray.kuberay.resources.base import BaseKubeRayResourceConfig
 from dagster_ray.kuberay.utils import normalize_k8s_label_values
 from dagster_ray.types import AnyDagsterContext
-
-if sys.version_info >= (3, 11):
-    pass
-else:
-    pass
-
-from ray._private.worker import BaseContext as RayBaseContext  # noqa
-
-from dagster_ray._base.resources import BaseRayResource, Lifecycle
-from dagster_ray.kuberay.client.base import load_kubeconfig
 
 
 class KubeRayClusterClientResource(dg.ConfigurableResource[RayClusterClient]):
