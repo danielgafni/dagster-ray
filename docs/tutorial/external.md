@@ -231,7 +231,7 @@ def distributed_ml_training(
         submit_job_params={
             "entrypoint": "python ml_training.py",
             "runtime_env": {
-                "pip": ["dagster-pipes", "torch"],
+                "pip": ["dagster-pipes", "torch"],  # (1)!
             },
         },
         extras={
@@ -250,6 +250,8 @@ definitions = Definitions(
     },
 )
 ```
+
+1. :bulb: `dagster-pipes` have to be installed in the remote environment!
 
 When materializing the asset, the `PipesRayJobClient` will submit the script as a Ray job, monitor its status, and stream back logs and Dagster metadata.
 

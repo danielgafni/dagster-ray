@@ -167,49 +167,37 @@ ray_cluster = KubeRayCluster(
 First, create a Ray script that will run on the cluster:
 
 ```python title="ray_workload.py"
-# ray_workload.py - External Ray script
+# ml_training.py - External Ray script
 import ray
-from dagster_pipes import open_dagster_pipes, PipesContext
+from dagster_pipes import open_dagster_pipes
 
 
 @ray.remote
-def process_data_chunk(chunk_id: int, size: int):
-    """Process a chunk of data."""
+def train_ml_model(partition_id: int):
+    """Dummy ML training function."""
     import time
-    import random
 
-    # Simulate data processing
-    time.sleep(random.uniform(1, 3))
-    result = sum(range(chunk_id * size, (chunk_id + 1) * size))
-
-    return {"chunk_id": chunk_id, "result": result, "size": size}
+    time.sleep(1)  # Simulate work
+    return {"partition_id": partition_id, "accuracy": 0.95}
 
 
 def main():
-    # Open Dagster Pipes context for logging and metadata
     with open_dagster_pipes() as context:
-        context.log.info("Starting distributed Ray workload")
+        context.log.info("Starting distributed ML training")
 
-        # Ray is already initialized by KubeRay
-        num_chunks = 5
-        chunk_size = 1000
+        # Get configuration from Dagster
+        num_partitions = context.get_extra("num_partitions", 4)
 
-        # Submit work to Ray cluster
-        futures = [process_data_chunk.remote(i, chunk_size) for i in range(num_chunks)]
-
-        # Collect results
+        # Submit training jobs
+        futures = [train_ml_model.remote(i) for i in range(num_partitions)]
         results = ray.get(futures)
-        total_result = sum(r["result"] for r in results)
 
-        context.log.info(f"Processed {num_chunks} chunks, total result: {total_result}")
+        context.log.info(f"Training complete on {len(results)} partitions")
 
-        # Report asset materialization
+        # Report results
         context.report_asset_materialization(
-            metadata={
-                "num_chunks": num_chunks,
-                "chunk_size": chunk_size,
-                "total_result": total_result,
-            }
+            metadata={"num_partitions": len(results), "results": results},
+            data_version="alpha",
         )
 
 
@@ -220,8 +208,12 @@ if __name__ == "__main__":
 Now create a Dagster asset that uses `PipesKubeRayJobClient`:
 
 ```python
-from dagster import asset, AssetExecutionContext
+from dagster import asset, AssetExecutionContext, Config
 from dagster_ray.kuberay import PipesKubeRayJobClient
+
+
+class MLTrainingConfig(Config):
+    num_partitions: int = 4
 
 
 @asset
@@ -237,13 +229,14 @@ def distributed_computation(
         ray_job={
             "entrypoint": "python ray_workload.py",
             "runtime_env": {
-                "pip": ["dagster-pipes"],
-                "working_dir": "s3://my-bucket/ray-scripts/",
+                "pip": ["dagster-pipes", "torch"],  # (1)!
             },
             "entrypoint_num_cpus": 1.0,
             "entrypoint_memory": 2 * 1024 * 1024 * 1024,  # 2GB
         },
-        extras={"env_vars": {"CUSTOM_CONFIG": "production"}},
+        extras={
+            "num_partitions": config.num_partitions,
+        },
     )
 
 
@@ -252,5 +245,7 @@ definitions = Definitions(
     resources={"ray_pipes_client": PipesKubeRayJobClient()},
 )
 ```
+
+1. :bulb: `dagster-pipes` have to be installed in the remote environment!
 
 When materializing the asset, the `PipesKubeRayJobClient` will submit the script as a `RayJob` custom resource, monitor its status, and stream back logs and Dagster metadata.
