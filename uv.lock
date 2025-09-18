@@ -666,6 +666,7 @@ dev = [
     { name = "syrupy" },
 ]
 docs = [
+    { name = "griffe" },
     { name = "griffe-pydantic" },
     { name = "mkdocs" },
     { name = "mkdocs-gen-files" },
@@ -710,6 +711,7 @@ dev = [
     { name = "syrupy", specifier = ">=4.9.1" },
 ]
 docs = [
+    { name = "griffe", specifier = ">=1.14.0" },
     { name = "griffe-pydantic", specifier = ">=1.1.7" },
     { name = "mkdocs", specifier = ">=1.6.1" },
     { name = "mkdocs-gen-files", specifier = ">=0.5.0" },

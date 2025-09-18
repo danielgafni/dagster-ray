@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from dagster import ConfigurableIOManager, InputContext, OutputContext
+import dagster as dg
 
 DAGSTER_RAY_OBJECT_MAP_NAME = "DagsterRayObjectMap"
 DAGSTER_RAY_NAMESPACE = "dagster-ray"
@@ -60,7 +60,7 @@ class RayObjectMap:
         return actor
 
 
-class RayIOManager(ConfigurableIOManager):
+class RayIOManager(dg.ConfigurableIOManager):
     """IO Manager that stores intermediate values in Ray's object store.
 
     The RayIOManager allows storing and retrieving intermediate values in Ray's distributed
@@ -72,27 +72,28 @@ class RayIOManager(ConfigurableIOManager):
         address: Ray cluster address. If provided, will initialize Ray connection.
                 If None, assumes Ray is already initialized.
 
-    Examples:
-        Basic usage:
+    Example:
+        Basic usage
         ```python
-        from dagster import asset, Definitions
+        import dagster as dg
         from dagster_ray import RayIOManager
 
-        @asset(io_manager_key="ray_io_manager")
+        @dg.asset(io_manager_key="ray_io_manager")
         def upstream() -> int:
             return 42
 
-        @asset
+        @dg.asset
         def downstream(upstream: int):
             return upstream * 2
 
-        definitions = Definitions(
+        definitions = dg.Definitions(
             assets=[upstream, downstream],
             resources={"ray_io_manager": RayIOManager()}
         )
         ```
 
-        With Ray cluster address:
+    Example:
+        With Ray cluster address
         ```python
         ray_io_manager = RayIOManager(address="ray://head-node:10001")
         ```
@@ -106,7 +107,7 @@ class RayIOManager(ConfigurableIOManager):
 
     address: str | None = None
 
-    def handle_output(self, context: OutputContext, obj):
+    def handle_output(self, context: dg.OutputContext, obj):
         import ray
 
         if self.address:  # TODO: should this really be done here?
@@ -125,7 +126,7 @@ class RayIOManager(ConfigurableIOManager):
 
         context.log.debug(f"[RayIOManager] Stored object with key {storage_key} as {ref}")
 
-    def load_input(self, context: InputContext):
+    def load_input(self, context: dg.InputContext):
         import ray
 
         if self.address:  # TODO: should this really be done here?
@@ -153,11 +154,11 @@ class RayIOManager(ConfigurableIOManager):
 
         return ray.get(ref)
 
-    def _get_single_key(self, context: InputContext | OutputContext) -> str:
+    def _get_single_key(self, context: dg.InputContext | dg.OutputContext) -> str:
         identifier = context.get_identifier() if not context.has_asset_key else context.get_asset_identifier()
         return "/".join(identifier)
 
-    def _get_multiple_keys(self, context: InputContext) -> dict[str, str]:
+    def _get_multiple_keys(self, context: dg.InputContext) -> dict[str, str]:
         if context.has_asset_key:
             asset_path = list(context.asset_key.path)
 

@@ -27,7 +27,7 @@ Before getting started, you'll need:
 Here's a simple example that creates a Ray cluster and runs distributed computation:
 
 ```python
-from dagster import asset, Definitions
+import dagster as dg
 from dagster_ray.kuberay import KubeRayInteractiveJob, RayResource
 import ray
 
@@ -45,7 +45,7 @@ def compute_pi_slice(start: int, num_samples: int) -> int:
     return count
 
 
-@asset
+@dg.asset
 def estimate_pi(ray_cluster: RayResource) -> float:
     """Estimate pi using distributed Ray computation."""
     num_samples = 10_000_000
@@ -65,7 +65,7 @@ def estimate_pi(ray_cluster: RayResource) -> float:
     return pi_estimate
 
 
-definitions = Definitions(
+definitions = dg.Definitions(
     assets=[estimate_pi], resources={"ray_cluster": KubeRayInteractiveJob()}
 )
 ```
@@ -156,8 +156,6 @@ ray_cluster = KubeRayCluster(
     - It creates persistent clusters that may not get cleaned up properly, for example if something happens to the Dagster pod
     - It lacks `RayJob`'s features such as timeouts and existing cluster selection
 
-    Use `KubeRayInteractiveJob` unless you specifically need persistent clusters.
-
 ## PipesKubeRayJobClient
 
 [`PipesKubeRayJobClient`](../api/kuberay.md#dagster_ray.kuberay.PipesKubeRayJobClient) allows you to submit external Python scripts as Ray jobs with automatic cluster management. This is ideal when you want to decouple your Ray workload from your Dagster orchestration code or Python environment.
@@ -208,17 +206,17 @@ if __name__ == "__main__":
 Now create a Dagster asset that uses `PipesKubeRayJobClient`:
 
 ```python
-from dagster import asset, AssetExecutionContext, Config
+import dagster as dg
 from dagster_ray.kuberay import PipesKubeRayJobClient
 
 
-class MLTrainingConfig(Config):
+class MLTrainingConfig(dg.Config):
     num_partitions: int = 4
 
 
-@asset
+@dg.asset
 def distributed_computation(
-    context: AssetExecutionContext,
+    context: dg.AssetExecutionContext,
     ray_pipes_client: PipesKubeRayJobClient,
 ) -> None:
     """Run distributed computation using Pipes + KubeRay."""
@@ -240,7 +238,7 @@ def distributed_computation(
     )
 
 
-definitions = Definitions(
+definitions = dg.Definitions(
     assets=[distributed_computation],
     resources={"ray_pipes_client": PipesKubeRayJobClient()},
 )

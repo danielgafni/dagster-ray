@@ -3,13 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 from typing import TYPE_CHECKING, Any, Optional, cast
 
-import dagster
-from dagster import (
-    _check as check,
-)
-from dagster import (
-    executor,
-)
+import dagster as dg
 from dagster._core.definitions.executor_definition import multiple_process_executor_requirements
 from dagster._core.definitions.metadata import MetadataValue
 from dagster._core.events import DagsterEvent, EngineEventData
@@ -60,7 +54,7 @@ _RAY_EXECUTOR_CONFIG_SCHEMA = merge_dicts(
 )
 
 
-@executor(
+@dg.executor(
     name="ray",
     config_schema=_RAY_EXECUTOR_CONFIG_SCHEMA,
     requirements=multiple_process_executor_requirements(),
@@ -71,6 +65,30 @@ def ray_executor(init_context: InitExecutorContext) -> Executor:
     The steps are started inside the Ray cluster directly.
     When used together with the `RayRunLauncher`, the executor can inherit the job submission client configuration.
     This behavior can be disabled by setting `inherit_job_submission_client_from_ray_run_launcher` to `False`.
+
+    Example:
+        Use `ray_executor` for the entire code location
+        ```python
+        import dagster as dg
+        from dagster_ray import ray_executor
+
+        ray_executor = ray_executor.configured(
+            {"address": EnvVar("RAY_ADDRESS"), "runtime_env": {"pip": ["polars"]}}
+        )
+
+        defs = dg.Definitions(..., executor=ray_executor])
+        ```
+
+    Example:
+        Override configuration for a specific asset
+        ```python
+        import dagster as dg
+
+        @dg.asset(
+            op_tags={"dagster-ray/config": {"num_cpus": 2}}
+        )
+        def my_asset(): ...
+        ```
     """
     from ray.job_submission import JobSubmissionClient
 
@@ -98,8 +116,8 @@ def ray_executor(init_context: InitExecutorContext) -> Executor:
             resources=ray_cfg.resources,
         ),
         retries=RetryMode.from_config(exc_cfg["retries"]),  # type: ignore
-        max_concurrent=check.opt_int_elem(exc_cfg, "max_concurrent"),
-        tag_concurrency_limits=check.opt_list_elem(exc_cfg, "tag_concurrency_limits"),
+        max_concurrent=dg._check.opt_int_elem(exc_cfg, "max_concurrent"),
+        tag_concurrency_limits=dg._check.opt_list_elem(exc_cfg, "tag_concurrency_limits"),
         should_verify_step=True,
     )
 
@@ -161,7 +179,7 @@ class RayStepHandler(StepHandler):
             "dagster/run-id": step_handler_context.execute_step_args.run_id,
         }
 
-        if Version(dagster.__version__) >= Version("1.8.12"):
+        if Version(dg.__version__) >= Version("1.8.12"):
             remote_job_origin = run.remote_job_origin  # type: ignore
         else:
             remote_job_origin = run.external_job_origin  # type: ignore

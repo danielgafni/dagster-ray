@@ -36,45 +36,43 @@ Before getting started, you'll need:
 
 [`LocalRay`](../api/core.md#dagster_ray.resources.LocalRay) is perfect for local development and testing. It provides the same interface as other Ray resources but runs Ray locally on your machine.
 
-!!! example
-      ```python
-      from dagster import asset, Definitions
-      from dagster_ray import LocalRay
-      import ray
+```python
+import dagster as dg
+from dagster_ray import LocalRay
+import ray
 
 
-      @asset
-      def batch_processing_results(ray_cluster: LocalRay) -> dict:
-          """Process multiple batches in parallel using local Ray."""
-          refs = [process_batch.remote(i, size) for i, size in enumerate(batch_sizes)]
+@dg.asset
+def batch_processing_results(ray_cluster: LocalRay) -> dict:
+    """Process multiple batches in parallel using local Ray."""
+    refs = [process_batch.remote(i, size) for i, size in enumerate(batch_sizes)]
 
-          # Collect results
-          results = ray.get(refs)
+    # Collect results
+    results = ray.get(refs)
 
-          return aggregate(results)
+    return aggregate(results)
 
 
-      definitions = Definitions(
-          assets=[batch_processing_results], resources={"ray_cluster": LocalRay()}
-      )
-      ```
+definitions = dg.Definitions(
+    assets=[batch_processing_results], resources={"ray_cluster": LocalRay()}
+)
+```
 
 You can customize the local Ray configuration:
 
-!!! example
-    ```python
-    from dagster_ray import LocalRay
+```python
+from dagster_ray import LocalRay
 
-    local_ray = LocalRay(
-        # Ray initialization options
-        ray_init_options={
-            "num_cpus": 8,
-            "num_gpus": 1,
-            "object_store_memory": 1000000000,  # 1GB
-            "runtime_env": {"pip": ["numpy", "polars", "scikit-learn"]},
-        },
-    )
-    ```
+local_ray = LocalRay(
+    # Ray initialization options
+    ray_init_options={
+        "num_cpus": 8,
+        "num_gpus": 1,
+        "object_store_memory": 1000000000,  # 1GB
+        "runtime_env": {"pip": ["numpy", "polars", "scikit-learn"]},
+    },
+)
+```
 
 ## RayRunLauncher
 
@@ -107,10 +105,10 @@ run_launcher:
 With `RayRunLauncher` enabled, your regular Dagster assets will automatically run on Ray:
 
 ```python
-from dagster import asset, Definitions
+import dagster as dg
 
 
-@asset
+@dg.asset
 def regular_asset():
     """This asset will be submitted as a Ray job."""
     ...
@@ -132,13 +130,13 @@ It's possible to provide additional runtime configuration via the `dagster-ray/c
 The executor can be enabled at `Definitions` level:
 
 ```python
-from dagster import Definitions, EnvVar
+import dagster as dg
 from dagster_ray import ray_executor
 
 
-definitions = Definitions(
+definitions = dg.Definitions(
     executor=ray_executor.configured(
-        {"address": EnvVar("RAY_ADDRESS"), "runtime_env": {"pip": ["polars"]}}
+        {"address": dg.EnvVar("RAY_ADDRESS"), "runtime_env": {"pip": ["polars"]}}
     )
 )
 ```
@@ -146,7 +144,7 @@ definitions = Definitions(
 It's possible to configure individual assets via the `dagster-ray/config` op tag:
 
 ```py
-@asset(
+@dg.asset(
     op_tags={
         "dagster-ray/config": {
             "num_cpus": 2,
@@ -209,18 +207,18 @@ if __name__ == "__main__":
 Now, let's define a Dagster asset that will be calling the above external script via Dagster Pipes.
 
 ```python
-from dagster import asset, AssetExecutionContext, Config
+import dagster as dg
 from dagster_ray import PipesRayJobClient
 from ray.job_submission import JobSubmissionClient
 
 
-class MLTrainingConfig(Config):
+class MLTrainingConfig(dg.Config):
     num_partitions: int = 4
 
 
-@asset
+@dg.asset
 def distributed_ml_training(
-    context: AssetExecutionContext,
+    context: dg.AssetExecutionContext,
     ray_client: PipesRayJobClient,
     config: MLTrainingConfig,
 ) -> dict:
@@ -240,7 +238,7 @@ def distributed_ml_training(
     )
 
 
-definitions = Definitions(
+definitions = dg.Definitions(
     assets=[distributed_ml_training],
     resources={
         "ray_client": PipesRayJobClient(

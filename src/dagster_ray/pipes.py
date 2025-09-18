@@ -11,8 +11,8 @@ from contextlib import contextmanager
 from functools import partial
 from typing import TYPE_CHECKING, Any, TypedDict, cast
 
+import dagster as dg
 import dagster._check as check
-from dagster import PipesClient
 from dagster._core.definitions.resource_annotation import TreatAsResourceParam
 from dagster._core.errors import DagsterExecutionInterruptedError
 from dagster._core.pipes.client import (
@@ -215,7 +215,7 @@ def generate_job_id() -> str:
     return f"pipes-{random_letters}"
 
 
-class PipesRayJobClient(PipesClient, TreatAsResourceParam):
+class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
     """A [Pipes](https://docs.dagster.io/guides/build/external-pipelines) client for running Ray jobs on remote clusters.
 
     Starts the job directly on the Ray cluster and reads the logs from the job.

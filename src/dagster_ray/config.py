@@ -3,13 +3,13 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from dagster import Config
+import dagster as dg
 from pydantic import Field
 
 USER_DEFINED_RAY_KEY = "dagster-ray/config"
 
 
-class RayExecutionConfig(Config):
+class RayExecutionConfig(dg.Config):
     runtime_env: dict[str, Any] | None = Field(default=None, description="The runtime environment to use.")
     num_cpus: float | None = Field(default=None, description="The number of CPUs to allocate.")
     num_gpus: float | None = Field(default=None, description="The number of GPUs to allocate.")
@@ -24,7 +24,7 @@ class RayExecutionConfig(Config):
             return cls()
 
 
-class RayJobSubmissionClientConfig(Config):
+class RayJobSubmissionClientConfig(dg.Config):
     address: str = Field(..., description="The address of the Ray cluster to connect to.")
     metadata: dict[str, str] | None = Field(
         default=None,
@@ -42,13 +42,13 @@ class RayJobSubmissionClientConfig(Config):
     )
 
 
-class ExecutionOptionsConfig(Config):
+class ExecutionOptionsConfig(dg.Config):
     cpu: int | None = None
     gpu: int | None = None
     object_store_memory: int | None = None
 
 
-class RayDataExecutionOptions(Config):
+class RayDataExecutionOptions(dg.Config):
     execution_options: ExecutionOptionsConfig = Field(default_factory=ExecutionOptionsConfig)
 
     cpu_limit: int = 5000

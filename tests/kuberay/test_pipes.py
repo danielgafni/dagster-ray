@@ -1,13 +1,12 @@
 import sys
 
+import dagster as dg
 import pytest
 import ray  # noqa: TID253
-from dagster import AssetExecutionContext, DagsterEventType, EventRecordsFilter, asset, materialize
 from dagster._core.definitions.data_version import (
     DATA_VERSION_IS_USER_PROVIDED_TAG,
     DATA_VERSION_TAG,
 )
-from dagster._core.instance_for_test import instance_for_test
 from pytest_kubernetes.providers import AClusterManager
 from ray.job_submission import JobSubmissionClient  # noqa: TID253
 
@@ -74,8 +73,8 @@ def pipes_kube_rayjob_client(k8s_with_kuberay: AClusterManager):
 
 
 def test_rayjob_pipes(pipes_kube_rayjob_client: PipesKubeRayJobClient, dagster_ray_image: str, capsys):
-    @asset
-    def my_asset(context: AssetExecutionContext, pipes_kube_rayjob_client: PipesKubeRayJobClient):
+    @dg.asset
+    def my_asset(context: dg.AssetExecutionContext, pipes_kube_rayjob_client: PipesKubeRayJobClient):
         result = pipes_kube_rayjob_client.run(
             context=context,
             ray_job=RAY_JOB,
@@ -84,8 +83,8 @@ def test_rayjob_pipes(pipes_kube_rayjob_client: PipesKubeRayJobClient, dagster_r
 
         return result
 
-    with instance_for_test() as instance:
-        result = materialize(
+    with dg.instance_for_test() as instance:
+        result = dg.materialize(
             [my_asset],
             resources={"pipes_kube_rayjob_client": pipes_kube_rayjob_client},
             instance=instance,
@@ -100,7 +99,9 @@ def test_rayjob_pipes(pipes_kube_rayjob_client: PipesKubeRayJobClient, dagster_r
         mat_evts = result.get_asset_materialization_events()
 
         mat = instance.get_latest_materialization_event(my_asset.key)
-        instance.get_event_records(event_records_filter=EventRecordsFilter(event_type=DagsterEventType.LOGS_CAPTURED))
+        instance.get_event_records(
+            event_records_filter=dg.EventRecordsFilter(event_type=dg.DagsterEventType.LOGS_CAPTURED)
+        )
 
         assert len(mat_evts) == 1
 
@@ -128,8 +129,8 @@ def pipes_ray_job_client(k8s_with_raycluster: tuple[dict[str, str], AClusterMana
 
 
 def test_ray_job_pipes(pipes_ray_job_client: PipesRayJobClient, capsys):
-    @asset
-    def my_asset(context: AssetExecutionContext, pipes_ray_job_client: PipesRayJobClient):
+    @dg.asset
+    def my_asset(context: dg.AssetExecutionContext, pipes_ray_job_client: PipesRayJobClient):
         result = pipes_ray_job_client.run(
             context=context,
             submit_job_params={"entrypoint": ENTRYPOINT, "entrypoint_num_cpus": 0.1},
@@ -138,8 +139,8 @@ def test_ray_job_pipes(pipes_ray_job_client: PipesRayJobClient, capsys):
 
         return result
 
-    with instance_for_test() as instance:
-        result = materialize(
+    with dg.instance_for_test() as instance:
+        result = dg.materialize(
             [my_asset],
             resources={"pipes_ray_job_client": pipes_ray_job_client},
             instance=instance,
@@ -153,7 +154,9 @@ def test_ray_job_pipes(pipes_ray_job_client: PipesRayJobClient, capsys):
         mat_evts = result.get_asset_materialization_events()
 
         mat = instance.get_latest_materialization_event(my_asset.key)
-        instance.get_event_records(event_records_filter=EventRecordsFilter(event_type=DagsterEventType.LOGS_CAPTURED))
+        instance.get_event_records(
+            event_records_filter=dg.EventRecordsFilter(event_type=dg.DagsterEventType.LOGS_CAPTURED)
+        )
 
         assert len(mat_evts) == 1
 

@@ -20,7 +20,7 @@
 ## 🚀 Key Features
 
 - **Run Launchers & Executors**: Submit Dagster runs or individual ops as Ray jobs
-- **Ray Resources**: Manage Ray clusters with Kubernetes (KubeRay) or local backends, connect to them in Client mode
+- **Ray Resources**: Manage Ray clusters with Kubernetes (KubeRay) or local backends, connect to them in client mode
 - **Dagster Pipes**: Execute external Ray scripts with rich logging and metadata
 - **Production Ready**: Tested against a matrix of core dependencies and platform versions, integrated with Dagster+
 
@@ -40,7 +40,7 @@ pip install 'dagster-ray[kuberay]'
 ### Basic Example
 
 ```python
-from dagster import asset, Definitions
+import dagster as dg
 from dagster_ray import LocalRay, RayResource, KubeRayInteractiveJob
 import ray
 
@@ -50,7 +50,7 @@ def compute_square(x: int) -> int:
     return x**2
 
 
-@asset
+@dg.asset
 def my_distributed_computation(ray_cluster: RayResource) -> int:
     futures = [compute_square.remote(i) for i in range(10)]
     return sum(ray.get(futures))
@@ -59,7 +59,7 @@ def my_distributed_computation(ray_cluster: RayResource) -> int:
 ray_cluster = LocalRay() if not IN_KUBERNETES else KubeRayInteractiveJob()
 
 
-definitions = Definitions(
+definitions = dg.Definitions(
     assets=[my_distributed_computation],
     resources={"ray_cluster": ray_cluster},
 )

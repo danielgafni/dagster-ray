@@ -1,19 +1,18 @@
 import dagster as dg
-from dagster import Config, DagsterRunStatus, OpExecutionContext, RunsFilter, op
 from pydantic import Field
 
 from dagster_ray._base.constants import DEFAULT_DEPLOYMENT_NAME
 from dagster_ray.kuberay.client.raycluster.client import RayClusterClient
 
 
-class DeleteKubeRayClustersConfig(Config):
+class DeleteKubeRayClustersConfig(dg.Config):
     namespace: str = "ray"
     cluster_names: list[str] = Field(default_factory=list, description="List of RayCluster names to delete")
 
 
-@op(description="Deletes RayCluster resources from Kubernetes", name="delete_kuberay_clusters")
+@dg.op(description="Deletes RayCluster resources from Kubernetes", name="delete_kuberay_clusters")
 def delete_kuberay_clusters_op(
-    context: OpExecutionContext,
+    context: dg.OpExecutionContext,
     config: DeleteKubeRayClustersConfig,
     kuberay_client: dg.ResourceParam[RayClusterClient],
 ) -> None:
@@ -28,28 +27,28 @@ def delete_kuberay_clusters_op(
             context.log.exception(f"Couldn't delete RayCluster {config.namespace}/{cluster_name}")
 
 
-class CleanupKuberayClustersConfig(Config):
+class CleanupKuberayClustersConfig(dg.Config):
     namespace: str = "kuberay"
     label_selector: str = Field(
         default=f"dagster/deployment={DEFAULT_DEPLOYMENT_NAME}", description="Label selector to filter RayClusters"
     )
 
 
-@op(
+@dg.op(
     description="Deletes RayCluster resources which do not correspond to any active Dagster Runs in this deployment from Kubernetes",
     name="cleanup_kuberay_clusters",
 )
 def cleanup_kuberay_clusters_op(
-    context: OpExecutionContext,
+    context: dg.OpExecutionContext,
     config: CleanupKuberayClustersConfig,
     kuberay_client: dg.ResourceParam[RayClusterClient],
 ) -> None:
     current_runs = context.instance.get_runs(
-        filters=RunsFilter(
+        filters=dg.RunsFilter(
             statuses=[
-                DagsterRunStatus.STARTED,
-                DagsterRunStatus.QUEUED,
-                DagsterRunStatus.CANCELING,
+                dg.DagsterRunStatus.STARTED,
+                dg.DagsterRunStatus.QUEUED,
+                dg.DagsterRunStatus.CANCELING,
             ]
         )
     )

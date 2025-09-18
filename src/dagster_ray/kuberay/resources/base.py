@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import re
 from abc import abstractmethod
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
-from dagster import Config
+import dagster as dg
 from pydantic import Field, PrivateAttr
 from ray._private.worker import BaseContext as RayBaseContext  # noqa
 
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     pass
 
 
-class BaseKubeRayResourceConfig(Config):
+class BaseKubeRayResourceConfig(dg.Config):
     image: str | None = Field(
         default=None,
         description="Image to inject into the `RayCluster` spec. Defaults to `dagster/image` run tag. Images already provided in the `RayCluster` spec won't be overridden.",
@@ -57,21 +57,3 @@ class BaseKubeRayResourceConfig(Config):
         step_name = re.sub(r"[^-0-9a-z]", "-", step_name)
 
         return step_name
-
-
-T = TypeVar("T")
-
-
-COMMON_KUBERAY_DOCSTRING = """
-Info:
-    Image defaults to `dagster/image` run tag.
-
-Tip:
-    Make sure `ray[full]` is available in the image.
-"""
-
-
-def kuberay_docs(cls: T) -> T:
-    if cls.__doc__ is not None:
-        cls.__doc__ += COMMON_KUBERAY_DOCSTRING
-    return cls

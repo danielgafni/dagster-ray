@@ -12,7 +12,7 @@ COPY --from=d3fk/kubectl:v1.30 /kubectl /usr/local/bin/
 
 # install uv (https://github.com/astral-sh/uv)
 # docs for using uv with Docker: https://docs.astral.sh/uv/guides/integration/docker/
-COPY --from=ghcr.io/astral-sh/uv:0.8.11 /uv /bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.8.18 /uv /bin/uv
 
 ENV UV_PROJECT_ENVIRONMENT=/usr/local/
 ENV DAGSTER_HOME=/opt/dagster/dagster_home
@@ -22,10 +22,11 @@ FROM base AS base-prod
 
 WORKDIR /src
 
+COPY src/dagster_ray/_version.py ./src/dagster_ray/_version.py
 COPY pyproject.toml uv.lock  ./
 
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --all-extras --no-dev --no-install-project --inexact
+    uv sync --frozen --all-extras --no-dev --no-install-local --inexact
 
 FROM base-prod AS base-dev
 
@@ -46,7 +47,7 @@ RUN touch README.md
 ARG RAY_VERSION=2.35.0
 ARG DAGSTER_VERSION=1.8.12
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv add --no-sync --no-install-local "ray[all]==$RAY_VERSION" "dagster==$DAGSTER_VERSION"
+    uv add --no-sync "ray[all]==$RAY_VERSION" "dagster==$DAGSTER_VERSION"
 
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --all-extras --no-install-local

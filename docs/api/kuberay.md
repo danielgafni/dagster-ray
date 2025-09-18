@@ -1,6 +1,6 @@
 # KubeRay API Reference
 
-KubeRay integration components for running Ray on Kubernetes.
+KubeRay integration components for running Ray on Kubernetes.  Learn how to use it [here](../tutorial/kuberay.md).
 
 ::: dagster_ray.kuberay
     options:
