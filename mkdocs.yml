@@ -53,15 +53,10 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
+          paths: ["src"]
           options:
-            filters: ["^_", "!^__init__$"]
+            filters: ["!^_[^_]"]
             heading_level: 3
-            category_headings:
-              methods: "Methods"
-              functions: "Functions"
-              classes: "Classes"
-              attributes: "Attributes"
-              modules: "Modules"
             docstring_style: google
             docstring_options:
               ignore_init_summary: true
@@ -99,7 +94,6 @@ plugins:
                 field_docstring_in_description: true
           extra:
             enable_autorefs: true
-
 
 markdown_extensions:
   - abbr
