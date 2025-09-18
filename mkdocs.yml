@@ -54,7 +54,14 @@ plugins:
       handlers:
         python:
           options:
-            # filters: ["!^_", "^__init__$"]
+            filters: ["^_", "!^__init__$"]
+            heading_level: 3
+            category_headings:
+              methods: "Methods"
+              functions: "Functions"
+              classes: "Classes"
+              attributes: "Attributes"
+              modules: "Modules"
             docstring_style: google
             docstring_options:
               ignore_init_summary: true
