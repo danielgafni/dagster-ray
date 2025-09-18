@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Any, cast
 import dagster._check as check
 import yaml
 from dagster import DagsterInvariantViolationError, PipesClient
-from dagster._annotations import beta
 from dagster._core.definitions.resource_annotation import TreatAsResourceParam
 from dagster._core.errors import DagsterExecutionInterruptedError
 from dagster._core.pipes.client import (
@@ -21,6 +20,7 @@ from dagster_pipes import PipesExtras
 from dagster_ray._base.utils import get_dagster_tags
 from dagster_ray.kuberay.client import RayJobClient
 from dagster_ray.kuberay.client.rayjob.client import RayJobStatus
+from dagster_ray.kuberay.resources.base import kuberay_docs
 from dagster_ray.kuberay.utils import normalize_k8s_label_values
 from dagster_ray.pipes import (
     PIPES_LAUNCHED_EXTRAS_RAY_ADDRESS_KEY,
@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from ray.job_submission import JobSubmissionClient
 
 
-@beta
+@kuberay_docs
 class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
     """A pipes client for running ``RayJob`` on Kubernetes.
 

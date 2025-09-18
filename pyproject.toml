@@ -83,8 +83,11 @@ docs = [
     "mkdocstrings[python]>=0.30.0",
 ]
 
+[tool.hatch.build]
+packages = ["src/dagster_ray"]
+
 [tool.hatch.version]
-path = "dagster_ray/_version.py"
+path = "src/dagster_ray/_version.py"
 
 [tool.pytest.ini_options]
 addopts = "-vvv --capture=no --log-disable=faker"
@@ -95,7 +98,7 @@ log_level = "INFO"
 target-version = "py39"
 line-length = 120
 src = [
-    "dagster_ray",
+    "src",
     "tests"
 ]
 exclude = [
@@ -127,7 +130,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["dagster_ray", "tests"]
+known-first-party = ["dagster_ray", "tests", "mkdocs_dagster_ray"]
 
 [tool.ruff.lint.flake8-tidy-imports]
 # Disallow all relative imports.
@@ -160,7 +163,7 @@ reportOverlappingOverload = true
 # reportPrivateUsage = "warning"
 
 include = [
-    "dagster_ray",
+    "src",
     "tests"
 ]
 exclude = [

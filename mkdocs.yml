@@ -91,6 +91,7 @@ plugins:
                 show_default_value: true
                 show_json_schema: false
                 field_docstring_in_description: true
+            - mkdocs_dagster_ray:KubeRayDocsExtension: {}
 
 
 markdown_extensions:

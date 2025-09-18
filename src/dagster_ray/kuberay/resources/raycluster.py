@@ -3,13 +3,12 @@ from typing import Optional
 
 import dagster as dg
 from dagster import ConfigurableResource, InitResourceContext
-from dagster._annotations import beta
 from pydantic import Field, PrivateAttr
 from typing_extensions import override
 
 from dagster_ray.kuberay.client import RayClusterClient
 from dagster_ray.kuberay.configs import RayClusterConfig
-from dagster_ray.kuberay.resources.base import BaseKubeRayResourceConfig
+from dagster_ray.kuberay.resources.base import BaseKubeRayResourceConfig, kuberay_docs
 from dagster_ray.kuberay.utils import normalize_k8s_label_values
 from dagster_ray.types import AnyDagsterContext
 
@@ -24,7 +23,6 @@ from dagster_ray._base.resources import BaseRayResource, Lifecycle
 from dagster_ray.kuberay.client.base import load_kubeconfig
 
 
-@beta
 class KubeRayClusterClientResource(ConfigurableResource[RayClusterClient]):
     """This configurable resource provides a `dagster_ray.kuberay.client.RayClusterClient`."""
 
@@ -37,7 +35,7 @@ class KubeRayClusterClientResource(ConfigurableResource[RayClusterClient]):
         return RayClusterClient(kube_context=self.kube_context, kube_config=self.kube_config)
 
 
-@beta
+@kuberay_docs
 class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
     """
     Provides a `RayCluster` for Dagster steps.

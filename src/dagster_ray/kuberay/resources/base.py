@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from abc import abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeVar
 from uuid import uuid4
 
 from dagster import Config
@@ -57,3 +57,21 @@ class BaseKubeRayResourceConfig(Config):
         step_name = re.sub(r"[^-0-9a-z]", "-", step_name)
 
         return step_name
+
+
+T = TypeVar("T")
+
+
+COMMON_KUBERAY_DOCSTRING = """
+Info:
+    Image defaults to `dagster/image` run tag.
+
+Tip:
+    Make sure `ray[full]` is available in the image.
+"""
+
+
+def kuberay_docs(cls: T) -> T:
+    if cls.__doc__ is not None:
+        cls.__doc__ += COMMON_KUBERAY_DOCSTRING
+    return cls

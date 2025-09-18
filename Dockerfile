@@ -40,17 +40,16 @@ FROM base-prod AS base-dev
 #     && tar -xzC /opt/ -f /cache/downloads/$NODE_PACKAGE.tar.gz
 
 
-RUN mkdir dagster_ray && touch dagster_ray/__init__.py && touch README.md
-COPY dagster_ray/_version.py dagster_ray/_version.py
+RUN touch README.md
 
 # Install specific Dagster and Ray versions (for integration tests)
 ARG RAY_VERSION=2.35.0
 ARG DAGSTER_VERSION=1.8.12
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv add --no-sync "ray[all]==$RAY_VERSION" "dagster==$DAGSTER_VERSION"
+    uv add --no-sync --no-install-local "ray[all]==$RAY_VERSION" "dagster==$DAGSTER_VERSION"
 
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --all-extras --no-install-project
+    uv sync --frozen --all-extras --no-install-local
 
 # -------------------------------------------------------------
 FROM base-${BUILD_DEPENDENCIES} AS final

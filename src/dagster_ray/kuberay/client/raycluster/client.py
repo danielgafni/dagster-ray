@@ -158,7 +158,7 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
 
             if state == "ready" and status.get("head") and status.get("endpoints", {}).get("dashboard"):
                 logger.debug(f"RayCluster {namespace}/{name} is ready!")
-                return status["head"]["serviceIP"], status["endpoints"]
+                return status["head"]["serviceIP"], status["endpoints"]  # pyright: ignore[reportTypedDictNotRequiredAccess]
 
             time.sleep(poll_interval)
         else:
