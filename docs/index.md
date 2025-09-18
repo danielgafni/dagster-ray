@@ -105,8 +105,8 @@
 
     `dagster-ray` supports running Ray on Kubernetes with [KubeRay](https://docs.ray.io/en/latest/cluster/kubernetes/index.html).
 
-    - Use [KubeRayInteractiveJob](api/kuberay.md#dagster_ray.kuberay.KubeRayInteractiveJob) to create a `RayJob` and connect in client mode
-    - Use [PipesKubeRayJobClient](api/kuberay.md#dagster_ray.kuberay.PipesKubeRayJobClient) to submit external scripts as `RayJob`
+    - Use [`KubeRayInteractiveJob`](api/kuberay.md#dagster_ray.kuberay.KubeRayInteractiveJob) to create a `RayJob` and connect in client mode
+    - Use [`PipesKubeRayJobClient`](api/kuberay.md#dagster_ray.kuberay.PipesKubeRayJobClient) to submit external scripts as `RayJob`
 
     !!! tip
         See [KubeRay tutorial](tutorial/kuberay.md)
