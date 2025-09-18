@@ -2,19 +2,14 @@ from __future__ import annotations
 
 import re
 from abc import abstractmethod
-from typing import TYPE_CHECKING
 from uuid import uuid4
 
 import dagster as dg
 from pydantic import Field, PrivateAttr
-from ray._private.worker import BaseContext as RayBaseContext  # noqa
 
 from dagster_ray._base.constants import DEFAULT_DEPLOYMENT_NAME
 from dagster_ray.kuberay.utils import get_k8s_object_name
 from dagster_ray.types import AnyDagsterContext
-
-if TYPE_CHECKING:
-    pass
 
 
 class BaseKubeRayResourceConfig(dg.Config):

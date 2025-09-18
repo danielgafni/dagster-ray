@@ -1,7 +1,6 @@
 
 [project]
 name = "dagster-ray"
-urls = { repository = "https://github.com/danielgafni/dagster-ray" }
 description = "Dagster integration library for Ray"
 authors = [
     {name = "Daniel Gafni", email = "danielgafni16@gmail.com"},
@@ -32,6 +31,11 @@ dependencies = [
 ]
 
 dynamic = ["version"]
+
+[project.urls]
+GitHub = "https://github.com/danielgafni/dagster-ray"
+Documentation = "https://danielgafni.github.io/dagster-ray/"
+Changelog = "https://github.com/danielgafni/dagster-ray/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 run_launcher = [
@@ -85,7 +89,8 @@ docs = [
     "mkdocstrings[python]>=0.30.0",
 ]
 
-[tool.hatch.build]
+
+[tool.hatch.build.targets.wheel]
 packages = ["src/dagster_ray"]
 
 [tool.hatch.version]
