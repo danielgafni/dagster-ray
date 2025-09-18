@@ -10,6 +10,8 @@ publish-dev:
     uv run --with hatch hatch clean
     echo '__version__ = "0.0.0"  # managed by hatch' > src/dagster_ray/_version.py
 
+publish-docs:
+    uv run --group docs --all-extras mike deploy --push --update-aliases $(uv run dunamai from any --style pep440) latest
 
 ruff:
     uv run --no-sync ruff check --fix --exit-zero

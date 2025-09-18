@@ -42,4 +42,4 @@ jobs:
       - name: Fetch gh-pages branch
         run: git fetch origin gh-pages:gh-pages || true
       - name: Publish Docs
-        run: uv run --group docs --all-extras mkdocs gh-deploy
+        run: uv run --group docs --all-extras mike deploy --push --update-aliases $VERSION latest
