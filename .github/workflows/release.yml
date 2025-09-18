@@ -14,7 +14,7 @@ env:
 
 jobs:
   release:
-    name: Publish to PyPI
+    name: Publish
     runs-on: ubuntu-latest
     environment:
       name: release
@@ -39,5 +39,7 @@ jobs:
         run: uv run hatch version $VERSION
       - name: Publish to PyPI
         run: uv build && uv publish
+      - name: Fetch gh-pages branch
+        run: git fetch origin gh-pages:gh-pages || true
       - name: Publish Docs
         run: uv run --group docs --all-extras mkdocs gh-deploy
