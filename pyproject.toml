@@ -85,8 +85,6 @@ docs = [
     "mkdocstrings[python]>=0.30.0",
 ]
 
-[tool.hatch.build]
-packages = ["src/dagster_ray"]
 
 [tool.hatch.version]
 path = "src/dagster_ray/_version.py"
