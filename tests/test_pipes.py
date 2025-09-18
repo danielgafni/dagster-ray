@@ -1,13 +1,12 @@
 import sys
 from pathlib import Path
 
+import dagster as dg
 import pytest
-from dagster import AssetExecutionContext, DagsterEventType, EventRecordsFilter, asset, materialize
 from dagster._core.definitions.data_version import (
     DATA_VERSION_IS_USER_PROVIDED_TAG,
     DATA_VERSION_TAG,
 )
-from dagster._core.instance_for_test import instance_for_test
 from ray.job_submission import JobSubmissionClient  # noqa: TID253
 
 from dagster_ray import PipesRayJobClient
@@ -21,8 +20,8 @@ def pipes_ray_job_client(local_ray_address: str) -> PipesRayJobClient:
 
 
 def test_ray_job_pipes(pipes_ray_job_client: PipesRayJobClient, capsys):
-    @asset
-    def my_asset(context: AssetExecutionContext, pipes_ray_job_client: PipesRayJobClient):
+    @dg.asset
+    def my_asset(context: dg.AssetExecutionContext, pipes_ray_job_client: PipesRayJobClient):
         result = pipes_ray_job_client.run(
             context=context,
             submit_job_params={
@@ -33,8 +32,8 @@ def test_ray_job_pipes(pipes_ray_job_client: PipesRayJobClient, capsys):
 
         return result
 
-    with instance_for_test() as instance:
-        result = materialize(
+    with dg.instance_for_test() as instance:
+        result = dg.materialize(
             [my_asset],
             resources={"pipes_ray_job_client": pipes_ray_job_client},
             instance=instance,
@@ -48,7 +47,9 @@ def test_ray_job_pipes(pipes_ray_job_client: PipesRayJobClient, capsys):
         mat_evts = result.get_asset_materialization_events()
 
         mat = instance.get_latest_materialization_event(my_asset.key)
-        instance.get_event_records(event_records_filter=EventRecordsFilter(event_type=DagsterEventType.LOGS_CAPTURED))
+        instance.get_event_records(
+            event_records_filter=dg.EventRecordsFilter(event_type=dg.DagsterEventType.LOGS_CAPTURED)
+        )
 
         assert len(mat_evts) == 1
 

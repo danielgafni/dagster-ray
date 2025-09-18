@@ -52,19 +52,19 @@ class BaseRayResource(dg.ConfigurableResource, ABC):
     The BaseRayResource handles the lifecycle of Ray clusters including creation, connection,
     and cleanup, with configurable policies for each stage.
 
-    Example:
+    Examples:
         Use as a type annotation for backend-agnostic code:
         ```python
-        from dagster import asset
+        import dagster as dg
         from dagster_ray import RayResource
 
-        @asset
+        @dg.asset
         def my_asset(ray_cluster: RayResource):
             # Works with any Ray backend
             import ray
             return ray.get(ray.put("hello"))
         ```
-    Example:
+
         Manual lifecycle management:
         ```python
         from dagster_ray import Lifecycle

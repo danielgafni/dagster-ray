@@ -1,36 +1,36 @@
-from dagster import AssetExecutionContext, StaticPartitionsDefinition, asset, materialize
+import dagster as dg
 
 from dagster_ray import RayIOManager
 
 
 def test_ray_io_manager():
-    @asset
+    @dg.asset
     def upstream():
         return 1
 
-    @asset
+    @dg.asset
     def downstream(upstream) -> None:
         assert upstream == 1
 
-    materialize(
+    dg.materialize(
         [upstream, downstream],
         resources={"io_manager": RayIOManager()},
     )
 
 
 def test_ray_io_manager_partitioned():
-    partitions_def = StaticPartitionsDefinition(partition_keys=["A", "B", "C"])
+    partitions_def = dg.StaticPartitionsDefinition(partition_keys=["A", "B", "C"])
 
-    @asset(partitions_def=partitions_def)
-    def upsteram_partitioned(context: AssetExecutionContext) -> str:
+    @dg.asset(partitions_def=partitions_def)
+    def upsteram_partitioned(context: dg.AssetExecutionContext) -> str:
         return context.partition_key.lower()
 
-    @asset(partitions_def=partitions_def)
-    def downstream_partitioned(context: AssetExecutionContext, upsteram_partitioned: str) -> None:
+    @dg.asset(partitions_def=partitions_def)
+    def downstream_partitioned(context: dg.AssetExecutionContext, upsteram_partitioned: str) -> None:
         assert upsteram_partitioned == context.partition_key.lower()
 
     for partition_key in ["A", "B", "C"]:
-        materialize(
+        dg.materialize(
             [upsteram_partitioned, downstream_partitioned],
             resources={"io_manager": RayIOManager()},
             partition_key=partition_key,
@@ -38,19 +38,19 @@ def test_ray_io_manager_partitioned():
 
 
 def test_ray_io_manager_partition_mapping():
-    partitions_def = StaticPartitionsDefinition(partition_keys=["A", "B", "C"])
+    partitions_def = dg.StaticPartitionsDefinition(partition_keys=["A", "B", "C"])
 
-    @asset(partitions_def=partitions_def)
-    def upsteram_partitioned(context: AssetExecutionContext) -> str:
+    @dg.asset(partitions_def=partitions_def)
+    def upsteram_partitioned(context: dg.AssetExecutionContext) -> str:
         return context.partition_key.lower()
 
-    @asset
+    @dg.asset
     def downstream_non_partitioned(upsteram_partitioned: dict[str, str]) -> None:
         assert upsteram_partitioned == {"A": "a", "B": "b", "C": "c"}
 
     for partition_key in ["A", "B", "C"]:
-        materialize([upsteram_partitioned], resources={"io_manager": RayIOManager()}, partition_key=partition_key)
+        dg.materialize([upsteram_partitioned], resources={"io_manager": RayIOManager()}, partition_key=partition_key)
 
-    materialize(
+    dg.materialize(
         [upsteram_partitioned.to_source_asset(), downstream_non_partitioned], resources={"io_manager": RayIOManager()}
     )

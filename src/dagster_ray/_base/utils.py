@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from dagster import AssetExecutionContext, InitResourceContext, OpExecutionContext
+import dagster as dg
 
 from dagster_ray._base.constants import DEFAULT_DEPLOYMENT_NAME
 
 
 def get_dagster_tags(
-    context: InitResourceContext | OpExecutionContext | AssetExecutionContext, extra_tags: dict[str, str] | None = None
+    context: dg.InitResourceContext | dg.OpExecutionContext | dg.AssetExecutionContext,
+    extra_tags: dict[str, str] | None = None,
 ) -> dict[str, str]:
     """
     Returns a dictionary with common Dagster tags.
@@ -18,7 +19,7 @@ def get_dagster_tags(
         **(extra_tags or {}),
     }
 
-    if isinstance(context, InitResourceContext):
+    if isinstance(context, dg.InitResourceContext):
         labels.update(
             **context.dagster_run.dagster_execution_info,
         )

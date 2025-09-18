@@ -35,7 +35,7 @@ jobs:
       with:
         filters: |
           src:
-            - 'dagster_ray/**'
+            - 'src/dagster_ray/**'
             - 'tests/**'
             - 'examles/**'
             - pyproject.toml

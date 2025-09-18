@@ -15,14 +15,13 @@
 `dagster-ray` enables you to orchestrate distributed Ray compute from Dagster pipelines, providing seamless integration between Dagster's orchestration capabilities and Ray's distributed computing power.
 
 > [!INFO]
-> This project is ready for production use, but some APIs may change between minor releases as we continue to improve the integration.
+> This project is ready for production use, but some APIs may change between minor releases.
 
 ## 🚀 Key Features
 
 - **Run Launchers & Executors**: Submit Dagster runs or individual ops as Ray jobs
-- **Ray Resources**: Manage Ray clusters with Kubernetes (KubeRay) or local backends
-- **Pipes Integration**: Execute external Ray scripts with rich logging and metadata
-- **IO Managers**: Store intermediate data in Ray's object store
+- **Ray Resources**: Manage Ray clusters with Kubernetes (KubeRay) or local backends, connect to them in client mode
+- **Dagster Pipes**: Execute external Ray scripts with rich logging and metadata
 - **Production Ready**: Tested against a matrix of core dependencies and platform versions, integrated with Dagster+
 
 ## 📦 Quick Start
@@ -41,7 +40,7 @@ pip install 'dagster-ray[kuberay]'
 ### Basic Example
 
 ```python
-from dagster import asset, Definitions
+import dagster as dg
 from dagster_ray import LocalRay, RayResource, KubeRayInteractiveJob
 import ray
 
@@ -51,7 +50,7 @@ def compute_square(x: int) -> int:
     return x**2
 
 
-@asset
+@dg.asset
 def my_distributed_computation(ray_cluster: RayResource) -> int:
     futures = [compute_square.remote(i) for i in range(10)]
     return sum(ray.get(futures))
@@ -60,7 +59,7 @@ def my_distributed_computation(ray_cluster: RayResource) -> int:
 ray_cluster = LocalRay() if not IN_KUBERNETES else KubeRayInteractiveJob()
 
 
-definitions = Definitions(
+definitions = dg.Definitions(
     assets=[my_distributed_computation],
     resources={"ray_cluster": ray_cluster},
 )
@@ -72,7 +71,6 @@ definitions = Definitions(
 
 - **[Tutorial](https://danielgafni.github.io/dagster-ray/tutorial/)**: Step-by-step guide with examples
 - **[API Reference](https://danielgafni.github.io/dagster-ray/api/)**: Complete API documentation
-- **[Examples](https://danielgafni.github.io/dagster-ray/examples/)**: Basic examples
 
 ## 🛠️ Integration Options
 
@@ -81,9 +79,8 @@ definitions = Definitions(
 | `RayRunLauncher` | Deployment-wide Ray runtime | External | Job Mode |
 | `ray_executor` | Ray runtime scoped to a Code Location | External | Job Mode |
 | `PipesRayJobClient` | Submit external scripts as Ray jobs | External | Job Mode |
-| `PipesKubeRayJobClient` | Submit a `RayJob`, forward logs and Dagster metadata | Automatic | Job Mode |
-| `KubeRayInteractiveJob` | Create a `RayJob`, connect in Client mode  | Automatic | Client Mode |
-| `KubeRayCluster` | Create a `RayCluster`, connect in Client mode | Automatic | Client Mode |
+| `PipesKubeRayJobClient` | Submit an external script as a `RayJob`, forward logs and Dagster metadata | Automatic | Job Mode |
+| `KubeRayInteractiveJob` | Create a `RayJob`, connect in Client mode without an external script  | Automatic | Client Mode |
 
 ## 🤝 Contributing
 
@@ -95,6 +92,15 @@ cd dagster-ray
 uv sync --all-extras
 uv run pre-commit install
 ```
+
+## 🧪 Testing
+
+```bash
+uv run pytest
+```
+
+Running KubeRay tests requires the following tools to be present:
+- `docker`, `kubectl`, `helm`, `minikube`
 
 ### Documentation
 
@@ -109,16 +115,3 @@ uv run mkdocs build
 ```
 
 The documentation is automatically deployed to GitHub Pages.
-
-## 🧪 Testing
-
-```bash
-uv run pytest
-```
-
-Running KubeRay tests requires the following tools to be present:
-- `docker`, `kubectl`, `helm`, `minikube`
-
-## 📄 License
-
-Apache 2.0 - see [LICENSE](LICENSE) file for details.

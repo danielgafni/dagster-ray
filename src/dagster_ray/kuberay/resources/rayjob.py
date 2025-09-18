@@ -1,8 +1,6 @@
 from typing import TYPE_CHECKING, Literal, Optional
 
 import dagster as dg
-from dagster import ConfigurableResource
-from dagster._annotations import beta
 from pydantic import Field, PrivateAttr
 from typing_extensions import override
 
@@ -21,8 +19,7 @@ if TYPE_CHECKING:
     pass
 
 
-@beta
-class KubeRayJobClientResource(ConfigurableResource[RayJobClient]):
+class KubeRayJobClientResource(dg.ConfigurableResource[RayJobClient]):
     """This configurable resource provides a `dagster_ray.kuberay.client.RayJobClient`."""
 
     kube_context: Optional[str] = None
@@ -45,12 +42,17 @@ class InteractiveRayJobConfig(RayJobConfig):
     spec: InteractiveRayJobSpec = Field(default_factory=InteractiveRayJobSpec)  # pyright: ignore[reportIncompatibleVariableOverride]
 
 
-@beta
 class KubeRayInteractiveJob(BaseRayResource, BaseKubeRayResourceConfig):
     """
     Provides a `RayJob` for Dagster steps.
 
     Is the recommended way to run Ray workloads with automatic cluster management. It creates a `RayJob`, connects to it in client mode and sets the `jobId` field. Cleanup is handled by the KubeRay controller or by the resource lifecycle logic.
+
+    Info:
+        Image defaults to `dagster/image` run tag.
+
+    Tip:
+        Make sure `ray[full]` is available in the image.
     """
 
     lifecycle: Lifecycle = Field(

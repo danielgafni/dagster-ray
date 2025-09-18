@@ -33,14 +33,14 @@ theme:
     - content.code.annotate
   palette:
     - scheme: default
-      primary: deep purple
-      accent: purple
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     - scheme: slate
-      primary: deep purple
-      accent: purple
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
@@ -49,6 +49,7 @@ plugins:
   - search
   - section-index
   - autorefs
+  # - awesome-nav
   - mkdocstrings:
       handlers:
         python:
@@ -80,8 +81,6 @@ plugins:
             signature_crossrefs: true
             annotations_path: brief
             unwrap_annotated: true
-          extra:
-            enable_autorefs: true
           extensions:
             - griffe_pydantic:
                 schema: true
@@ -91,6 +90,8 @@ plugins:
                 show_default_value: true
                 show_json_schema: false
                 field_docstring_in_description: true
+          extra:
+            enable_autorefs: true
 
 
 markdown_extensions:

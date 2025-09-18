@@ -1,6 +1,6 @@
 # ignore all by default, add exceptions explicitly
 *
-!dagster_ray
+!src
 !tests
 !examples
 !pyproject.toml

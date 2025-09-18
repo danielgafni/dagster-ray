@@ -5,7 +5,7 @@ from abc import abstractmethod
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
-from dagster import Config
+import dagster as dg
 from pydantic import Field, PrivateAttr
 from ray._private.worker import BaseContext as RayBaseContext  # noqa
 
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     pass
 
 
-class BaseKubeRayResourceConfig(Config):
+class BaseKubeRayResourceConfig(dg.Config):
     image: str | None = Field(
         default=None,
         description="Image to inject into the `RayCluster` spec. Defaults to `dagster/image` run tag. Images already provided in the `RayCluster` spec won't be overridden.",

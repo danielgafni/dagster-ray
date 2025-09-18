@@ -7,7 +7,6 @@ from typing import Any, Literal, cast
 import dagster as dg
 import pytest
 import ray  # noqa: TID253
-from dagster import AssetExecutionContext, asset, materialize_to_memory
 from packaging.version import Version
 from pytest_kubernetes.providers import AClusterManager
 
@@ -142,7 +141,6 @@ def test_cleanup_on_interrupt(
         pytest.skip(f"KubeRay {MIN_KUBERAY_VERSION} is required to use interactive mode with RayJob")
 
     # Path to the separate test script
-    # this should be a rela
     script_path = str(Path(__file__).parents[1] / "scripts/launch_dagster_run_with_kuberay_interactive_job.py")
 
     assert Path(script_path).exists()
@@ -264,7 +262,7 @@ def get_hostname():
 def ensure_interactive_rayjob_correctness(
     rayjob: KubeRayInteractiveJob,
     k8s_with_kuberay: AClusterManager,
-    context: AssetExecutionContext,
+    context: dg.AssetExecutionContext,
 ):
     with k8s_with_kuberay.port_forwarding(
         target=f"svc/{rayjob.cluster_name}-head-svc",
@@ -297,9 +295,9 @@ def test_interactive_rayjob(
     interactive_rayjob_resource: KubeRayCluster,
     k8s_with_kuberay: AClusterManager,
 ):
-    @asset
+    @dg.asset
     # testing RayResource type annotation too!
-    def my_asset(context: AssetExecutionContext, interactive_rayjob: RayResource) -> None:
+    def my_asset(context: dg.AssetExecutionContext, interactive_rayjob: RayResource) -> None:
         # port-forward to the head node
         # because it's not possible to access it otherwise
 
@@ -311,7 +309,7 @@ def test_interactive_rayjob(
             context,
         )
 
-    materialize_to_memory(
+    dg.materialize_to_memory(
         [my_asset],
         resources={"interactive_rayjob": interactive_rayjob_resource},
     )

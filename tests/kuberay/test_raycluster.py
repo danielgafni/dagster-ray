@@ -4,7 +4,6 @@ from typing import Any, cast
 import dagster as dg
 import pytest
 import ray  # noqa: TID253
-from dagster import AssetExecutionContext, RunConfig, asset, materialize_to_memory
 from pytest_kubernetes.providers import AClusterManager
 
 from dagster_ray import Lifecycle, RayResource
@@ -128,7 +127,7 @@ def get_hostname():
 def ensure_kuberay_cluster_correctness(
     ray_cluster: KubeRayCluster,
     k8s_with_kuberay: AClusterManager,
-    context: AssetExecutionContext,
+    context: dg.AssetExecutionContext,
 ):
     with k8s_with_kuberay.port_forwarding(
         target=f"svc/{ray_cluster.name}-head-svc",
@@ -154,9 +153,9 @@ def test_kuberay_cluster_resource(
     ray_cluster_resource: KubeRayCluster,
     k8s_with_kuberay: AClusterManager,
 ):
-    @asset
+    @dg.asset
     # testing RayResource type annotation too!
-    def my_asset(context: AssetExecutionContext, ray_cluster: RayResource) -> None:
+    def my_asset(context: dg.AssetExecutionContext, ray_cluster: RayResource) -> None:
         # port-forward to the head node
         # because it's not possible to access it otherwise
 
@@ -168,7 +167,7 @@ def test_kuberay_cluster_resource(
             context,
         )
 
-    result = materialize_to_memory(
+    result = dg.materialize_to_memory(
         [my_asset],
         resources={"ray_cluster": ray_cluster_resource},
     )
@@ -191,8 +190,8 @@ def test_kuberay_cluster_resource_skip_create(
     ray_cluster_resource_skip_create: KubeRayCluster,
     k8s_with_kuberay: AClusterManager,
 ):
-    @asset
-    def my_asset(context: AssetExecutionContext, ray_cluster: RayResource) -> None:
+    @dg.asset
+    def my_asset(context: dg.AssetExecutionContext, ray_cluster: RayResource) -> None:
         assert isinstance(ray_cluster, KubeRayCluster)
 
         # call create and wait manually
@@ -205,7 +204,7 @@ def test_kuberay_cluster_resource_skip_create(
             context,
         )
 
-    materialize_to_memory(
+    dg.materialize_to_memory(
         [my_asset],
         resources={"ray_cluster": ray_cluster_resource_skip_create},
     )
@@ -215,8 +214,8 @@ def test_kuberay_cluster_resource_skip_wait(
     ray_cluster_resource_skip_wait: KubeRayCluster,
     k8s_with_kuberay: AClusterManager,
 ):
-    @asset
-    def my_asset(context: AssetExecutionContext, ray_cluster: RayResource) -> None:
+    @dg.asset
+    def my_asset(context: dg.AssetExecutionContext, ray_cluster: RayResource) -> None:
         assert isinstance(ray_cluster, KubeRayCluster)
 
         # call wait manually
@@ -228,7 +227,7 @@ def test_kuberay_cluster_resource_skip_wait(
             context,
         )
 
-    materialize_to_memory(
+    dg.materialize_to_memory(
         [my_asset],
         resources={"ray_cluster": ray_cluster_resource_skip_wait},
     )
@@ -238,11 +237,11 @@ def test_kuberay_cleanup_job(
     ray_cluster_resource_skip_cleanup: KubeRayCluster,
     k8s_with_kuberay: AClusterManager,
 ):
-    @asset
+    @dg.asset
     def my_asset(ray_cluster: RayResource) -> None:
         assert isinstance(ray_cluster, KubeRayCluster)
 
-    result = materialize_to_memory(
+    result = dg.materialize_to_memory(
         [my_asset],
         resources={"ray_cluster": ray_cluster_resource_skip_cleanup},
     )
@@ -263,7 +262,7 @@ def test_kuberay_cleanup_job(
         resources={
             "kuberay_client": KubeRayClusterClientResource(kube_config=str(k8s_with_kuberay.kubeconfig)),
         },
-        run_config=RunConfig(
+        run_config=dg.RunConfig(
             ops={
                 "cleanup_kuberay_clusters": CleanupKuberayClustersConfig(
                     namespace=ray_cluster_resource_skip_cleanup.namespace,

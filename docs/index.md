@@ -35,7 +35,7 @@
 !!! example
 
     ```python
-    from dagster import asset, Definitions
+    import dagster as dg
     from dagster_ray import LocalRay, RayResource, KubeRayInteractiveJob
     import ray
 
@@ -45,7 +45,7 @@
         return x**2
 
 
-    @asset
+    @dg.asset
     def my_distributed_computation(ray_cluster: RayResource) -> int:  # (2)!
         futures = [compute_square.remote(i) for i in range(10)]  # (1)!
         return sum(ray.get(futures))
@@ -53,7 +53,7 @@
 
     ray_cluster = LocalRay() if not IN_KUBERNETES else KubeRayInteractiveJob()
 
-    definitions = Definitions(
+    definitions = dg.Definitions(
         assets=[my_distributed_computation],
         resources={"ray_cluster": ray_cluster},
     )
@@ -70,7 +70,7 @@
 ### 🤔 Key Questions to Consider
 
 - **Do you want to manage Ray clusters automatically?** If yes, use KubeRay components
-- **Do you prefer to submit external scripts or run code directly?** External scripts offer better separation of concerns and environments, but direct code is more convenient
+- **Do you prefer to submit external scripts or run code directly?** [External scripts](https://docs.ray.io/en/latest/cluster/running-applications/job-submission/index.html#ray-jobs-api) offer better separation of concerns and environments, but [interactive code](https://docs.ray.io/en/latest/cluster/running-applications/job-submission/index.html#running-jobs-interactively) is more convenient
 - **Do you need per-asset configuration?** Some components allow fine-grained control per asset
 
 ### 📊 Feature Comparison
@@ -79,10 +79,10 @@
 
 | Feature | `RayRunLauncher` | `ray_executor` | `PipesRayJobClient` | `PipesKubeRayJobClient` | `KubeRayCluster` | `KubeRayInteractiveJob` |
 |---------|:------------:|:--------:|:------------:|:-------------:|:-------:|:--------------:|
-| **Manages cluster** | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
-| **Submits jobs in cluster mode** | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
-| **Per-asset enabled** | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
-| **Per-asset configurable** | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Manages the cluster** | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+| **Uses Ray Jobs API** | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| **Enabled per-asset** | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| **Configurable per-asset** | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **No external script needed** | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ |
 | **No Dagster DB access needed** | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
 
@@ -93,18 +93,20 @@
 === "🏢 External Ray Cluster"
     **You have a Ray cluster already running**
 
-    - Use `RayRunLauncher` for deployment-wide Ray execution
-    - Use `ray_executor` for code location-scoped execution
-    - Use `PipesRayJobClient` to submit external Python scripts
+    - Use [`RayRunLauncher`](api/core.md#dagster_ray.run_launcher.RayRunLauncher) to run the entire Dagster deployment on Ray
+    - Use [`ray_executor`](api/core.md#dagster_ray.executor.ray_executor) to run specific jobs on Ray
+    - Use [`PipesRayJobClient`](api/core.md#dagster_ray.pipes.PipesRayJobClient) to submit external Python scripts as Ray jobs
 
     !!! tip
         See [external cluster tutorial](tutorial/external.md)
 
-=== "☸️ Kubernetes + Automatic Management"
+=== "☸️ Dagster-owned Ray Cluster (KubeRay)"
     **You want `dagster-ray` to handle cluster lifecycle**
 
-    - Use `KubeRayInteractiveJob` to create a `RayJob` and connect in client mode
-    - Use `PipesKubeRayJobClient` to submit external scripts as `RayJob`
+    `dagster-ray` supports running Ray on Kubernetes with [KubeRay](https://docs.ray.io/en/latest/cluster/kubernetes/index.html).
+
+    - Use [KubeRayInteractiveJob](api/kuberay.md#dagster_ray.kuberay.KubeRayInteractiveJob) to create a `RayJob` and connect in client mode
+    - Use [PipesKubeRayJobClient](api/kuberay.md#dagster_ray.kuberay.PipesKubeRayJobClient) to submit external scripts as `RayJob`
 
     !!! tip
         See [KubeRay tutorial](tutorial/kuberay.md)

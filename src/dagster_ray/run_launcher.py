@@ -4,8 +4,7 @@ import logging
 import sys
 from typing import TYPE_CHECKING, Any, Optional, cast
 
-import dagster
-from dagster import _check as check
+import dagster as dg
 from dagster._cli.api import ExecuteRunArgs  # type: ignore
 from dagster._config.config_schema import UserConfigSchema
 from dagster._core.events import EngineEventData
@@ -45,13 +44,11 @@ class RayLauncherConfig(RayExecutionConfig, RayJobSubmissionClientConfig):
 class RayRunLauncher(RunLauncher, ConfigurableClass):
     """RunLauncher that submits Dagster runs as isolated Ray jobs to a Ray cluster.
 
-    The RayRunLauncher submits each Dagster run in an isolated Ray job running in cluster mode.
-
     Configuration can be provided via `dagster.yaml` and individual runs can override
     settings using the `dagster-ray/config` tag.
 
-    Examples:
-        Configure via `dagster.yaml`:
+    Example:
+        Configure via `dagster.yaml`
         ```yaml
         run_launcher:
           module: dagster_ray
@@ -62,11 +59,12 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
             num_gpus: 0
         ```
 
-        Override settings per job:
+    Example:
+        Override settings per job
         ```python
-        from dagster import job
+        import dagster as dg
 
-        @job(
+        @dg.job(
             tags={
                 "dagster-ray/config": {
                     "num_cpus": 16,
@@ -94,7 +92,7 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
         resources: dict[str, float] | None = None,
         inst_data: ConfigurableClassData | None = None,
     ):
-        self._inst_data = check.opt_inst_param(inst_data, "inst_data", ConfigurableClassData)
+        self._inst_data = dg._check.opt_inst_param(inst_data, "inst_data", ConfigurableClassData)
 
         self.address = address
         self.metadata = metadata
@@ -142,7 +140,7 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
     def launch_run(self, context: LaunchRunContext) -> None:
         run = context.dagster_run
         submission_id = get_job_submission_id_from_run_id(run.run_id)
-        job_origin = check.not_none(run.job_code_origin)
+        job_origin = dg._check.not_none(run.job_code_origin)
 
         args = list(
             ExecuteRunArgs(
@@ -160,14 +158,14 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
 
     def _launch_ray_job(self, submission_id: str, entrypoint: str, run: DagsterRun):
         # note: entrypoint is a shell command
-        job_origin = check.not_none(run.job_code_origin)
+        job_origin = dg._check.not_none(run.job_code_origin)
 
         labels = {
             "dagster/job": job_origin.job_name,
             "dagster/run-id": run.run_id,
         }
 
-        if Version(dagster.__version__) >= Version("1.8.12"):
+        if Version(dg.__version__) >= Version("1.8.12"):
             remote_job_origin = run.remote_job_origin  # type: ignore
         else:
             remote_job_origin = run.external_job_origin  # type: ignore
@@ -229,7 +227,7 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
         submission_id = get_job_submission_id_from_run_id(
             run.run_id, resume_attempt_number=context.resume_attempt_number
         )
-        job_origin = check.not_none(run.job_code_origin)
+        job_origin = dg._check.not_none(run.job_code_origin)
 
         args = list(
             ResumeRunArgs(
@@ -246,7 +244,7 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
         self._launch_ray_job(submission_id, " ".join(args), run)
 
     def terminate(self, run_id: str) -> bool:
-        check.str_param(run_id, "run_id")
+        dg._check.str_param(run_id, "run_id")
         run = self._instance.get_run_by_id(run_id)
 
         if not run or run.is_finished:

@@ -71,11 +71,11 @@ docs/
 Always test code examples before including them:
 
 ```python
-from dagster import asset, job
+import dagster as dg
 from dagster_ray import ray_resource
 
 
-@asset(resource_defs={"ray": ray_resource})
+@dg.asset(resource_defs={"ray": ray_resource})
 def my_asset(context):
     ray = context.resources.ray
     # Your code here

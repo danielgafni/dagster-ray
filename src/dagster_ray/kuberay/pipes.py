@@ -3,10 +3,9 @@ from __future__ import annotations
 import time
 from typing import TYPE_CHECKING, Any, cast
 
+import dagster as dg
 import dagster._check as check
 import yaml
-from dagster import DagsterInvariantViolationError, PipesClient
-from dagster._annotations import beta
 from dagster._core.definitions.resource_annotation import TreatAsResourceParam
 from dagster._core.errors import DagsterExecutionInterruptedError
 from dagster._core.pipes.client import (
@@ -34,8 +33,7 @@ if TYPE_CHECKING:
     from ray.job_submission import JobSubmissionClient
 
 
-@beta
-class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
+class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
     """A pipes client for running ``RayJob`` on Kubernetes.
 
     Args:
@@ -50,6 +48,12 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
         poll_interval (int): Interval at which to poll the Kubernetes for status updates.
         port_forward (bool): Whether to use Kubernetes port-forwarding to connect to the KubeRay cluster.
         Is useful when running in a local environment.
+
+    Info:
+        Image defaults to `dagster/image` run tag.
+
+    Tip:
+        Make sure `ray[full]` is available in the image.
     """
 
     def __init__(
@@ -77,7 +81,7 @@ class PipesKubeRayJobClient(PipesClient, TreatAsResourceParam):
     @property
     def job_submission_client(self) -> JobSubmissionClient:
         if self._job_submission_client is None:
-            raise DagsterInvariantViolationError("JobSubmissionClient is only available inside the run method.")
+            raise dg.DagsterInvariantViolationError("JobSubmissionClient is only available inside the run method.")
         else:
             return self._job_submission_client
 

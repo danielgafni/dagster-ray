@@ -177,5 +177,5 @@ class BaseKubeRayClient(Generic[T_Status]):
                     raise
 
         raise TimeoutError(
-            f"Timed out ({timeout:.1f}s) waiting for existance of {self.kind} {name} in namespace {namespace}"
+            f"Timed out ({timeout:.1f}s) waiting for existence of {self.kind} {name} in namespace {namespace}"
         )
