@@ -1206,7 +1206,7 @@
 </span><span id="__span-8-20"><a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a>        <span class="n">submit_job_params</span><span class="o">=</span><span class="p">{</span>
 </span><span id="__span-8-21"><a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a>            <span class="s2">&quot;entrypoint&quot;</span><span class="p">:</span> <span class="s2">&quot;python ml_training.py&quot;</span><span class="p">,</span>
 </span><span id="__span-8-22"><a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a>            <span class="s2">&quot;runtime_env&quot;</span><span class="p">:</span> <span class="p">{</span>
-</span><span id="__span-8-23"><a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a>                <span class="s2">&quot;pip&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;dagster-pipes&quot;</span><span class="p">,</span> <span class="s2">&quot;torch&quot;</span><span class="p">],</span>
+</span><span id="__span-8-23"><a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a>                <span class="s2">&quot;pip&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;dagster-pipes&quot;</span><span class="p">,</span> <span class="s2">&quot;torch&quot;</span><span class="p">],</span>  <span class="c1"># (1)!</span>
 </span><span id="__span-8-24"><a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a>            <span class="p">},</span>
 </span><span id="__span-8-25"><a id="__codelineno-8-25" name="__codelineno-8-25" href="#__codelineno-8-25"></a>        <span class="p">},</span>
 </span><span id="__span-8-26"><a id="__codelineno-8-26" name="__codelineno-8-26" href="#__codelineno-8-26"></a>        <span class="n">extras</span><span class="o">=</span><span class="p">{</span>
@@ -1225,6 +1225,9 @@
 </span><span id="__span-8-39"><a id="__codelineno-8-39" name="__codelineno-8-39" href="#__codelineno-8-39"></a>    <span class="p">},</span>
 </span><span id="__span-8-40"><a id="__codelineno-8-40" name="__codelineno-8-40" href="#__codelineno-8-40"></a><span class="p">)</span>
 </span></code></pre></div>
+<ol>
+<li><img alt="💡" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f4a1.svg" title=":bulb:" /> <code>dagster-pipes</code> have to be installed in the remote environment!</li>
+</ol>
 <p>When materializing the asset, the <code>PipesRayJobClient</code> will submit the script as a Ray job, monitor its status, and stream back logs and Dagster metadata.</p>
 <h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">&para;</a></h2>
 <p>That's it! You now have a comprehensive understanding of how to use dagster-ray with external Ray clusters, from local development with <code>LocalRay</code> to production deployments with <code>PipesRayJobClient</code>.</p>
