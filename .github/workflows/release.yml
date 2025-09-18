@@ -19,8 +19,8 @@ jobs:
     environment:
       name: release
     permissions:
-      # IMPORTANT: this permission is mandatory for trusted publishing
-      id-token: write
+      contents: write
+      pages: write
     steps:
       - uses: actions/checkout@v4
       - name: Install uv
@@ -38,3 +38,5 @@ jobs:
         run: uv run hatch version $VERSION
       - name: Publish to PyPI
         run: uv build && uv publish
+      - name: Publish Docs
+        run: uv run --group docs --all-extras mkdocs gh-deploy

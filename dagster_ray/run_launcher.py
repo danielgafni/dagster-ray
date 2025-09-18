@@ -43,6 +43,43 @@ class RayLauncherConfig(RayExecutionConfig, RayJobSubmissionClientConfig):
 
 
 class RayRunLauncher(RunLauncher, ConfigurableClass):
+    """RunLauncher that submits Dagster runs as isolated Ray jobs to a Ray cluster.
+
+    The RayRunLauncher submits each Dagster run in an isolated Ray job running in cluster mode.
+
+    Configuration can be provided via `dagster.yaml` and individual runs can override
+    settings using the `dagster-ray/config` tag.
+
+    Examples:
+        Configure via `dagster.yaml`:
+        ```yaml
+        run_launcher:
+          module: dagster_ray
+          class: RayRunLauncher
+          config:
+            address: "ray://head-node:10001"
+            num_cpus: 2
+            num_gpus: 0
+        ```
+
+        Override settings per job:
+        ```python
+        from dagster import job
+
+        @job(
+            tags={
+                "dagster-ray/config": {
+                    "num_cpus": 16,
+                    "num_gpus": 1,
+                    "runtime_env": {"pip": {"packages": ["torch"]}},
+                }
+            }
+        )
+        def my_job():
+            return my_op()
+        ```
+    """
+
     def __init__(
         self,
         address: str,
@@ -57,24 +94,6 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
         resources: dict[str, float] | None = None,
         inst_data: ConfigurableClassData | None = None,
     ):
-        """RunLauncher that starts a Ray job (incluster mode) for each Dagster run.
-
-        Encapsulates each run in a separate, isolated invocation of ``ray.job_submission.JobSubmissionClient``.
-
-        You can configure a Dagster instance to use this RunLauncher by adding a section to your
-        ``dagster.yaml`` like the following:
-
-        .. code-block:: yaml
-
-            run_launcher:
-                module: dagster_ray
-                class: RayRunLauncher
-                    config:
-                        address: <your_ray_address>
-
-        Fields such as `num_cpus` set via `dagster-ray/config` Run tag will override the yaml configuration.
-
-        """
         self._inst_data = check.opt_inst_param(inst_data, "inst_data", ConfigurableClassData)
 
         self.address = address

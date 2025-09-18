@@ -61,6 +61,49 @@ class RayObjectMap:
 
 
 class RayIOManager(ConfigurableIOManager):
+    """IO Manager that stores intermediate values in Ray's object store.
+
+    The RayIOManager allows storing and retrieving intermediate values in Ray's distributed
+    object store, making it ideal for use with RayRunLauncher and ray_executor. It works by
+    storing Dagster step keys in a global Ray actor that maintains a mapping between step
+    keys and Ray ObjectRefs.
+
+    Args:
+        address: Ray cluster address. If provided, will initialize Ray connection.
+                If None, assumes Ray is already initialized.
+
+    Examples:
+        Basic usage:
+        ```python
+        from dagster import asset, Definitions
+        from dagster_ray import RayIOManager
+
+        @asset(io_manager_key="ray_io_manager")
+        def upstream() -> int:
+            return 42
+
+        @asset
+        def downstream(upstream: int):
+            return upstream * 2
+
+        definitions = Definitions(
+            assets=[upstream, downstream],
+            resources={"ray_io_manager": RayIOManager()}
+        )
+        ```
+
+        With Ray cluster address:
+        ```python
+        ray_io_manager = RayIOManager(address="ray://head-node:10001")
+        ```
+
+    Info:
+        - Works with any pickable Python objects
+        - Supports partitioned assets and partition mappings
+        - Uses Ray's automatic object movement for fault tolerance
+        - Objects are stored with the Ray actor as owner for lifecycle management
+    """
+
     address: str | None = None
 
     def handle_output(self, context: OutputContext, obj):

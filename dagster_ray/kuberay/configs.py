@@ -8,7 +8,7 @@ import dagster as dg
 from pydantic import Field
 
 from dagster_ray.kuberay.utils import remove_none_from_dict
-from dagster_ray.pipes import OpOrAssetExecutionContext
+from dagster_ray.types import AnyDagsterContext
 
 in_k8s = os.environ.get("KUBERNETES_SERVICE_HOST") is not None
 
@@ -99,7 +99,7 @@ class RayClusterSpec(dg.PermissiveConfig):
 
     def to_k8s(
         self,
-        context: dg.InitResourceContext | OpOrAssetExecutionContext,
+        context: AnyDagsterContext,
         image: str | None = None,  # is injected into headgroup and workergroups, unless already specified there
         env_vars: Mapping[str, str] | None = None,
     ) -> dict[str, Any]:
@@ -164,7 +164,7 @@ class RayClusterConfig(dg.Config):
 
     def to_k8s(
         self,
-        context: dg.InitResourceContext | OpOrAssetExecutionContext,
+        context: AnyDagsterContext,
         image: str | None = None,  # is injected into headgroup and workergroups, unless already specified there
         labels: Mapping[str, str] | None = None,
         annotations: Mapping[str, str] | None = None,
@@ -216,7 +216,7 @@ class RayJobSpec(dg.PermissiveConfig):
 
     def to_k8s(
         self,
-        context: dg.InitResourceContext | OpOrAssetExecutionContext,
+        context: AnyDagsterContext,
         image: str | None = None,  # is injected into headgroup and workergroups, unless already specified there
         env_vars: Mapping[str, str] | None = None,
     ) -> dict[str, Any]:
@@ -262,7 +262,7 @@ class RayJobConfig(dg.Config):
 
     def to_k8s(
         self,
-        context: dg.InitResourceContext | OpOrAssetExecutionContext,
+        context: AnyDagsterContext,
         image: str | None = None,  # is injected into headgroup and workergroups, unless already specified there
         labels: Mapping[str, str] | None = None,
         annotations: Mapping[str, str] | None = None,

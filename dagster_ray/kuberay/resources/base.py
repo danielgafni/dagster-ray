@@ -5,13 +5,13 @@ from abc import abstractmethod
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
-from dagster import Config, InitResourceContext
+from dagster import Config
 from pydantic import Field, PrivateAttr
 from ray._private.worker import BaseContext as RayBaseContext  # noqa
 
 from dagster_ray._base.constants import DEFAULT_DEPLOYMENT_NAME
-from dagster_ray._base.resources import OpOrAssetExecutionContext
 from dagster_ray.kuberay.utils import get_k8s_object_name
+from dagster_ray.types import AnyDagsterContext
 
 if TYPE_CHECKING:
     pass
@@ -35,7 +35,7 @@ class BaseKubeRayResourceConfig(Config):
     def namespace(self) -> str:
         raise NotImplementedError
 
-    def _get_step_name(self, context: InitResourceContext | OpOrAssetExecutionContext) -> str:
+    def _get_step_name(self, context: AnyDagsterContext) -> str:
         assert isinstance(context.run_id, str)
         assert context.dagster_run is not None
 

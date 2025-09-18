@@ -25,7 +25,9 @@ from dagster_ray.kuberay.client.base import load_kubeconfig
 
 
 @beta
-class RayClusterClientResource(ConfigurableResource[RayClusterClient]):
+class KubeRayClusterClientResource(ConfigurableResource[RayClusterClient]):
+    """This configurable resource provides a `dagster_ray.kuberay.client.RayClusterClient`."""
+
     kube_context: Optional[str] = None
     kube_config: Optional[str] = None
 
@@ -39,6 +41,8 @@ class RayClusterClientResource(ConfigurableResource[RayClusterClient]):
 class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
     """
     Provides a `RayCluster` for Dagster steps.
+
+    It is advised to use `dagster_ray.kuberay.KubeRayInteractiveJob` with KubeRay >= 1.3.0 instead.
     """
 
     lifecycle: Lifecycle = Field(
@@ -49,7 +53,7 @@ class KubeRayCluster(BaseKubeRayResourceConfig, BaseRayResource):
         default_factory=RayClusterConfig, description="Kubernetes `RayCluster` CR configuration."
     )
     client: dg.ResourceDependency[RayClusterClient] = Field(  # pyright: ignore[reportAssignmentType]
-        default_factory=RayClusterClientResource, description="Kubernetes `RayCluster` client"
+        default_factory=KubeRayClusterClientResource, description="Kubernetes `RayCluster` client"
     )
     log_cluster_conditions: bool = Field(
         default=True,

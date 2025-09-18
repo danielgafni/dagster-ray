@@ -9,10 +9,10 @@ import time
 from collections.abc import AsyncIterator, Generator, Iterator
 from contextlib import contextmanager
 from functools import partial
-from typing import TYPE_CHECKING, Any, TypedDict, Union, cast
+from typing import TYPE_CHECKING, Any, TypedDict, cast
 
 import dagster._check as check
-from dagster import AssetExecutionContext, OpExecutionContext, PipesClient
+from dagster import PipesClient
 from dagster._annotations import beta
 from dagster._core.definitions.resource_annotation import TreatAsResourceParam
 from dagster._core.errors import DagsterExecutionInterruptedError
@@ -29,17 +29,15 @@ from dagster._core.pipes.utils import (
     open_pipes_session,
 )
 from dagster_pipes import PipesDefaultMessageWriter, PipesExtras, PipesParams
-from typing_extensions import NotRequired, TypeAlias
+from typing_extensions import NotRequired
 
 from dagster_ray._base.utils import get_dagster_tags
+from dagster_ray.types import OpOrAssetExecutionContext
 
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from ray.job_submission import JobStatus, JobSubmissionClient
-
-
-OpOrAssetExecutionContext: TypeAlias = Union[OpExecutionContext, AssetExecutionContext]
 
 
 PIPES_LAUNCHED_EXTRAS_RAY_ADDRESS_KEY = "ray_address"
@@ -221,16 +219,16 @@ def generate_job_id() -> str:
 
 @beta
 class PipesRayJobClient(PipesClient, TreatAsResourceParam):
-    """A pipes client for running Ray jobs on remote clusters.
+    """A [Pipes](https://docs.dagster.io/guides/build/external-pipelines) client for running Ray jobs on remote clusters.
 
     Starts the job directly on the Ray cluster and reads the logs from the job.
 
     Args:
         client (JobSubmissionClient): The Ray job submission client
         context_injector (Optional[PipesContextInjector]): A context injector to use to inject
-            context into the Ray job. Defaults to :py:class:`PipesEnvContextInjector`.
+            context into the Ray job. Defaults to `PipesEnvContextInjector`.
         message_reader (Optional[PipesMessageReader]): A message reader to use to read messages
-            from the glue job run. Defaults to :py:class:`PipesRayJobMessageReader`.
+            from the glue job run. Defaults to `PipesRayJobMessageReader`.
         forward_termination (bool): Whether to cancel the `RayJob` job run when the Dagster process receives a termination signal.
         timeout (int): Timeout for various internal interactions with the Kubernetes RayJob.
         poll_interval (int): Interval at which to poll the Kubernetes for status updates.
@@ -268,7 +266,7 @@ class PipesRayJobClient(PipesClient, TreatAsResourceParam):
 
         Args:
             context (OpExecutionContext): Current Dagster op or asset context.
-            ray_job (Dict[str, Any]): RayJob specification. `API reference <https://ray-project.github.io/kuberay/reference/api/#rayjob>`_.
+            submit_job_params (Dict[str, Any]): RayJob specification. `API reference <https://ray-project.github.io/kuberay/reference/api/#rayjob>`_.
             extras (Optional[Dict[str, Any]]): Additional information to pass to the Pipes session.
         """
 

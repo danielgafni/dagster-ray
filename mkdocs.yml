@@ -1,0 +1,149 @@
+site_name: dagster-ray
+site_description: Dagster integration library for Ray
+site_url: https://danielgafni.github.io/dagster-ray
+repo_url: https://github.com/danielgafni/dagster-ray
+repo_name: danielgafni/dagster-ray
+
+nav:
+  - Home: index.md
+  - Tutorial:
+    - Overview: tutorial/index.md
+    - External Ray Clusters: tutorial/external.md
+    - KubeRay: tutorial/kuberay.md
+  - API Reference:
+    - Overview: api.md
+    - Core: api/core.md
+    - KubeRay: api/kuberay.md
+
+theme:
+  name: material
+  features:
+    - content.code.copy
+    - content.code.select
+    - content.tabs.link
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.top
+    - search.highlight
+    - search.share
+    - search.suggest
+    - content.code.annotate
+  palette:
+    - scheme: default
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+plugins:
+  - search
+  - section-index
+  - autorefs
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            # filters: ["!^_", "^__init__$"]
+            docstring_style: google
+            docstring_options:
+              ignore_init_summary: true
+            show_source: true
+            show_docstring_classes: true
+            show_docstring_description: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_root_members_full_path: false
+            scoped_crossrefs: true
+            show_object_full_path: false
+            show_category_heading: true
+            show_signature_annotations: true
+            separate_signature: true
+            line_length: 120
+            merge_init_into_class: true
+            docstring_section_style: table
+            members_order: source
+            show_submodules: false
+            members: false
+            inherited_members: true
+            show_bases: true
+            show_signature: true
+            signature_crossrefs: true
+            annotations_path: brief
+            unwrap_annotated: true
+          extra:
+            enable_autorefs: true
+          extensions:
+            - griffe_pydantic:
+                schema: true
+                replace_field_with_description: true
+                show_field_summary: true
+                show_constraints: false
+                show_default_value: true
+                show_json_schema: false
+                field_docstring_in_description: true
+
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      normalize_issue_symbols: true
+      repo_url_shorthand: true
+      user: danielgafni
+      repo: dagster-ray
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+      combine_header_slug: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+extra_css:
+  - assets/stylesheets/extra.css
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/danielgafni/dagster-ray

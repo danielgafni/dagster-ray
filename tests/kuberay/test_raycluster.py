@@ -8,7 +8,7 @@ from dagster import AssetExecutionContext, RunConfig, asset, materialize_to_memo
 from pytest_kubernetes.providers import AClusterManager
 
 from dagster_ray import Lifecycle, RayResource
-from dagster_ray.kuberay import KubeRayCluster, RayClusterClientResource, RayClusterConfig, cleanup_kuberay_clusters
+from dagster_ray.kuberay import KubeRayCluster, KubeRayClusterClientResource, RayClusterConfig, cleanup_kuberay_clusters
 from dagster_ray.kuberay.client import RayClusterClient
 from dagster_ray.kuberay.configs import RayClusterSpec
 from dagster_ray.kuberay.ops import CleanupKuberayClustersConfig
@@ -18,13 +18,13 @@ from tests.kuberay.utils import NAMESPACE, get_random_free_port
 
 @pytest.fixture(scope="session")
 def raycluster_client(k8s_with_kuberay: AClusterManager):
-    return RayClusterClientResource(kube_config=str(k8s_with_kuberay.kubeconfig), kube_context=KUBERNETES_CONTEXT)
+    return KubeRayClusterClientResource(kube_config=str(k8s_with_kuberay.kubeconfig), kube_context=KUBERNETES_CONTEXT)
 
 
 @pytest.fixture(scope="session")
 def ray_cluster_resource(
     k8s_with_kuberay: AClusterManager,
-    raycluster_client: RayClusterClientResource,
+    raycluster_client: KubeRayClusterClientResource,
     dagster_ray_image: str,
     head_group_spec: dict[str, Any],
     worker_group_specs: list[dict[str, Any]],
@@ -51,7 +51,7 @@ def ray_cluster_resource_skip_cleanup(
     dagster_ray_image: str,
     head_group_spec: dict[str, Any],
     worker_group_specs: list[dict[str, Any]],
-    raycluster_client: RayClusterClientResource,
+    raycluster_client: KubeRayClusterClientResource,
 ) -> KubeRayCluster:
     redis_port = get_random_free_port()
 
@@ -78,7 +78,7 @@ def ray_cluster_resource_skip_create(
     dagster_ray_image: str,
     head_group_spec: dict[str, Any],
     worker_group_specs: list[dict[str, Any]],
-    raycluster_client: RayClusterClientResource,
+    raycluster_client: KubeRayClusterClientResource,
 ) -> KubeRayCluster:
     redis_port = get_random_free_port()
 
@@ -102,7 +102,7 @@ def ray_cluster_resource_skip_wait(
     dagster_ray_image: str,
     head_group_spec: dict[str, Any],
     worker_group_specs: list[dict[str, Any]],
-    raycluster_client: RayClusterClientResource,
+    raycluster_client: KubeRayClusterClientResource,
 ) -> KubeRayCluster:
     redis_port = get_random_free_port()
 
@@ -261,7 +261,7 @@ def test_kuberay_cleanup_job(
 
     cleanup_kuberay_clusters.execute_in_process(
         resources={
-            "kuberay_client": RayClusterClientResource(kube_config=str(k8s_with_kuberay.kubeconfig)),
+            "kuberay_client": KubeRayClusterClientResource(kube_config=str(k8s_with_kuberay.kubeconfig)),
         },
         run_config=RunConfig(
             ops={
