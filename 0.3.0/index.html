@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#welcome-to-dagster-ray" class="md-skip">
+        <a href="#welcome-to-dagster-ray-docs" class="md-skip">
           Skip to content
         </a>
       
@@ -455,6 +455,30 @@
       Basic Usage
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Basic Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#execute-dagster-steps-on-an-existing-ray-cluster" class="md-nav__link">
+    <span class="md-ellipsis">
+      Execute Dagster steps on an existing Ray cluster
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#execute-an-asset-on-ray-in-client-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Execute an asset on Ray in client mode
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -893,6 +917,30 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Basic Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#execute-dagster-steps-on-an-existing-ray-cluster" class="md-nav__link">
+    <span class="md-ellipsis">
+      Execute Dagster steps on an existing Ray cluster
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#execute-an-asset-on-ray-in-client-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Execute an asset on Ray in client mode
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -970,22 +1018,27 @@
   
 
 
-<h1 id="welcome-to-dagster-ray">Welcome to dagster-ray<a class="headerlink" href="#welcome-to-dagster-ray" title="Permanent link">&para;</a></h1>
-<p><strong>Ray integration for Dagster</strong> - Orchestrate distributed Ray compute from Dagster pipelines with seamless integration between Dagster's orchestration capabilities and Ray's distributed computing power.</p>
+<h1 id="welcome-to-dagster-ray-docs">Welcome to <code>dagster-ray</code> docs<a class="headerlink" href="#welcome-to-dagster-ray-docs" title="Permanent link">&para;</a></h1>
 <p><a href="https://pypi.python.org/pypi/dagster-ray"><img alt="PyPI version" src="https://img.shields.io/pypi/v/dagster-ray.svg" /></a>
 <a href="https://pypi.python.org/pypi/dagster-ray"><img alt="License" src="https://img.shields.io/pypi/l/dagster-ray.svg" /></a>
 <a href="https://pypi.python.org/pypi/dagster-ray"><img alt="Python versions" src="https://img.shields.io/pypi/pyversions/dagster-ray.svg" /></a>
-<a href="https://github.com/danielgafni/dagster-ray/actions/workflows/CI.yml"><img alt="CI" src="https://github.com/danielgafni/dagster-ray/actions/workflows/CI.yml/badge.svg" /></a></p>
+<a href="https://github.com/danielgafni/dagster-ray/actions/workflows/CI.yml"><img alt="CI" src="https://github.com/danielgafni/dagster-ray/actions/workflows/CI.yml/badge.svg" /></a>
+<a href="https://github.com/pre-commit/pre-commit"><img alt="pre-commit" src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&amp;logoColor=white" /></a>
+<a href="https://docs.basedpyright.com"><img alt="basedpyright - checked" src="https://img.shields.io/badge/basedpyright-checked-42b983" /></a>
+<a href="https://github.com/astral-sh/ruff"><img alt="Ruff" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" /></a></p>
+<hr />
+<p><strong>Ray integration for Dagster.</strong></p>
+<p><code>dagster-ray</code> enables working with distributed Ray compute from Dagster pipelines, combining Dagster's excellent orchestration capabilities and Ray's distributed computing power together.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This project is ready for production use, but some APIs may change between minor releases.</p>
 </div>
 <h2 id="key-features">🚀 Key Features<a class="headerlink" href="#key-features" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>🎯 Run Launchers &amp; Executors</strong>: Submit Dagster runs or individual steps as Ray jobs</li>
-<li><strong>🔧 Ray Resources</strong>: Connect to Ray cluster in client mode and manage their lifecycle</li>
-<li><strong>📡 Dagster Pipes Integration</strong>: Execute external Ray scripts with rich logging and metadata</li>
-<li><strong>☸️ KubeRay Support</strong>: Utilize <code>RayJob</code> and <code>RayCluster</code> custom resources in client or job mode (<a href="tutorial/kuberay/">tutorial</a>)</li>
+<li><strong>🎯 Run Launchers &amp; Executors</strong>: Submit Dagster runs or individual steps by submitting Ray jobs</li>
+<li><strong>🔧 Ray Resources</strong>: Automatically create and destroy ephemeral Ray clusters and connect to them in client mode</li>
+<li><strong>📡 Dagster Pipes Integration</strong>: Submit external scripts as Ray jobs, stream back logs and rich Dagster metadata</li>
+<li><strong>☸️ KubeRay Support</strong>: Utilize <code>RayJob</code> and <code>RayCluster</code> custom resources in client or job submission mode (<a href="tutorial/kuberay/">tutorial</a>)</li>
 <li><strong>🏭 Production Ready</strong>: Tested against a matrix of core dependencies, integrated with Dagster+</li>
 </ul>
 <h2 id="quick-start">⚡ Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
@@ -995,46 +1048,66 @@
 <div class="tabbed-block">
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>dagster-ray
 </span></code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>See <a href="tutorial/external/">external cluster tutorial</a></p>
+</div>
 </div>
 <div class="tabbed-block">
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;dagster-ray[kuberay]&#39;</span>
 </span></code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>See <a href="tutorial/kuberay/">KubeRay tutorial</a></p>
+</div>
 </div>
 </div>
 </div>
 <h3 id="basic-usage">Basic Usage<a class="headerlink" href="#basic-usage" title="Permanent link">&para;</a></h3>
+<h4 id="execute-dagster-steps-on-an-existing-ray-cluster">Execute Dagster steps on an existing Ray cluster<a class="headerlink" href="#execute-dagster-steps-on-an-existing-ray-cluster" title="Permanent link">&para;</a></h4>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">dagster</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dg</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dagster_ray</span><span class="w"> </span><span class="kn">import</span> <span class="n">ray_executor</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">defs</span> <span class="o">=</span> <span class="n">dg</span><span class="o">.</span><span class="n">Definitions</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">executor</span><span class="o">=</span><span class="n">ray_executor</span><span class="p">)</span>
+</span></code></pre></div>
+</div>
+<h4 id="execute-an-asset-on-ray-in-client-mode">Execute an asset on Ray in client mode<a class="headerlink" href="#execute-an-asset-on-ray-in-client-mode" title="Permanent link">&para;</a></h4>
 <div class="admonition example">
 <p class="admonition-title">Example</p>
 <p>Define a Dagster asset that uses Ray in client mode
-<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">dagster</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dg</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dagster_ray</span><span class="w"> </span><span class="kn">import</span> <span class="n">RayResource</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">ray</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="nd">@ray</span><span class="o">.</span><span class="n">remote</span>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="k">def</span><span class="w"> </span><span class="nf">compute_square</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="k">return</span> <span class="n">x</span><span class="o">**</span><span class="mi">2</span>
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>
-</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="nd">@dg</span><span class="o">.</span><span class="n">asset</span>
-</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="k">def</span><span class="w"> </span><span class="nf">my_distributed_computation</span><span class="p">(</span><span class="n">ray_cluster</span><span class="p">:</span> <span class="n">RayResource</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>  <span class="c1"># (2)!</span>
-</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>    <span class="n">futures</span> <span class="o">=</span> <span class="p">[</span><span class="n">compute_square</span><span class="o">.</span><span class="n">remote</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)]</span>  <span class="c1"># (1)!</span>
-</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ray</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">futures</span><span class="p">))</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">dagster</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dg</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dagster_ray</span><span class="w"> </span><span class="kn">import</span> <span class="n">RayResource</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">ray</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="nd">@ray</span><span class="o">.</span><span class="n">remote</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="k">def</span><span class="w"> </span><span class="nf">compute_square</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>    <span class="k">return</span> <span class="n">x</span><span class="o">**</span><span class="mi">2</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="nd">@dg</span><span class="o">.</span><span class="n">asset</span>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="k">def</span><span class="w"> </span><span class="nf">my_distributed_computation</span><span class="p">(</span><span class="n">ray_cluster</span><span class="p">:</span> <span class="n">RayResource</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>  <span class="c1"># (2)!</span>
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>    <span class="n">futures</span> <span class="o">=</span> <span class="p">[</span><span class="n">compute_square</span><span class="o">.</span><span class="n">remote</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)]</span>  <span class="c1"># (1)!</span>
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ray</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">futures</span><span class="p">))</span>
 </span></code></pre></div></p>
 <ol>
 <li><img alt="⚡" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/26a1.svg" title=":zap:" /> I am already running in Ray!</li>
 <li><img alt="💡" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f4a1.svg" title=":bulb:" /> <code>RayResource</code> is a type annotation that provides a common interface for Ray resources</li>
 </ol>
-<p>Now use <code>LocalRay</code> for local development and swap it with a thick cluster in Kubernetes!</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dagster_ray.kuberay</span><span class="w"> </span><span class="kn">import</span> <span class="n">in_k8s</span><span class="p">,</span> <span class="n">KubeRayInteractiveJob</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">ray_cluster</span> <span class="o">=</span> <span class="n">LocalRay</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">in_k8s</span> <span class="k">else</span> <span class="n">KubeRayInteractiveJob</span><span class="p">()</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">definitions</span> <span class="o">=</span> <span class="n">dg</span><span class="o">.</span><span class="n">Definitions</span><span class="p">(</span>
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="n">assets</span><span class="o">=</span><span class="p">[</span><span class="n">my_distributed_computation</span><span class="p">],</span>
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    <span class="n">resources</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;ray_cluster&quot;</span><span class="p">:</span> <span class="n">ray_cluster</span><span class="p">},</span>
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="p">)</span>
+<p>Now use <a href="api/core/#dagster_ray.core.resources.LocalRay"><code>LocalRay</code></a> for development and swap it with a thick cluster in Kubernetes!</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dagster_ray</span><span class="w"> </span><span class="kn">import</span> <span class="n">LocalRay</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dagster_ray.kuberay</span><span class="w"> </span><span class="kn">import</span> <span class="n">in_k8s</span><span class="p">,</span> <span class="n">KubeRayInteractiveJob</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="n">ray_cluster</span> <span class="o">=</span> <span class="n">LocalRay</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">in_k8s</span> <span class="k">else</span> <span class="n">KubeRayInteractiveJob</span><span class="p">()</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="n">definitions</span> <span class="o">=</span> <span class="n">dg</span><span class="o">.</span><span class="n">Definitions</span><span class="p">(</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>    <span class="n">assets</span><span class="o">=</span><span class="p">[</span><span class="n">my_distributed_computation</span><span class="p">],</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    <span class="n">resources</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;ray_cluster&quot;</span><span class="p">:</span> <span class="n">ray_cluster</span><span class="p">},</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="p">)</span>
 </span></code></pre></div>
+<p><a href="api/kuberay/#dagster_ray.kuberay.KubeRayInteractiveJob"><code>KubeRayInteractiveJob</code></a> will create a <code>RayJob</code>, connect to it, and optionally perform cleanup according to the configured policy.</p>
 </div>
 <p>Learn more by reading the <a href="tutorial/">tutorials</a>.</p>
 <h2 id="choosing-your-integration">🛠️ Choosing Your Integration<a class="headerlink" href="#choosing-your-integration" title="Permanent link">&para;</a></h2>
