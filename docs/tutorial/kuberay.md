@@ -24,7 +24,7 @@ Before getting started, you'll need:
 
 ### Basic Example
 
-Here's a simple example that creates a Ray cluster and runs distributed computation:
+Here's a simple example that creates a Ray cluster and runs a distributed computation:
 
 ```python
 import dagster as dg
@@ -33,40 +33,27 @@ import ray
 
 
 @ray.remote
-def compute_pi_slice(start: int, num_samples: int) -> int:
-    """Compute a slice of pi using Monte Carlo method."""
-    import random
-
-    count = 0
-    for _ in range(num_samples):
-        x, y = random.random(), random.random()
-        if x * x + y * y <= 1:
-            count += 1
-    return count
+def sum_of_squares_in_slice(start: int, end: int) -> int:
+    return sum(i**2 for i in range(start, end))
 
 
 @dg.asset
-def estimate_pi(ray_cluster: RayResource) -> float:
-    """Estimate pi using distributed Ray computation."""
-    num_samples = 10_000_000
-    num_workers = 10
-    samples_per_worker = num_samples // num_workers
+def sum_of_squares(ray_cluster: RayResource) -> int:
+    # Split work across workers
+    num_workers = 4
+    chunk_size = 1000 // num_workers
 
-    # Submit work to Ray cluster
     futures = [
-        compute_pi_slice.remote(i * samples_per_worker, samples_per_worker)
+        sum_of_squares_in_slice.remote(i * chunk_size + 1, (i + 1) * chunk_size + 1)
         for i in range(num_workers)
     ]
 
-    # Collect results
-    total_inside = sum(ray.get(futures))
-    pi_estimate = 4 * total_inside / num_samples
-
-    return pi_estimate
+    # Sum results from all workers
+    return sum(ray.get(futures))
 
 
 definitions = dg.Definitions(
-    assets=[estimate_pi], resources={"ray_cluster": KubeRayInteractiveJob()}
+    assets=[compute_sum_of_squares], resources={"ray_cluster": KubeRayInteractiveJob()}
 )
 ```
 
@@ -192,9 +179,11 @@ def main():
 
         context.log.info(f"Training complete on {len(results)} partitions")
 
+        accuracy = sum(result["accuracy"] for result in results) / len(results)
+
         # Report results
         context.report_asset_materialization(
-            metadata={"num_partitions": len(results), "results": results},
+            metadata={"num_partitions": len(results), "accuracy": accuracy},
             data_version="alpha",
         )
 

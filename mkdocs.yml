@@ -59,6 +59,7 @@ plugins:
   - search
   - section-index
   - autorefs
+  - gh-admonitions
   # - awesome-nav
   - mkdocstrings:
       enable_inventory: true

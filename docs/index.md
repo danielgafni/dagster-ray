@@ -7,8 +7,8 @@
 [![Python versions](https://img.shields.io/pypi/pyversions/dagster-ray.svg)](https://pypi.python.org/pypi/dagster-ray)
 [![CI](https://github.com/danielgafni/dagster-ray/actions/workflows/CI.yml/badge.svg)](https://github.com/danielgafni/dagster-ray/actions/workflows/CI.yml)
 
-!!! info
-    This project is ready for production use, but some APIs may change between minor releases.
+> [!NOTE]
+> This project is ready for production use, but some APIs may change between minor releases.
 
 ## 🚀 Key Features
 
@@ -32,11 +32,13 @@
     pip install 'dagster-ray[kuberay]'
     ```
 
-!!! example
+### Basic Usage
 
+!!! example
+    Define a Dagster asset that uses Ray in client mode
     ```python
     import dagster as dg
-    from dagster_ray import LocalRay, RayResource, KubeRayInteractiveJob
+    from dagster_ray import RayResource
     import ray
 
 
@@ -49,9 +51,17 @@
     def my_distributed_computation(ray_cluster: RayResource) -> int:  # (2)!
         futures = [compute_square.remote(i) for i in range(10)]  # (1)!
         return sum(ray.get(futures))
+    ```
 
+    1. :zap: I am already running in Ray!
+    2. :bulb: `RayResource` is a type annotation that provides a common interface for Ray resources
 
-    ray_cluster = LocalRay() if not IN_KUBERNETES else KubeRayInteractiveJob()
+    Now use `LocalRay` for local development and swap it with a thick cluster in Kubernetes!
+
+    ```python
+    from dagster_ray.kuberay import in_k8s, KubeRayInteractiveJob
+
+    ray_cluster = LocalRay() if not in_k8s else KubeRayInteractiveJob()
 
     definitions = dg.Definitions(
         assets=[my_distributed_computation],
@@ -59,9 +69,7 @@
     )
     ```
 
-    1. :zap: I am already running in Ray!
-    2. :bulb: `RayResource` is a type annotation that provides a common interface for Ray resources
-
+Learn more by reading the [tutorials](/dagster-ray/tutorial).
 
 ## 🛠️ Choosing Your Integration
 
