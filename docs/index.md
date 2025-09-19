@@ -69,7 +69,7 @@
     )
     ```
 
-Learn more by reading the [tutorials](/dagster-ray/tutorial).
+Learn more by reading the [tutorials](tutorial/index.md).
 
 ## 🛠️ Choosing Your Integration
 
@@ -101,9 +101,9 @@ Learn more by reading the [tutorials](/dagster-ray/tutorial).
 === "🏢 External Ray Cluster"
     **You have a Ray cluster already running**
 
-    - Use [`RayRunLauncher`](api/core.md#dagster_ray.run_launcher.RayRunLauncher) to run the entire Dagster deployment on Ray
-    - Use [`ray_executor`](api/core.md#dagster_ray.executor.ray_executor) to run specific jobs on Ray
-    - Use [`PipesRayJobClient`](api/core.md#dagster_ray.pipes.PipesRayJobClient) to submit external Python scripts as Ray jobs
+    - Use [`RayRunLauncher`](api/core.md#dagster_ray.core.run_launcher.RayRunLauncher) to run the entire Dagster deployment on Ray
+    - Use [`ray_executor`](api/core.md#dagster_ray.core.executor.ray_executor) to run specific jobs on Ray
+    - Use [`PipesRayJobClient`](api/core.md#dagster_ray.core.pipes.PipesRayJobClient) to submit external Python scripts as Ray jobs
 
     !!! tip
         See [external cluster tutorial](tutorial/external.md)

@@ -2,9 +2,7 @@
 
 KubeRay integration components for running Ray on Kubernetes.  Learn how to use it [here](../tutorial/kuberay.md).
 
-::: dagster_ray.kuberay
-    options:
-      show_docstring_classes: true
+---
 
 ## Client Mode Resources
 
@@ -29,15 +27,17 @@ These resources initialize Ray client connection with a remote cluster.
         - "client"
         - "log_cluster_conditions"
 
-## Job Submission Resources
+---
 
-These resources submit Ray jobs to a remote cluster.
+## Pipes
 
 ::: dagster_ray.kuberay.PipesKubeRayJobClient
     options:
       members:
         - "__init__"
         - "run"
+
+---
 
 ## Configuration and Types
 
@@ -74,7 +74,6 @@ These resources submit Ray jobs to a remote cluster.
       inherited_members: true
       members: true
 
-
 ---
 
 ::: dagster_ray.kuberay.configs.RayClusterConfig
@@ -98,6 +97,8 @@ These resources submit Ray jobs to a remote cluster.
         - "deployment_name"
         - "poll_interval"
 
+---
+
 ## Resources
 
 ::: dagster_ray.kuberay.KubeRayJobClientResource
@@ -109,6 +110,8 @@ These resources submit Ray jobs to a remote cluster.
     options:
       members:
         - "__init__"
+
+---
 
 ## Kubernetes API Clients
 

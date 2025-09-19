@@ -1,19 +1,7 @@
-import sys
-
-# yes, `python-client` is actually the KubeRay package name
-# https://github.com/ray-project/kuberay/issues/2078
+from dagster_ray._base.resources import RayResource
 
 
-if sys.version_info >= (3, 11):
-    pass
-else:
-    pass
-
-
-from dagster_ray._base.resources import BaseRayResource
-
-
-class LocalRay(BaseRayResource):
+class LocalRay(RayResource):
     """
     Dummy Resource.
     Is useful for testing and local development.

@@ -23,7 +23,7 @@ from dagster._utils.error import serializable_error_info_from_exc_info
 from packaging.version import Version
 from pydantic import Field
 
-from dagster_ray.config import RayExecutionConfig, RayJobSubmissionClientConfig
+from dagster_ray.configs import RayExecutionConfig, RayJobSubmissionClientConfig
 from dagster_ray.utils import resolve_env_vars_list
 
 if TYPE_CHECKING:

@@ -229,7 +229,7 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
         forward_termination (bool): Whether to cancel the `RayJob` job run when the Dagster process receives a termination signal.
         timeout (int): Timeout for various internal interactions with the Kubernetes RayJob.
         poll_interval (int): Interval at which to poll the Kubernetes for status updates.
-        Is useful when running in a local environment.
+            Is useful when running in a local environment.
     """
 
     def __init__(

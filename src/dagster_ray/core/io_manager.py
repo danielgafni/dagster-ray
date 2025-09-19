@@ -68,9 +68,9 @@ class RayIOManager(dg.ConfigurableIOManager):
     storing Dagster step keys in a global Ray actor that maintains a mapping between step
     keys and Ray ObjectRefs.
 
-    Args:
-        address: Ray cluster address. If provided, will initialize Ray connection.
-                If None, assumes Ray is already initialized.
+    Attributes:
+        address (str | None): Ray cluster address. If provided, will initialize Ray connection.
+            If None, assumes Ray is already initialized.
 
     Example:
         Basic usage
@@ -99,7 +99,7 @@ class RayIOManager(dg.ConfigurableIOManager):
         ```
 
     Info:
-        - Works with any pickable Python objects
+        - Works with picklable Python objects
         - Supports partitioned assets and partition mappings
         - Uses Ray's automatic object movement for fault tolerance
         - Objects are stored with the Ray actor as owner for lifecycle management

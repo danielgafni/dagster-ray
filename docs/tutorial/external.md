@@ -4,18 +4,18 @@ This tutorial covers how to use dagster-ray with external Ray clusters - cluster
 
 ## When to Use Each Approach
 
-### Use [`LocalRay`](../api/core.md#dagster_ray.resources.LocalRay) when:
+### Use [`LocalRay`](../api/core.md#dagster_ray.core.resources.LocalRay) when:
 - Developing and testing locally
 
-### Use [`RayRunLauncher`](../api/core.md#dagster_ray.run_launcher.RayRunLauncher) when:
+### Use [`RayRunLauncher`](../api/core.md#dagster_ray.core.run_launcher.RayRunLauncher) when:
 - You want to run all Dagster pipelines on Ray
 - You want very fast Dagster run submission
 
-### Use [`ray_executor`](../api/core.md#dagster_ray.executor.ray_executor) when:
+### Use [`ray_executor`](../api/core.md#dagster_ray.core.executor.ray_executor) when:
 - You want selective Ray execution for specific assets
 - You want very fast Dagster step submission
 
-### Use [`PipesRayJobClient`](../api/core.md#dagster_ray.pipes.PipesRayJobClient) when:
+### Use [`PipesRayJobClient`](../api/core.md#dagster_ray.core.pipes.PipesRayJobClient) when:
 - You want to decouple Ray workloads from orchestration code
 - You have existing Ray scripts you want to integrate
 - You want full separation between Dagster and Ray environments
@@ -34,7 +34,7 @@ Before getting started, you'll need:
 
 ## LocalRay - Development and Testing
 
-[`LocalRay`](../api/core.md#dagster_ray.resources.LocalRay) is perfect for local development and testing. It provides the same interface as other Ray resources but runs Ray locally on your machine.
+[`LocalRay`](../api/core.md#dagster_ray.core.resources.LocalRay) is perfect for local development and testing. It provides the same interface as other Ray resources but runs Ray locally on your machine.
 
 ```python
 import dagster as dg
@@ -76,7 +76,7 @@ local_ray = LocalRay(
 
 ## RayRunLauncher
 
-[`RayRunLauncher`](../api/core.md#dagster_ray.run_launcher.RayRunLauncher) executes entire Dagster runs as Ray jobs. This is useful for Dagster deployments that need to be fully executed on Ray.
+[`RayRunLauncher`](../api/core.md#dagster_ray.core.run_launcher.RayRunLauncher) executes entire Dagster runs as Ray jobs. This is useful for Dagster deployments that need to be fully executed on Ray.
 
 !!! tip
     Make sure the Ray cluster has access to Dagster's metadata database!
@@ -120,7 +120,7 @@ It's possible to provide additional runtime configuration via the `dagster-ray/c
 
 ## ray_executor
 
-[`ray_executor`](../api/core.md#dagster_ray.executor.ray_executor) runs Dagster steps (ops or assets) as Ray jobs (in parallel).
+[`ray_executor`](../api/core.md#dagster_ray.core.executor.ray_executor) runs Dagster steps (ops or assets) as Ray jobs (in parallel).
 
 !!! tip
     Make sure the Ray cluster has access to Dagster's metadata database!
@@ -157,7 +157,7 @@ def my_asset(): ...
 
 ## PipesRayJobClient - External Script Execution
 
-[`PipesRayJobClient`](../api/core.md#dagster_ray.pipes.PipesRayJobClient) lets you submit external Python scripts to Ray clusters as Ray jobs. This is perfect for decoupling your Ray workloads from Dagster orchestration code and Python environment.
+[`PipesRayJobClient`](../api/core.md#dagster_ray.core.pipes.PipesRayJobClient) lets you submit external Python scripts to Ray clusters as Ray jobs. This is perfect for decoupling your Ray workloads from Dagster orchestration code and Python environment.
 
 ### External Ray Script
 

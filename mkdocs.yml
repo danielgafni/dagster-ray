@@ -14,6 +14,8 @@ nav:
     - Overview: api.md
     - Core: api/core.md
     - KubeRay: api/kuberay.md
+    - Configs: api/configs.md
+    - Types: api/types.md
   - Changelog: changelog.md
 
 theme:
@@ -75,17 +77,17 @@ plugins:
             show_source: true
             show_docstring_classes: true
             show_docstring_description: true
+            show_docstring_parameters: true
             show_root_heading: true
-            show_root_full_path: false
+            show_root_full_path: true
             show_root_members_full_path: false
             scoped_crossrefs: true
-            show_object_full_path: false
             show_category_heading: true
             show_signature_annotations: true
             separate_signature: true
             line_length: 120
             merge_init_into_class: true
-            docstring_section_style: table
+            docstring_section_style: list
             members_order: source
             show_submodules: false
             members: false
@@ -101,6 +103,8 @@ plugins:
               - griffe_pydantic:
                   schema: true
                   extra_bases:
+                    - Config
+                    - dg.Config
                     - dagster.Config
                     - dagster.ConfigurableResource
           extra:
@@ -167,3 +171,9 @@ extra:
       link: https://github.com/danielgafni/dagster-ray
   version:
     provider: mike
+
+validation:
+  omitted_files: warn
+  absolute_links: warn  # Or 'relative_to_docs' - new in MkDocs 1.6
+  unrecognized_links: warn
+  anchors: warn  # New in MkDocs 1.6

@@ -9,10 +9,10 @@ from dagster_ray.core.run_launcher import RayRunLauncher
 __all__ = [
     "Lifecycle",
     "RayResource",
+    "LocalRay",
     "RayRunLauncher",
     "RayIOManager",
     "ray_executor",
     "PipesRayJobMessageReader",
     "PipesRayJobClient",
-    "LocalRay",
 ]

@@ -5,6 +5,15 @@ All notable user-facing changes to `dagster-ray` will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.3.0
+
+This release includes massive docs improvements and drops support for Python 3.9
+
+### Changes
+
+- [:bomb: breaking] dropped Python 3.9 support (EOL October 2025)
+- [internal] most of the general, backend-agnostic code has been moved to `dagster_ray.core` (top-level imports still work)
+
 ## 0.2.1
 
 ### Fixes
