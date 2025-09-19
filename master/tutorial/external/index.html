@@ -828,6 +828,52 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/configs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Configs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Types
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1064,21 +1110,21 @@
 <h1 id="dagster-external-ray-clusters-tutorial">Dagster + External Ray Clusters Tutorial<a class="headerlink" href="#dagster-external-ray-clusters-tutorial" title="Permanent link">&para;</a></h1>
 <p>This tutorial covers how to use dagster-ray with external Ray clusters - clusters that are managed outside of Dagster. This approach is ideal when you have existing Ray infrastructure or want to separate cluster management from your data pipelines.</p>
 <h2 id="when-to-use-each-approach">When to Use Each Approach<a class="headerlink" href="#when-to-use-each-approach" title="Permanent link">&para;</a></h2>
-<h3 id="use-localray-when">Use <a href="../../api/core/#dagster_ray.resources.LocalRay"><code>LocalRay</code></a> when:<a class="headerlink" href="#use-localray-when" title="Permanent link">&para;</a></h3>
+<h3 id="use-localray-when">Use <a href="../../api/core/#dagster_ray.core.resources.LocalRay"><code>LocalRay</code></a> when:<a class="headerlink" href="#use-localray-when" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Developing and testing locally</li>
 </ul>
-<h3 id="use-rayrunlauncher-when">Use <a href="../../api/core/#dagster_ray.run_launcher.RayRunLauncher"><code>RayRunLauncher</code></a> when:<a class="headerlink" href="#use-rayrunlauncher-when" title="Permanent link">&para;</a></h3>
+<h3 id="use-rayrunlauncher-when">Use <a href="../../api/core/#dagster_ray.core.run_launcher.RayRunLauncher"><code>RayRunLauncher</code></a> when:<a class="headerlink" href="#use-rayrunlauncher-when" title="Permanent link">&para;</a></h3>
 <ul>
 <li>You want to run all Dagster pipelines on Ray</li>
 <li>You want very fast Dagster run submission</li>
 </ul>
-<h3 id="use-ray_executor-when">Use <a href="../../api/core/#dagster_ray.executor.ray_executor"><code>ray_executor</code></a> when:<a class="headerlink" href="#use-ray_executor-when" title="Permanent link">&para;</a></h3>
+<h3 id="use-ray_executor-when">Use <a href="../../api/core/#dagster_ray.core.executor.ray_executor"><code>ray_executor</code></a> when:<a class="headerlink" href="#use-ray_executor-when" title="Permanent link">&para;</a></h3>
 <ul>
 <li>You want selective Ray execution for specific assets</li>
 <li>You want very fast Dagster step submission</li>
 </ul>
-<h3 id="use-pipesrayjobclient-when">Use <a href="../../api/core/#dagster_ray.pipes.PipesRayJobClient"><code>PipesRayJobClient</code></a> when:<a class="headerlink" href="#use-pipesrayjobclient-when" title="Permanent link">&para;</a></h3>
+<h3 id="use-pipesrayjobclient-when">Use <a href="../../api/core/#dagster_ray.core.pipes.PipesRayJobClient"><code>PipesRayJobClient</code></a> when:<a class="headerlink" href="#use-pipesrayjobclient-when" title="Permanent link">&para;</a></h3>
 <ul>
 <li>You want to decouple Ray workloads from orchestration code</li>
 <li>You have existing Ray scripts you want to integrate</li>
@@ -1094,7 +1140,7 @@
 <li>For remote clusters: Ray cluster address and appropriate network access</li>
 </ul>
 <h2 id="localray-development-and-testing">LocalRay - Development and Testing<a class="headerlink" href="#localray-development-and-testing" title="Permanent link">&para;</a></h2>
-<p><a href="../../api/core/#dagster_ray.resources.LocalRay"><code>LocalRay</code></a> is perfect for local development and testing. It provides the same interface as other Ray resources but runs Ray locally on your machine.</p>
+<p><a href="../../api/core/#dagster_ray.core.resources.LocalRay"><code>LocalRay</code></a> is perfect for local development and testing. It provides the same interface as other Ray resources but runs Ray locally on your machine.</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">dagster</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dg</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dagster_ray</span><span class="w"> </span><span class="kn">import</span> <span class="n">LocalRay</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">ray</span>
@@ -1129,7 +1175,7 @@
 </span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="p">)</span>
 </span></code></pre></div>
 <h2 id="rayrunlauncher">RayRunLauncher<a class="headerlink" href="#rayrunlauncher" title="Permanent link">&para;</a></h2>
-<p><a href="../../api/core/#dagster_ray.run_launcher.RayRunLauncher"><code>RayRunLauncher</code></a> executes entire Dagster runs as Ray jobs. This is useful for Dagster deployments that need to be fully executed on Ray.</p>
+<p><a href="../../api/core/#dagster_ray.core.run_launcher.RayRunLauncher"><code>RayRunLauncher</code></a> executes entire Dagster runs as Ray jobs. This is useful for Dagster deployments that need to be fully executed on Ray.</p>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>Make sure the Ray cluster has access to Dagster's metadata database!</p>
@@ -1163,7 +1209,7 @@
 <p>All the steps will be executed in a single Ray job, unless a custom executor is used.</p>
 <p>It's possible to provide additional runtime configuration via the <code>dagster-ray/config</code> run tag.</p>
 <h2 id="ray_executor">ray_executor<a class="headerlink" href="#ray_executor" title="Permanent link">&para;</a></h2>
-<p><a href="../../api/core/#dagster_ray.executor.ray_executor"><code>ray_executor</code></a> runs Dagster steps (ops or assets) as Ray jobs (in parallel).</p>
+<p><a href="../../api/core/#dagster_ray.core.executor.ray_executor"><code>ray_executor</code></a> runs Dagster steps (ops or assets) as Ray jobs (in parallel).</p>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>Make sure the Ray cluster has access to Dagster's metadata database!</p>
@@ -1191,7 +1237,7 @@
 </span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="k">def</span><span class="w"> </span><span class="nf">my_asset</span><span class="p">():</span> <span class="o">...</span>
 </span></code></pre></div>
 <h2 id="pipesrayjobclient-external-script-execution">PipesRayJobClient - External Script Execution<a class="headerlink" href="#pipesrayjobclient-external-script-execution" title="Permanent link">&para;</a></h2>
-<p><a href="../../api/core/#dagster_ray.pipes.PipesRayJobClient"><code>PipesRayJobClient</code></a> lets you submit external Python scripts to Ray clusters as Ray jobs. This is perfect for decoupling your Ray workloads from Dagster orchestration code and Python environment.</p>
+<p><a href="../../api/core/#dagster_ray.core.pipes.PipesRayJobClient"><code>PipesRayJobClient</code></a> lets you submit external Python scripts to Ray clusters as Ray jobs. This is perfect for decoupling your Ray workloads from Dagster orchestration code and Python environment.</p>
 <h3 id="external-ray-script">External Ray Script<a class="headerlink" href="#external-ray-script" title="Permanent link">&para;</a></h3>
 <p>First, create a script that will run on the Ray cluster:</p>
 <div class="language-python highlight"><span class="filename">ml_training.py</span><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># ml_training.py - External Ray script</span>

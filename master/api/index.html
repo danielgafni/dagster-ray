@@ -637,6 +637,52 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="configs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Configs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Types
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -706,16 +752,31 @@
 <h1 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">&para;</a></h1>
 <p>Complete API documentation for <code>dagster-ray</code> components, organized by functionality. Learn how to use <code>dagster-ray</code> <a href="../tutorial/">here</a>.</p>
 <h1 id="key-components">Key Components<a class="headerlink" href="#key-components" title="Permanent link">&para;</a></h1>
-<h2 id="core-api"><a href="core/">Core API</a><a class="headerlink" href="#core-api" title="Permanent link">&para;</a></h2>
+<h2 id="core"><a href="core/">Core</a><a class="headerlink" href="#core" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="core/#dagster_ray.run_launcher.RayRunLauncher">RayRunLauncher</a></li>
-<li><a href="core/#dagster_ray.executor.ray_executor">ray_executor</a></li>
-<li><a href="core/#dagster_ray.pipes.PipesRayJobClient">PipesRayJobClient</a></li>
+<li><a href="core/#dagster_ray.RayResource">RayResource</a></li>
+<li><a href="core/#dagster_ray.core.resources.LocalRay">LocalRay</a></li>
+<li><a href="core/#dagster_ray.core.run_launcher.RayRunLauncher">RayRunLauncher</a></li>
+<li><a href="core/#dagster_ray.core.executor.ray_executor">ray_executor</a></li>
+<li><a href="core/#dagster_ray.core.pipes.PipesRayJobClient">PipesRayJobClient</a></li>
+<li><a href="core/#dagster_ray.core.pipes.PipesRayJobMessageReader">PipesRayJobMessageReader</a></li>
+<li><a href="core/#dagster_ray.core.io_manager.RayIOManager">RayIOManager</a></li>
 </ul>
-<h2 id="kuberay-api"><a href="kuberay/">KubeRay API</a><a class="headerlink" href="#kuberay-api" title="Permanent link">&para;</a></h2>
+<h2 id="kuberay"><a href="kuberay/">KubeRay</a><a class="headerlink" href="#kuberay" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="kuberay/#dagster_ray.kuberay.KubeRayInteractiveJob">KubeRayInteractiveJob</a></li>
 <li><a href="kuberay/#dagster_ray.kuberay.PipesKubeRayJobClient">PipesKubeRayJobClient</a></li>
+</ul>
+<h2 id="configs"><a href="configs/">Configs</a><a class="headerlink" href="#configs" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="configs/#dagster_ray.configs.Lifecycle">Lifecycle</a></li>
+<li><a href="configs/#dagster_ray.configs.RayDataExecutionOptions">RayDataExecutionOptions</a></li>
+<li><a href="configs/#dagster_ray.configs.ExecutionOptionsConfig">ExecutionOptionsConfig</a></li>
+</ul>
+<h2 id="types"><a href="types/">Types</a><a class="headerlink" href="#types" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="types/#dagster_ray.types.AnyDagsterContext">AnyDagsterContext</a></li>
+<li><a href="types/#dagster_ray.types.OpOrAssetExecutionContext">OpOrAssetExecutionContext</a></li>
 </ul>
 
 
