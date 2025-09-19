@@ -38,9 +38,9 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
 
     Args:
         context_injector (Optional[PipesContextInjector]): A context injector to use to inject
-            context into the ``RayJob``. Defaults to `PipesEnvContextInjector`.
+            context into the ``RayJob``. Defaults to [`PipesEnvContextInjector`][dagster.PipesEnvContextInjector].
         message_reader (Optional[PipesMessageReader]): A message reader to use to read messages
-            from the glue job run. Defaults to `PipesRayJobMessageReader`.
+            from the glue job run. Defaults to [`PipesRayJobMessageReader`][dagster_ray.core.pipes.PipesRayJobMessageReader].
         client (Optional[boto3.client]): The Kubernetes API client.
         forward_termination (bool): Whether to terminate the Ray job when the Dagster process receives a termination signal,
             or if the startup timeout is reached. Defaults to ``True``.

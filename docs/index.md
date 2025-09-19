@@ -1,21 +1,30 @@
-# Welcome to dagster-ray
-
-**Ray integration for Dagster** - Orchestrate distributed Ray compute from Dagster pipelines with seamless integration between Dagster's orchestration capabilities and Ray's distributed computing power.
+# Welcome to `dagster-ray` docs
 
 [![PyPI version](https://img.shields.io/pypi/v/dagster-ray.svg)](https://pypi.python.org/pypi/dagster-ray)
 [![License](https://img.shields.io/pypi/l/dagster-ray.svg)](https://pypi.python.org/pypi/dagster-ray)
 [![Python versions](https://img.shields.io/pypi/pyversions/dagster-ray.svg)](https://pypi.python.org/pypi/dagster-ray)
 [![CI](https://github.com/danielgafni/dagster-ray/actions/workflows/CI.yml/badge.svg)](https://github.com/danielgafni/dagster-ray/actions/workflows/CI.yml)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
+[![basedpyright - checked](https://img.shields.io/badge/basedpyright-checked-42b983)](https://docs.basedpyright.com)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+
+---
+
+**Ray integration for Dagster.**
+
+
+`dagster-ray` enables working with distributed Ray compute from Dagster pipelines, combining Dagster's excellent orchestration capabilities and Ray's distributed computing power together.
+
 
 > [!NOTE]
 > This project is ready for production use, but some APIs may change between minor releases.
 
 ## 🚀 Key Features
 
-- **🎯 Run Launchers & Executors**: Submit Dagster runs or individual steps as Ray jobs
-- **🔧 Ray Resources**: Connect to Ray cluster in client mode and manage their lifecycle
-- **📡 Dagster Pipes Integration**: Execute external Ray scripts with rich logging and metadata
-- **☸️ KubeRay Support**: Utilize `RayJob` and `RayCluster` custom resources in client or job mode ([tutorial](tutorial/kuberay.md))
+- **🎯 Run Launchers & Executors**: Submit Dagster runs or individual steps by submitting Ray jobs
+- **🔧 Ray Resources**: Automatically create and destroy ephemeral Ray clusters and connect to them in client mode
+- **📡 Dagster Pipes Integration**: Submit external scripts as Ray jobs, stream back logs and rich Dagster metadata
+- **☸️ KubeRay Support**: Utilize `RayJob` and `RayCluster` custom resources in client or job submission mode ([tutorial](tutorial/kuberay.md))
 - **🏭 Production Ready**: Tested against a matrix of core dependencies, integrated with Dagster+
 
 ## ⚡ Quick Start
@@ -27,14 +36,31 @@
     pip install dagster-ray
     ```
 
+    !!! tip
+        See [external cluster tutorial](tutorial/external.md)
+
 === "With KubeRay"
     ```bash
     pip install 'dagster-ray[kuberay]'
     ```
 
-### Basic Usage
+    !!! tip
+        See [KubeRay tutorial](tutorial/kuberay.md)
 
+### Basic Usage
+#### Execute Dagster steps on an existing Ray cluster
 !!! example
+    ```python
+    import dagster as dg
+    from dagster_ray import ray_executor
+
+    defs = dg.Definitions(..., executor=ray_executor)
+    ```
+
+#### Execute an asset on Ray in client mode
+!!! example
+
+
     Define a Dagster asset that uses Ray in client mode
     ```python
     import dagster as dg
@@ -56,9 +82,10 @@
     1. :zap: I am already running in Ray!
     2. :bulb: `RayResource` is a type annotation that provides a common interface for Ray resources
 
-    Now use `LocalRay` for local development and swap it with a thick cluster in Kubernetes!
+    Now use [`LocalRay`](api/core.md#dagster_ray.core.resources.LocalRay) for development and swap it with a thick cluster in Kubernetes!
 
     ```python
+    from dagster_ray import LocalRay
     from dagster_ray.kuberay import in_k8s, KubeRayInteractiveJob
 
     ray_cluster = LocalRay() if not in_k8s else KubeRayInteractiveJob()
@@ -68,6 +95,8 @@
         resources={"ray_cluster": ray_cluster},
     )
     ```
+
+    [`KubeRayInteractiveJob`](api/kuberay.md#dagster_ray.kuberay.KubeRayInteractiveJob) will create a `RayJob`, connect to it, and optionally perform cleanup according to the configured policy.
 
 Learn more by reading the [tutorials](tutorial/index.md).
 
@@ -118,6 +147,7 @@ Learn more by reading the [tutorials](tutorial/index.md).
 
     !!! tip
         See [KubeRay tutorial](tutorial/kuberay.md)
+
 ## 📚 What's Next?
 
 <div class="grid cards" markdown>

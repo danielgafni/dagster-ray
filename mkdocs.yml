@@ -177,3 +177,6 @@ validation:
   absolute_links: warn  # Or 'relative_to_docs' - new in MkDocs 1.6
   unrecognized_links: warn
   anchors: warn  # New in MkDocs 1.6
+
+watch:
+  - src

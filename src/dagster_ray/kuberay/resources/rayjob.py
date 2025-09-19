@@ -32,22 +32,22 @@ class KubeRayJobClientResource(dg.ConfigurableResource[RayJobClient]):
 
 
 class InteractiveRayJobSpec(RayJobSpec):
-    """Same as `dagster_ray.kuberay.resources.rayjob.RayJobSpec`, but submission mode has to be `InteractiveMode`"""
+    """Same as [`RayJobSpec`][dagster_ray.kuberay.configs.RayJobSpec], but `mode` has to be `InteractiveMode`"""
 
     submission_mode: Literal["InteractiveMode"] = "InteractiveMode"  # pyright: ignore[reportIncompatibleVariableOverride]
 
 
 class InteractiveRayJobConfig(RayJobConfig):
-    """Same as `dagster_ray.kuberay.resources.rayjob.RayJobConfig`, but `spec.submission_mode` mode has to be `InteractiveMode`"""
+    """Same as [`RayJobConfig`][dagster_ray.kuberay.configs.RayJobConfig], but `spec.submission_mode` mode has to be `InteractiveMode`"""
 
     spec: InteractiveRayJobSpec = Field(default_factory=InteractiveRayJobSpec)  # pyright: ignore[reportIncompatibleVariableOverride]
 
 
 class KubeRayInteractiveJob(RayResource, BaseKubeRayResourceConfig):
     """
-    Provides a `RayJob` for Dagster steps.
+    Provides a Ray Job for Dagster steps.
 
-    Is the recommended way to run Ray workloads with automatic cluster management. It creates a `RayJob`, connects to it in client mode and sets the `jobId` field. Cleanup is handled by the KubeRay controller or by the resource lifecycle logic.
+    Is the recommended way to run Ray workloads with automatic cluster management. It creates a Ray Job, connects to it in client mode and sets the `jobId` field. Cleanup is handled by the KubeRay controller or by the resource lifecycle logic.
 
     Info:
         Image defaults to `dagster/image` run tag.
@@ -72,7 +72,7 @@ class KubeRayInteractiveJob(RayResource, BaseKubeRayResourceConfig):
 
     log_cluster_conditions: bool = Field(
         default=True,
-        description="Whether to log `RayCluster` conditions while waiting for the RayCluster to become ready. For more information, see https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/observability.html#raycluster-status-conditions.",
+        description="Whether to log `RayCluster` conditions while waiting for the RayCluster to become ready. Learn more: [KubeRay docs](https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/observability.html#raycluster-status-conditions).",
     )
 
     _name: str = PrivateAttr()

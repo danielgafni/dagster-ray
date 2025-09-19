@@ -223,10 +223,10 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
     Args:
         client (JobSubmissionClient): The Ray job submission client
         context_injector (Optional[PipesContextInjector]): A context injector to use to inject
-            context into the Ray job. Defaults to `PipesEnvContextInjector`.
+            context into the Ray job. Defaults to [`PipesEnvContextInjector`][dagster.PipesEnvContextInjector].
         message_reader (Optional[PipesMessageReader]): A message reader to use to read messages
-            from the glue job run. Defaults to `PipesRayJobMessageReader`.
-        forward_termination (bool): Whether to cancel the `RayJob` job run when the Dagster process receives a termination signal.
+            from the glue job run. Defaults to [`PipesRayJobMessageReader`][dagster_ray.core.pipes.PipesRayJobMessageReader].
+        forward_termination (bool): Whether to cancel the Ray job run when the Dagster process receives a termination signal.
         timeout (int): Timeout for various internal interactions with the Kubernetes RayJob.
         poll_interval (int): Interval at which to poll Kubernetes for status updates.
             Is useful when running in a local environment.

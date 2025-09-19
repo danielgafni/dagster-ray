@@ -26,9 +26,9 @@ class KubeRayClusterClientResource(dg.ConfigurableResource[RayClusterClient]):
 
 class KubeRayCluster(BaseKubeRayResourceConfig, RayResource):
     """
-    Provides a `RayCluster` for Dagster steps.
+    Provides a Ray Cluster for Dagster steps.
 
-    It is advised to use `dagster_ray.kuberay.KubeRayInteractiveJob` with KubeRay >= 1.3.0 instead.
+    It is advised to use [`KubeRayInteractiveJob`][dagster_ray.kuberay.resources.KubeRayInteractiveJob] with KubeRay >= 1.3.0 instead.
 
     Info:
         Image defaults to `dagster/image` run tag.
@@ -49,7 +49,7 @@ class KubeRayCluster(BaseKubeRayResourceConfig, RayResource):
     )
     log_cluster_conditions: bool = Field(
         default=True,
-        description="Whether to log RayCluster conditions while waiting for the RayCluster to become ready. For more information, see https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/observability.html#raycluster-status-conditions.",
+        description="Whether to log RayCluster conditions while waiting for the RayCluster to become ready. Learn more: [KubeRay docs](https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/observability.html#raycluster-status-conditions).",
     )
 
     _name: str = PrivateAttr()
