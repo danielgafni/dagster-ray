@@ -36,9 +36,10 @@ pip install dagster-ray
 
 ### Example
 
+Define a Dagster asset that uses Ray in client mode
 ```python
 import dagster as dg
-from dagster_ray import LocalRay, RayResource, KubeRayInteractiveJob
+from dagster_ray import RayResource
 import ray
 
 
@@ -51,16 +52,22 @@ def compute_square(x: int) -> int:
 def my_distributed_computation(ray_cluster: RayResource) -> int:
     futures = [compute_square.remote(i) for i in range(10)]
     return sum(ray.get(futures))
+```
 
+Now use `LocalRay` for local development and swap it with a thick cluster in Kubernetes!
 
-ray_cluster = LocalRay() if not IN_KUBERNETES else KubeRayInteractiveJob()
+```python
+from dagster_ray.kuberay import in_k8s, KubeRayInteractiveJob
 
+ray_cluster = LocalRay() if not in_k8s else KubeRayInteractiveJob()
 
 definitions = dg.Definitions(
     assets=[my_distributed_computation],
     resources={"ray_cluster": ray_cluster},
 )
 ```
+
+Learn more by reading the [tutorials](https://danielgafni.github.io/dagster-ray/tutorial).
 
 ## 📚 Docs
 
