@@ -45,7 +45,7 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
         forward_termination (bool): Whether to terminate the Ray job when the Dagster process receives a termination signal,
             or if the startup timeout is reached. Defaults to ``True``.
         timeout (int): Timeout for various internal interactions with the Kubernetes RayJob.
-        poll_interval (int): Interval at which to poll the Kubernetes for status updates.
+        poll_interval (int): Interval at which to poll Kubernetes for status updates.
         port_forward (bool): Whether to use Kubernetes port-forwarding to connect to the KubeRay cluster.
             Is useful when running in a local environment.
 
