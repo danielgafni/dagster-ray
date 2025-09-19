@@ -197,3 +197,6 @@ exclude = [
 
 [tool.pytest_env]
 RAY_ENABLE_UV_RUN_RUNTIME_ENV = "0"
+
+[tool.uv.sources]
+griffe-pydantic = { git = "https://github.com/danielgafni/griffe-pydantic.git", branch = "feat/configurable-bases" }

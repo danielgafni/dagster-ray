@@ -73,4 +73,11 @@ Run external Ray scripts as Ray jobs while streaming back logs and metadata into
     options:
       members: true
 
+::: dagster_ray.config.RayDataExecutionOptions
+    options:
+      members: true
+
+::: dagster_ray.config.ExecutionOptionsConfig
+    options:
+      members: true
 ---
