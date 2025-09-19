@@ -10,13 +10,11 @@
       
       
       
-        <link rel="canonical" href="https://danielgafni.github.io/dagster-ray/master/api/">
+        <link rel="canonical" href="https://danielgafni.github.io/dagster-ray/master/changelog/">
       
       
-        <link rel="prev" href="../tutorial/kuberay/">
+        <link rel="prev" href="../api/kuberay/">
       
-      
-        <link rel="next" href="core/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -24,7 +22,7 @@
     
     
       
-        <title>Overview - dagster-ray</title>
+        <title>Changelog - dagster-ray</title>
       
     
     
@@ -80,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#api-reference" class="md-skip">
+        <a href="#changelog" class="md-skip">
           Skip to content
         </a>
       
@@ -120,7 +118,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Overview
+              Changelog
             
           </span>
         </div>
@@ -279,13 +277,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../api/" class="md-tabs__link">
           
   
   
@@ -301,9 +297,11 @@
   
   
   
+    
   
-    <li class="md-tabs__item">
-      <a href="../changelog/" class="md-tabs__link">
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
         
   
   
@@ -514,31 +512,28 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
             
   
   
@@ -551,7 +546,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             API Reference
@@ -562,19 +557,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
         
   
   
@@ -585,7 +571,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -598,7 +583,7 @@
   
   
     <li class="md-nav__item">
-      <a href="core/" class="md-nav__link">
+      <a href="../api/core/" class="md-nav__link">
         
   
   
@@ -621,7 +606,7 @@
   
   
     <li class="md-nav__item">
-      <a href="kuberay/" class="md-nav__link">
+      <a href="../api/kuberay/" class="md-nav__link">
         
   
   
@@ -648,10 +633,32 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../changelog/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Changelog
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -662,6 +669,125 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#021" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.2.1
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.2.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fixes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#020" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.2.0
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.2.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      Changed
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#added" class="md-nav__link">
+    <span class="md-ellipsis">
+      Added
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fixes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.1.0
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.1.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Changed
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#added_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Added
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -686,6 +812,113 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#021" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.2.1
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.2.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fixes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#020" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.2.0
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.2.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      Changed
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#added" class="md-nav__link">
+    <span class="md-ellipsis">
+      Added
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fixes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.1.0
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.1.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Changed
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#added_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Added
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -703,19 +936,45 @@
   
 
 
-<h1 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">&para;</a></h1>
-<p>Complete API documentation for <code>dagster-ray</code> components, organized by functionality. Learn how to use <code>dagster-ray</code> <a href="../tutorial/">here</a>.</p>
-<h1 id="key-components">Key Components<a class="headerlink" href="#key-components" title="Permanent link">&para;</a></h1>
-<h2 id="core-api"><a href="core/">Core API</a><a class="headerlink" href="#core-api" title="Permanent link">&para;</a></h2>
+<h1 id="changelog">Changelog<a class="headerlink" href="#changelog" title="Permanent link">&para;</a></h1>
+<p>All notable user-facing changes to <code>dagster-ray</code> will be documented in this file.</p>
+<p>The format is based on <a href="https://keepachangelog.com/en/1.1.0/">Keep a Changelog</a>,
+and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
+<h2 id="021">0.2.1<a class="headerlink" href="#021" title="Permanent link">&para;</a></h2>
+<h3 id="fixes">Fixes<a class="headerlink" href="#fixes" title="Permanent link">&para;</a></h3>
 <ul>
-<li><a href="core/#dagster_ray.run_launcher.RayRunLauncher">RayRunLauncher</a></li>
-<li><a href="core/#dagster_ray.executor.ray_executor">ray_executor</a></li>
-<li><a href="core/#dagster_ray.pipes.PipesRayJobClient">PipesRayJobClient</a></li>
+<li>Fixed broken wheel on PyPI</li>
 </ul>
-<h2 id="kuberay-api"><a href="kuberay/">KubeRay API</a><a class="headerlink" href="#kuberay-api" title="Permanent link">&para;</a></h2>
+<h2 id="020">0.2.0<a class="headerlink" href="#020" title="Permanent link">&para;</a></h2>
+<h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
 <ul>
-<li><a href="kuberay/#dagster_ray.kuberay.KubeRayInteractiveJob">KubeRayInteractiveJob</a></li>
-<li><a href="kuberay/#dagster_ray.kuberay.PipesKubeRayJobClient">PipesKubeRayJobClient</a></li>
+<li><code>KubeRayInteractiveJob.deletion_strategy</code> now defaults to <code>DeleteCluster</code> for both successful and failed executions. This is a reasonable default for the use case.</li>
+<li><code>KubeRayInteractiveJob.ttl_seconds_after_finished</code> now defaults to <code>600</code> seconds.</li>
+<li><code>KubeRayCluster.lifecycle.cleanup</code> now defaults to <code>always</code></li>
+<li>[<img alt="💣" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f4a3.svg" title=":bomb:" /> breaking] <code>RayJob</code> and <code>RayCluster</code> clients and resources Kubernetes init parameters have been renamed to <code>kube_config</code> and <code>kube_context</code>.</li>
+</ul>
+<h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
+<ul>
+<li>new <code>enable_legacy_debugger</code> configuration parameter to subclasses of <code>RayResource</code></li>
+<li>new <code>on_exception</code> option for <code>lifecycle.cleanup</code> policy. It's triggered during resource setup/cleanup (including <code>KeyboardInterrupt</code>), but not by user <code>@op</code>/<code>@asset</code> code.</li>
+<li><code>KubeRayInteractiveJob</code> now respects <code>lifecycle.cleanup</code>. It defaults to <code>on_exception</code>. Users are advised to rely on built-in <code>RayJob</code> cleanup mechanisms, such as <code>ttlSecondsAfterFinished</code> and <code>deletionStrategy</code>.</li>
+</ul>
+<h3 id="fixes_1">Fixes<a class="headerlink" href="#fixes_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>removed <code>ignore_reinit_error</code> from <code>RayResource</code> init options: it's potentially dangerous, for example in case the user has accidentally connected to another Ray cluster (including local ray) before initializing the resource.</li>
+</ul>
+<h2 id="010">0.1.0<a class="headerlink" href="#010" title="Permanent link">&para;</a></h2>
+<h3 id="changed_1">Changed<a class="headerlink" href="#changed_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[<img alt="💣" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f4a3.svg" title=":bomb:" /> breaking] <code>RayResource</code>: top-level <code>skip_init</code> and <code>skip_setup</code> configuration parameters have been removed. The <code>lifecycle</code> field is the new way of configuring steps performed during resource initialization. <code>KubeRayCluster</code>'s <code>skip_cleanup</code> has been moved to <code>lifecycle</code> as well.</li>
+<li>[<img alt="💣" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f4a3.svg" title=":bomb:" /> breaking] injected <code>dagster.io/run_id</code> Kubernetes label has been renamed to <code>dagster/run-id</code>. Keys starting with <code>dagster.io/</code> have been converted to <code>dagster/</code> to match how <code>dagster-k8s</code> does it.</li>
+<li>[<img alt="💣" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f4a3.svg" title=":bomb:" /> breaking] <code>dagster_ray.kuberay</code> Configurations have been unified with KubeRay APIs.</li>
+<li><code>dagster-ray</code> now populates Kubernetes labels with more values (including some useful Dagster Cloud values such as <code>git-sha</code>)</li>
+</ul>
+<h3 id="added_1">Added<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>KubeRayInteractiveJob</code> -- a new resource that utililizes the new <code>InteractiveMode</code> for <code>RayJob</code>. It can be used to connect to Ray in Client mode -- like <code>KubeRayCluster</code> -- but gives access to <code>RayJob</code> features, such as automatic cleanup (<code>ttlSecondsAfterFinished</code>), retries (<code>backoffLimit</code>) and timeouts (<code>activeDeadlineSeconds</code>).</li>
+<li><code>RayResource</code> setup lifecycle has been overhauled: resources now has an <code>actions</code> parameter with 3 configuration options: <code>create</code>, <code>wait</code> and <code>connect</code>. The user can disable them and run <code>.create()</code>, <code>.wait()</code> and <code>.connect()</code> manually if needed.</li>
 </ul>
 
 
