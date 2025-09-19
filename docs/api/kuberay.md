@@ -4,6 +4,18 @@ KubeRay integration components for running Ray on Kubernetes.  Learn how to use 
 
 ---
 
+## Run Launcher
+
+::: dagster_ray.kuberay.run_launcher.KubeRayRunLauncher
+
+---
+
+# Executor
+
+::: dagster_ray.kuberay.executor.kuberay_executor
+
+---
+
 ## Client Mode Resources
 
 These resources initialize Ray client connection with a remote cluster.

@@ -126,7 +126,6 @@ class KubeRayInteractiveJob(RayResource, BaseKubeRayResourceConfig):
         self._name = self.ray_job.metadata.get("name") or self._get_step_name(context)
 
         k8s_manifest = self.ray_job.to_k8s(
-            context,
             image=(self.image or context.dagster_run.tags.get("dagster/image")),
             labels=normalize_k8s_label_values(self.get_dagster_tags(context)),
         )
