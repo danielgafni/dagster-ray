@@ -14,6 +14,7 @@ nav:
     - Overview: api.md
     - Core: api/core.md
     - KubeRay: api/kuberay.md
+  - Changelog: changelog.md
 
 theme:
   name: material
@@ -31,19 +32,28 @@ theme:
     - search.share
     - search.suggest
     - content.code.annotate
+    - content.tooltips
   palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Auto Mode
+
     - scheme: default
+      media: "(prefers-color-scheme: light)"
       primary: custom
       accent: custom
       toggle:
-        icon: material/brightness-7
-        name: Switch to dark mode
+        icon: material/weather-night
+        name: Dark Mode
+
     - scheme: slate
+      media: "(prefers-color-scheme: dark)"
       primary: custom
       accent: custom
       toggle:
-        icon: material/brightness-4
-        name: Switch to light mode
+        icon: material/weather-sunny
+        name: Light Mode
 
 plugins:
   - search
@@ -94,7 +104,7 @@ plugins:
           inventories:
             - https://docs.python.org/3/objects.inv
             - https://docs.dagster.io/objects.inv
-            - https://docs.pydantic.dev/objects.inv
+            - https://docs.pydantic.dev/latest/objects.inv
 
 markdown_extensions:
   - abbr
