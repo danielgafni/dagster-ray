@@ -1,0 +1,38 @@
+name: CD on master
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+
+env:
+  UV_SYSTEM_PYTHON: "1"
+
+jobs:
+  publish-master-docs:
+    name: Publish Master Docs
+    runs-on: ubuntu-latest
+    environment:
+      name: release
+    permissions:
+      contents: write
+      pages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: 0.8.12
+          enable-cache: true
+      - name: Set up Python
+        run: uv python install $PYTHON_VERSION && uv python pin $PYTHON_VERSION
+        env:
+          PYTHON_VERSION: 3.11.9
+      - name: Fetch gh-pages branch
+        run: git fetch origin gh-pages:gh-pages || true
+      - name: Publish Docs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "actions@github.com"
+          uv run --group docs --all-extras mike deploy --push master
