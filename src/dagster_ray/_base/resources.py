@@ -3,7 +3,7 @@ from __future__ import annotations
 import contextlib
 from abc import ABC, abstractmethod
 from collections.abc import Generator
-from typing import TYPE_CHECKING, Any, Literal, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import dagster as dg
 from pydantic import Field, PrivateAttr
@@ -15,7 +15,7 @@ from tenacity import retry, retry_if_exception_type, stop_after_delay
 from typing_extensions import Self
 
 from dagster_ray._base.utils import get_dagster_tags
-from dagster_ray.config import RayDataExecutionOptions
+from dagster_ray.configs import Lifecycle, RayDataExecutionOptions
 from dagster_ray.types import AnyDagsterContext
 from dagster_ray.utils import _process_dagster_env_vars, get_current_job_id
 
@@ -23,33 +23,14 @@ if TYPE_CHECKING:
     from ray._private.worker import BaseContext as RayBaseContext  # noqa
 
 
-class Lifecycle(dg.Config):
-    create: bool = Field(
-        default=True,
-        description="Whether to create the resource. If set to `False`, the user can manually call `.create` instead.",
-    )
-    wait: bool = Field(
-        default=True,
-        description="Whether to wait for the remote Ray cluster to become ready to accept connections. If set to `False`, the user can manually call `.wait` instead.",
-    )
-    connect: bool = Field(
-        default=True,
-        description="Whether to run `ray.init` against the remote Ray cluster. If set to `False`, the user can manually call `.connect` instead.",
-    )
-    cleanup: Literal["never", "always", "on_exception"] = Field(
-        default="always",
-        description="Resource cleanup policy. Determines when the resource should be deleted after Dagster step execution or during interruption.",
-    )
-
-
-class BaseRayResource(dg.ConfigurableResource, ABC):
+class RayResource(dg.ConfigurableResource, ABC):
     """Base class for Ray Resources providing a common interface for Ray cluster management.
 
     This abstract base class defines the interface that all Ray resources must implement,
     providing a backend-agnostic way to interact with Ray clusters. Concrete implementations
     include LocalRay for local development and KubeRay resources for Kubernetes deployments.
 
-    The BaseRayResource handles the lifecycle of Ray clusters including creation, connection,
+    The RayResource handles the lifecycle of Ray clusters including creation, connection,
     and cleanup, with configurable policies for each stage.
 
     Example:

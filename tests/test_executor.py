@@ -4,7 +4,7 @@ import dagster as dg
 import pytest
 
 from dagster_ray import RayIOManager
-from dagster_ray.executor import ray_executor
+from dagster_ray.core.executor import ray_executor
 
 
 @dg.op

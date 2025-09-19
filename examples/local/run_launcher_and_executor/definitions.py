@@ -2,7 +2,7 @@ import time
 
 import dagster as dg
 
-from dagster_ray.executor import ray_executor
+from dagster_ray.core.executor import ray_executor
 
 
 class MyConfig(dg.Config):

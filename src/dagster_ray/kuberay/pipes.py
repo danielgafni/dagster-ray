@@ -18,15 +18,15 @@ from dagster._core.pipes.utils import PipesEnvContextInjector, open_pipes_sessio
 from dagster_pipes import PipesExtras
 
 from dagster_ray._base.utils import get_dagster_tags
-from dagster_ray.kuberay.client import RayJobClient
-from dagster_ray.kuberay.client.rayjob.client import RayJobStatus
-from dagster_ray.kuberay.utils import normalize_k8s_label_values
-from dagster_ray.pipes import (
+from dagster_ray.core.pipes import (
     PIPES_LAUNCHED_EXTRAS_RAY_ADDRESS_KEY,
     PIPES_LAUNCHED_EXTRAS_RAY_JOB_ID_KEY,
     PipesRayJobMessageReader,
     generate_job_id,
 )
+from dagster_ray.kuberay.client import RayJobClient
+from dagster_ray.kuberay.client.rayjob.client import RayJobStatus
+from dagster_ray.kuberay.utils import normalize_k8s_label_values
 from dagster_ray.types import OpOrAssetExecutionContext
 
 if TYPE_CHECKING:
@@ -47,7 +47,7 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
         timeout (int): Timeout for various internal interactions with the Kubernetes RayJob.
         poll_interval (int): Interval at which to poll the Kubernetes for status updates.
         port_forward (bool): Whether to use Kubernetes port-forwarding to connect to the KubeRay cluster.
-        Is useful when running in a local environment.
+            Is useful when running in a local environment.
 
     Info:
         Image defaults to `dagster/image` run tag.

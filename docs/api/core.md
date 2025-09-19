@@ -4,9 +4,17 @@ Core `dagster-ray` APIs for using external Ray clusters. Learn how to use it [he
 
 ---
 
-## Misc
+## Ray Resources
 
-::: dagster_ray.resources.LocalRay
+`RayResource` can be used to connect to external Ray clusters when provided as a Dagster resource, or as a type annotation (all other Ray resources in `dagster-ray` inherit from `RayResource`)
+
+::: dagster_ray.RayResource
+    options:
+      members: true
+
+The `LocalRay` can be used to connect to a local Ray cluster.
+
+::: dagster_ray.core.resources.LocalRay
     options:
       members:
         - "host"
@@ -16,7 +24,7 @@ Core `dagster-ray` APIs for using external Ray clusters. Learn how to use it [he
 
 ## Run Launcher
 
-::: dagster_ray.run_launcher.RayRunLauncher
+::: dagster_ray.core.run_launcher.RayRunLauncher
     options:
       members:
         - "__init__"
@@ -25,7 +33,7 @@ Core `dagster-ray` APIs for using external Ray clusters. Learn how to use it [he
 
 ### Executor
 
-::: dagster_ray.executor.ray_executor
+::: dagster_ray.core.executor.ray_executor
     options:
       members: true
 
@@ -33,15 +41,15 @@ Core `dagster-ray` APIs for using external Ray clusters. Learn how to use it [he
 
 ## Pipes
 
-Run external Ray scripts as Ray jobs while streaming back logs and metadata into Dagster.
+Run external Ray scripts as Ray jobs while streaming back logs and metadata into Dagster with Dagster Pipes.
 
-::: dagster_ray.pipes.PipesRayJobClient
+::: dagster_ray.core.pipes.PipesRayJobClient
     options:
       members:
         - "__init__"
         - "run"
 
-::: dagster_ray.pipes.PipesRayJobMessageReader
+::: dagster_ray.core.pipes.PipesRayJobMessageReader
     options:
       members:
         - "__init__"
@@ -50,34 +58,11 @@ Run external Ray scripts as Ray jobs while streaming back logs and metadata into
 
 ## IO Manager
 
-::: dagster_ray.io_manager.RayIOManager
+Send data between Dagster steps while they are running inside a Ray cluster.
+
+::: dagster_ray.core.io_manager.RayIOManager
     options:
       members:
         - "__init__"
 
----
-
-## Types
-
-::: dagster_ray.Lifecycle
-    options:
-      members:
-        - "create"
-        - "wait"
-        - "connect"
-        - "cleanup"
-
-::: dagster_ray.types.AnyDagsterContext
-
-::: dagster_ray.resources.BaseRayResource
-    options:
-      members: true
-
-::: dagster_ray.config.RayDataExecutionOptions
-    options:
-      members: true
-
-::: dagster_ray.config.ExecutionOptionsConfig
-    options:
-      members: true
 ---

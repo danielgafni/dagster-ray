@@ -1,12 +1,31 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any
+from typing import Any, Literal
 
 import dagster as dg
 from pydantic import Field
 
 USER_DEFINED_RAY_KEY = "dagster-ray/config"
+
+
+class Lifecycle(dg.Config):
+    create: bool = Field(
+        default=True,
+        description="Whether to create the resource. If set to `False`, the user can manually call `.create` instead.",
+    )
+    wait: bool = Field(
+        default=True,
+        description="Whether to wait for the remote Ray cluster to become ready to accept connections. If set to `False`, the user can manually call `.wait` instead.",
+    )
+    connect: bool = Field(
+        default=True,
+        description="Whether to run `ray.init` against the remote Ray cluster. If set to `False`, the user can manually call `.connect` instead.",
+    )
+    cleanup: Literal["never", "always", "on_exception"] = Field(
+        default="always",
+        description="Resource cleanup policy. Determines when the resource should be deleted after Dagster step execution or during interruption.",
+    )
 
 
 class RayExecutionConfig(dg.Config):

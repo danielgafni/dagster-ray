@@ -170,7 +170,7 @@ jobs:
       - name: Set up Python ${{ matrix.py }}
         run: uv python install ${{ matrix.py }} && uv python pin ${{ matrix.py }}
       - name: Build Docs
-        run: uv run --group docs mkdocs build --clean
+        run: uv run --group docs mkdocs build --strict --clean
 
   qa_success:
     name: QA Success
