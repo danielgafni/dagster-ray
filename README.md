@@ -12,7 +12,7 @@
 
 **Ray integration for Dagster.**
 
-`dagster-ray` enables you to orchestrate distributed Ray compute from Dagster pipelines, providing seamless integration between Dagster's orchestration capabilities and Ray's distributed computing power.
+`dagster-ray` enables working with distributed Ray compute from Dagster pipelines, combining Dagster's excellent orchestration capabilities and Ray's distributed computing power together.
 
 > [!NOTE]
 > This project is ready for production use, but some APIs may change between minor releases.
@@ -21,79 +21,31 @@ Learn more in the [docs](https://danielgafni.github.io/dagster-ray)
 
 ## 🚀 Key Features
 
-- **Run Launchers & Executors**: Submit Dagster runs or individual ops as Ray jobs
-- **Ray Resources**: Manage Ray clusters with Kubernetes (KubeRay) or local backends, connect to them in client mode
-- **Dagster Pipes**: Execute external Ray scripts with rich logging and metadata
-- **Production Ready**: Tested against a matrix of core dependencies and platform versions, integrated with Dagster+
+- **🎯 Run Launchers & Executors**: Submit Dagster runs or individual steps by submitting Ray jobs
+- **🔧 Ray Resources**: Automatically create and destroy ephemeral Ray clusters and connect to them in client mode
+- **📡 Dagster Pipes Integration**: Submit external scripts as Ray jobs, stream back logs and rich Dagster metadata
+- **☸️ KubeRay Support**: Utilize `RayJob` and `RayCluster` custom resources in client or job submission mode ([tutorial](tutorial/kuberay.md))
+- **🏭 Production Ready**: Tested against a matrix of core dependencies, integrated with Dagster+
 
-## 📦 Quick Start
-
-### Installation
+## Installation
 
 ```shell
 pip install dagster-ray
 ```
-
-### Example
-
-Define a Dagster asset that uses Ray in client mode
-```python
-import dagster as dg
-from dagster_ray import RayResource
-import ray
-
-
-@ray.remote
-def compute_square(x: int) -> int:
-    return x**2
-
-
-@dg.asset
-def my_distributed_computation(ray_cluster: RayResource) -> int:
-    futures = [compute_square.remote(i) for i in range(10)]
-    return sum(ray.get(futures))
-```
-
-Now use `LocalRay` for local development and swap it with a thick cluster in Kubernetes!
-
-```python
-from dagster_ray.kuberay import in_k8s, KubeRayInteractiveJob
-
-ray_cluster = LocalRay() if not in_k8s else KubeRayInteractiveJob()
-
-definitions = dg.Definitions(
-    assets=[my_distributed_computation],
-    resources={"ray_cluster": ray_cluster},
-)
-```
-
-Learn more by reading the [tutorials](https://danielgafni.github.io/dagster-ray/tutorial).
 
 ## 📚 Docs
 
 **📖 [Full Documentation](https://danielgafni.github.io/dagster-ray)**
 
 - **[Tutorial](https://danielgafni.github.io/dagster-ray/tutorial/)**: Step-by-step guide with examples
-- **[API Reference](https://danielgafni.github.io/dagster-ray/api/)**: Complete API documentation
-
-## 🛠️ Integration Options
-
-| Component | Use Case | Cluster Management | Ray Mode |
-|-----------|----------|-------------------|------|
-| `RayRunLauncher` | Deployment-wide Ray runtime | External | Job Mode |
-| `ray_executor` | Ray runtime scoped to a Code Location | External | Job Mode |
-| `PipesRayJobClient` | Submit external scripts as Ray jobs | External | Job Mode |
-| `PipesKubeRayJobClient` | Submit an external script as a `RayJob`, forward logs and Dagster metadata | Automatic | Job Mode |
-| `KubeRayInteractiveJob` | Create a `RayJob`, connect in Client mode without an external script  | Automatic | Client Mode |
+- **[API Reference](https://danielgafni.github.io/dagster-ray/api/)**: Complete API reference
 
 ## 🤝 Contributing
 
 Contributions are very welcome! To get started:
 
 ```bash
-git clone https://github.com/danielgafni/dagster-ray.git
-cd dagster-ray
-uv sync --all-extras
+uv sync --all-extras --all-groups
 uv run pre-commit install
 ```
 
@@ -104,7 +56,16 @@ uv run pytest
 ```
 
 Running KubeRay tests requires the following tools to be present:
-- `docker`, `kubectl`, `helm`, `minikube`
+- `docker`
+- `kubectl`
+- `helm`
+- `minikube`
+
+❄️ Nix users will find them provided in the dev shell:
+
+```
+nix develop
+```
 
 ### Documentation
 
@@ -113,9 +74,4 @@ To build and serve the documentation locally:
 ```bash
 # Serve documentation locally
 uv run --group docs mkdocs serve
-
-# Build documentation
-uv run--group docs mkdocs build
 ```
-
-The documentation is automatically deployed to GitHub Pages.

@@ -63,7 +63,7 @@ def ray_executor(init_context: InitExecutorContext) -> Executor:
     """Executes steps by submitting them as Ray jobs.
 
     The steps are started inside the Ray cluster directly.
-    When used together with the `RayRunLauncher`, the executor can inherit the job submission client configuration.
+    When used together with [`RayRunLauncher`][dagster_ray.core.run_launcher.RayRunLauncher], the executor can inherit the job submission client configuration.
     This behavior can be disabled by setting `inherit_job_submission_client_from_ray_run_launcher` to `False`.
 
     Example:

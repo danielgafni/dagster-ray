@@ -35,7 +35,7 @@
         UV_PYTHON = "${python}/bin/python";
         shellHook = ''
           uv venv --allow-existing
-          uv sync --frozen --all-extras
+          uv sync --frozen --all-extras --all-groups
         '';
       };
     };
