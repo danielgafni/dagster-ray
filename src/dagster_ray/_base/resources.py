@@ -3,7 +3,7 @@ from __future__ import annotations
 import contextlib
 from abc import ABC, abstractmethod
 from collections.abc import Generator
-from typing import TYPE_CHECKING, Any, Literal, Optional, cast
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import dagster as dg
 from pydantic import Field, PrivateAttr
@@ -52,8 +52,8 @@ class BaseRayResource(dg.ConfigurableResource, ABC):
     The BaseRayResource handles the lifecycle of Ray clusters including creation, connection,
     and cleanup, with configurable policies for each stage.
 
-    Examples:
-        Use as a type annotation for backend-agnostic code:
+    Example:
+        Use as a type annotation for backend-agnostic code
         ```python
         import dagster as dg
         from dagster_ray import RayResource
@@ -65,7 +65,8 @@ class BaseRayResource(dg.ConfigurableResource, ABC):
             return ray.get(ray.put("hello"))
         ```
 
-        Manual lifecycle management:
+    Example:
+        Manual lifecycle management
         ```python
         from dagster_ray import Lifecycle
 
@@ -242,7 +243,7 @@ class BaseRayResource(dg.ConfigurableResource, ABC):
     def delete(self, context: AnyDagsterContext):
         pass
 
-    def cleanup(self, context: AnyDagsterContext, exception: Optional[BaseException]):  # noqa: UP007
+    def cleanup(self, context: AnyDagsterContext, exception: BaseException | None):  # noqa: UP007
         assert context.log is not None
 
         if self.lifecycle.cleanup == "never":

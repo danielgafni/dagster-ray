@@ -51,6 +51,7 @@ plugins:
   - autorefs
   # - awesome-nav
   - mkdocstrings:
+      enable_inventory: true
       handlers:
         python:
           paths: ["src"]
@@ -83,17 +84,17 @@ plugins:
             signature_crossrefs: true
             annotations_path: brief
             unwrap_annotated: true
-          extensions:
-            - griffe_pydantic:
-                schema: true
-                replace_field_with_description: true
-                show_field_summary: true
-                show_constraints: false
-                show_default_value: true
-                show_json_schema: false
-                field_docstring_in_description: true
+            show_symbol_type_toc: true
+            extensions:
+              - griffe_inherited_docstrings
+              - griffe_pydantic:
+                  schema: true
           extra:
             enable_autorefs: true
+          inventories:
+            - https://docs.python.org/3/objects.inv
+            - https://docs.dagster.io/objects.inv
+            - https://docs.pydantic.dev/objects.inv
 
 markdown_extensions:
   - abbr

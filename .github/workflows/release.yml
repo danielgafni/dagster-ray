@@ -42,4 +42,8 @@ jobs:
       - name: Fetch gh-pages branch
         run: git fetch origin gh-pages:gh-pages || true
       - name: Publish Docs
-        run: uv run --group docs --all-extras mike deploy --push --update-aliases $VERSION latest
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "actions@github.com"
+          uv run --group docs --all-extras mike deploy --push --update-aliases $VERSION latest
+
