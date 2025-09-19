@@ -140,3 +140,128 @@ h3[id$="-functions"]::before {
 h3[id$="-functions"] .headerlink {
     visibility: visible;
 }
+
+/* Configuration schema list styling */
+.config-schema {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    border-radius: 0.3rem;
+    border: 1px solid var(--md-default-fg-color--lightest);
+    background-color: var(--md-code-bg-color);
+}
+
+.config-param-list {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0;
+}
+
+.config-param-item {
+    margin-bottom: 1.2rem;
+    padding: 1rem;
+    border: 1px solid var(--md-default-fg-color--lightest);
+    border-radius: 0.3rem;
+    background-color: var(--md-default-bg-color);
+}
+
+.param-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.param-name {
+    font-weight: 600;
+    color: var(--md-primary-fg-color);
+    background-color: var(--md-default-fg-color--lightest);
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.2rem;
+    font-size: 0.9em;
+}
+
+.param-type code {
+    background-color: var(--md-accent-fg-color--transparent);
+    color: var(--md-accent-fg-color);
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.2rem;
+    font-size: 0.85em;
+}
+
+.param-required {
+    background-color: #f56565;
+    color: white;
+    padding: 0.15rem 0.4rem;
+    border-radius: 0.2rem;
+    font-size: 0.7em;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.param-optional {
+    background-color: #68d391;
+    color: white;
+    padding: 0.15rem 0.4rem;
+    border-radius: 0.2rem;
+    font-size: 0.7em;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.param-description {
+    color: var(--md-default-fg-color--light);
+    margin: 0.5rem 0;
+    line-height: 1.5;
+}
+
+.param-default {
+    color: var(--md-default-fg-color--light);
+    font-size: 0.9em;
+    margin-top: 0.5rem;
+}
+
+.param-default code {
+    background-color: var(--md-default-fg-color--lightest);
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.2rem;
+    font-size: 0.85em;
+}
+
+/* Responsive config list */
+@media screen and (max-width: 768px) {
+    .param-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.3rem;
+    }
+
+    .config-param-item {
+        padding: 0.8rem;
+    }
+}
+
+/* JSON schema details styling */
+.config-schema details {
+    margin-top: 1rem;
+    border: 1px solid var(--md-default-fg-color--lightest);
+    border-radius: 0.2rem;
+}
+
+.config-schema details summary {
+    padding: 0.5rem;
+    background-color: var(--md-default-fg-color--lightest);
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.config-schema details[open] summary {
+    border-bottom: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.config-schema details pre {
+    margin: 0;
+    padding: 1rem;
+    max-height: 400px;
+    overflow: auto;
+}
