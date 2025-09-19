@@ -615,6 +615,7 @@ docs = [
     { name = "mkdocs-material" },
     { name = "mkdocs-section-index" },
     { name = "mkdocstrings", extra = ["python"] },
+    { name = "pygments" },
 ]
 
 [package.metadata]
@@ -663,6 +664,7 @@ docs = [
     { name = "mkdocs-material", specifier = ">=9.6.20" },
     { name = "mkdocs-section-index", specifier = ">=0.3.10" },
     { name = "mkdocstrings", extras = ["python"], specifier = ">=0.30.0" },
+    { name = "pygments", specifier = ">=2.19.1" },
 ]
 
 [[package]]

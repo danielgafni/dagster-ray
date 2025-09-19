@@ -65,9 +65,15 @@ plugins:
   # - awesome-nav
   - mkdocstrings:
       enable_inventory: true
+      custom_templates: docs/templates
       handlers:
         python:
           paths: ["src"]
+          import:
+            - https://docs.python.org/3/objects.inv
+            - https://docs.dagster.io/objects.inv
+            - https://docs.pydantic.dev/latest/objects.inv
+            - https://docs.ray.io/en/latest/objects.inv
           options:
             filters: ["!^_[^_]"]
             heading_level: 3
@@ -91,7 +97,7 @@ plugins:
             members_order: source
             show_submodules: false
             members: false
-            inherited_members: true
+            inherited_members: false
             show_bases: true
             show_signature: true
             signature_crossrefs: true
@@ -107,6 +113,7 @@ plugins:
                     - dg.Config
                     - dagster.Config
                     - dagster.ConfigurableResource
+              - dagster_ray.griffe_extensions:ConfigSchemaExtension
           extra:
             enable_autorefs: true
           inventories:
