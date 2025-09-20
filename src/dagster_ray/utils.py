@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import hashlib
 import os
+import random
+import string
 from collections.abc import Mapping, Sequence
 from typing import Any
 
 import dagster as dg
+import dagster._check as check
 from dagster._config.field_utils import IntEnvVar
 
 # yes, `python-client` is actually the KubeRay package name
@@ -45,6 +49,25 @@ def _process_dagster_env_vars(config: Any) -> Any:
 
     # Otherwise, just return as-is
     return config
+
+
+def get_k8s_object_name(run_id: str, step_key: str | None = None) -> str:
+    """Creates a unique (short!) identifier to name k8s objects based on run ID and step key(s).
+
+    K8s Job names are limited to 63 characters, because they are used as labels. For more info, see:
+
+    https://kubernetes.io/docs/concepts/overview/working-with-objects/names/
+    """
+    check.str_param(run_id, "run_id")
+    check.opt_str_param(step_key, "step_key")
+    if not step_key:
+        letters = string.ascii_lowercase
+        step_key = "".join(random.choice(letters) for i in range(20))
+
+    # Creates 32-bit signed int, so could be negative
+    name_hash = hashlib.md5((run_id + step_key).encode("utf-8"))
+
+    return name_hash.hexdigest()[:8]
 
 
 def get_current_job_id() -> str:

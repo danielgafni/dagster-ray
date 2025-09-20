@@ -26,7 +26,7 @@ The `LocalRay` can be used to connect to a local Ray cluster.
 
 ::: dagster_ray.core.run_launcher.RayRunLauncher
     options:
-      members: true
+      members: false
 
 ---
 
@@ -34,7 +34,7 @@ The `LocalRay` can be used to connect to a local Ray cluster.
 
 ::: dagster_ray.core.executor.ray_executor
     options:
-      members: true
+      members: false
 
 ---
 

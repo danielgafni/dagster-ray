@@ -14,7 +14,7 @@ docs-build:
     uv run --group docs mkdocs build --clean --strict
 
 docs-serve:
-    uv run --group docs mkdocs serve
+    uv run --group docs mkdocs serve --clean
 
 docs-publish:
     uv run --group docs --all-extras mike deploy --push --update-aliases $(uv run dunamai from any --style pep440)

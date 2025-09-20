@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from typing import Any
 
 import griffe
@@ -35,8 +34,11 @@ class ConfigSchemaExtension(griffe.Extension):
     def on_object(self, obj: Object, **kwargs: Any) -> None:
         """Process objects to extract configuration schemas."""
         # Check if this is a dagster configurable object
-        if self._is_dagster_configurable(obj):
+        is_configurable = self._is_dagster_configurable(obj)
+
+        if is_configurable:
             schema_info = self._extract_config_schema(obj)
+
             if schema_info and schema_info.get("parameters"):
                 # Add schema parameters as members
                 self._add_schema_members(obj, schema_info)
@@ -153,68 +155,174 @@ class ConfigSchemaExtension(griffe.Extension):
         return False
 
     def _extract_config_schema(self, obj: Object) -> dict[str, Any] | None:
-        """Extract configuration schema from the object."""
+        """Extract configuration schema from any configurable object."""
         try:
-            # Use dynamic import to get live objects during doc build
-            if obj.name == "ray_executor":
-                return self._extract_ray_executor_schema()
-            elif obj.name == "RayRunLauncher":
-                return self._extract_ray_run_launcher_schema()
+            # Get the actual runtime object
+            runtime_obj = self._get_runtime_object(obj)
+            if runtime_obj is None:
+                return None
+
+            # Try to extract schema using Dagster's config system
+            schema_dict = self._extract_schema_from_runtime_object(runtime_obj, obj)
+            if schema_dict:
+                return {
+                    "title": f"Configuration Schema for {obj.name}",
+                    "description": f"Configuration schema for {obj.name}",
+                    "parameters": schema_dict,
+                }
+
         except Exception as e:
             return {"title": f"Configuration Schema for {obj.name}", "error": f"Could not extract schema: {e}"}
 
         return None
 
-    def _extract_ray_executor_schema(self) -> dict[str, Any]:
-        """Extract schema for ray_executor."""
+    def _extract_schema_from_runtime_object(self, runtime_obj, griffe_obj: Object) -> list[dict[str, Any]] | None:
+        """Extract schema from any Dagster configurable object using Dagster's official detection."""
+        import inspect
+
         try:
-            from dagster_ray.core.executor import _RAY_EXECUTOR_CONFIG_SCHEMA, RayExecutorConfig
+            # Import Dagster's config detection utilities
+            from dagster import Field
+            from dagster._config.pythonic_config import (
+                ConfigurableResource,
+                ConfigurableResourceFactory,
+                infer_schema_from_config_class,
+            )
+            from dagster._core.definitions.configurable import ConfigurableDefinition
+            from dagster._serdes import ConfigurableClass
 
-            # Get the full Dagster config schema (includes ray + retries + tag_concurrency_limits)
-            dagster_schema = self._dagster_schema_to_dict(_RAY_EXECUTOR_CONFIG_SCHEMA)
+            obj = runtime_obj
+            config_field = None
 
-            # Also get the JSON schema for the ray section
-            json_schema = RayExecutorConfig.model_json_schema()
+            # Follow Dagster's official detection pattern
+            if isinstance(obj, ConfigurableDefinition):
+                if obj.config_schema:
+                    config_field = obj.config_schema.as_field()
+            elif inspect.isclass(obj) and (
+                issubclass(obj, ConfigurableResource) or issubclass(obj, ConfigurableResourceFactory)
+            ):
+                config_field = infer_schema_from_config_class(obj)
+            elif isinstance(obj, type) and issubclass(obj, ConfigurableClass):
+                config_field = Field(obj.config_type())
+            elif inspect.isfunction(obj):
+                # Handle function-based configurables (like @executor decorated functions)
+                try:
+                    # Try to call with empty config to get the configurable object
+                    instance = obj([])
+                    if hasattr(instance, "config_schema") and instance.config_schema:
+                        config_field = instance.config_schema.as_field()
+                except:
+                    pass
 
-            return {
-                "title": "Ray Executor Configuration",
-                "description": "Configuration schema for the ray_executor. This includes the main 'ray' section plus Dagster's built-in retry and concurrency configurations.",
-                "config_class": "RayExecutorConfig (ray section) + Dagster retries/concurrency",
-                "schema": json_schema,
-                "schema_json": json.dumps(json_schema, indent=2),
-                "schema_html": _highlight_json(json.dumps(json_schema, indent=2)),
-                "parameters": self._format_parameters(json_schema),
-            }
-        except ImportError as e:
-            return {
-                "title": "Ray Executor Configuration",
-                "description": "Configuration schema for the ray_executor",
-                "error": f"Could not import schema: {e}",
-            }
+            if config_field:
+                # Convert the Dagster config field to our parameter format
+                return self._dagster_field_to_parameters(config_field)
 
-    def _extract_ray_run_launcher_schema(self) -> dict[str, Any]:
-        """Extract schema for RayRunLauncher."""
+        except Exception:
+            pass
+
+        return None
+
+    def _dagster_field_to_parameters(self, field) -> list[dict[str, Any]]:
+        """Convert a Dagster config field to parameter list using Dagster's approach."""
+        parameters = []
+
+        def extract_field_info(field_obj, field_name=None, prefix=""):
+            """Recursively extract field information."""
+            if field_name:
+                param_name = f"{prefix}.{field_name}" if prefix else field_name
+
+                # Get type representation using Dagster's type_repr logic
+                type_str = self._dagster_type_repr(field_obj.config_type)
+
+                param_data = {
+                    "name": param_name,
+                    "type": type_str,
+                    "required": field_obj.is_required,
+                    "description": field_obj.description or "",
+                }
+
+                # Add default value if provided
+                if field_obj.default_provided:
+                    param_data["default"] = field_obj.default_value
+
+                parameters.append(param_data)
+
+            # Recurse into subfields if they exist
+            if hasattr(field_obj.config_type, "fields") and field_obj.config_type.fields:
+                for name, subfield in field_obj.config_type.fields.items():
+                    subfield_prefix = f"{prefix}.{field_name}" if prefix and field_name else (field_name or "")
+                    extract_field_info(subfield, name, subfield_prefix)
+
+        # Start extraction
+        extract_field_info(field)
+        return parameters
+
+    def _dagster_type_repr(self, config_type) -> str:
+        """Generate human-readable type representation following Dagster's approach."""
         try:
-            from dagster_ray.core.run_launcher import RayLauncherConfig
+            from dagster import BoolSource, IntSource, StringSource
+            from dagster._config.config_type import (
+                ConfigTypeKind,
+            )
 
-            # Generate JSON schema
-            schema = RayLauncherConfig.model_json_schema()
+            # Use given name if possible
+            if hasattr(config_type, "given_name") and config_type.given_name:
+                return config_type.given_name
 
-            return {
-                "title": "Ray Run Launcher Configuration",
-                "description": "Configuration schema for the RayRunLauncher",
-                "config_class": "RayLauncherConfig",
-                "schema": schema,
-                "schema_json": json.dumps(schema, indent=2),
-                "schema_html": _highlight_json(json.dumps(schema, indent=2)),
-                "parameters": self._format_parameters(schema),
-            }
-        except ImportError:
-            return {
-                "title": "Ray Run Launcher Configuration",
-                "description": "Configuration schema for the RayRunLauncher",
-                "error": "Could not import RayLauncherConfig",
-            }
+            # Handle special source types
+            if config_type == StringSource:
+                return "str"
+            elif config_type == BoolSource:
+                return "bool"
+            elif config_type == IntSource:
+                return "int"
+            elif config_type.kind == ConfigTypeKind.ANY:
+                return "Any"
+            elif config_type.kind == ConfigTypeKind.SCALAR:
+                scalar_name = config_type.scalar_kind.name.lower()
+                # Fix common scalar type names
+                if scalar_name == "float":
+                    return "float"
+                elif scalar_name == "int":
+                    return "int"
+                elif scalar_name == "string":
+                    return "str"
+                elif scalar_name == "bool":
+                    return "bool"
+                return scalar_name
+            elif config_type.kind == ConfigTypeKind.ENUM:
+                values = ", ".join(str(val) for val in config_type.config_values)
+                return f"Enum[{values}]"
+            elif config_type.kind == ConfigTypeKind.ARRAY:
+                inner_type = self._dagster_type_repr(config_type.inner_type)
+                return f"list[{inner_type}]"
+            elif config_type.kind == ConfigTypeKind.SELECTOR:
+                # For selectors, show the available options if possible
+                if hasattr(config_type, "fields") and config_type.fields:
+                    options = list(config_type.fields.keys())
+                    if len(options) <= 3:
+                        return f"Literal[{', '.join(repr(opt) for opt in options)}]"
+                    else:
+                        return f"Literal[{', '.join(repr(opt) for opt in options[:3])}, ...]"
+                return "dict"  # Fallback to dict since selectors are dict-like
+            elif config_type.kind == ConfigTypeKind.STRICT_SHAPE:
+                return "dict"
+            elif config_type.kind == ConfigTypeKind.PERMISSIVE_SHAPE:
+                return "dict"
+            elif config_type.kind == ConfigTypeKind.MAP:
+                return "dict"
+            elif config_type.kind == ConfigTypeKind.SCALAR_UNION:
+                scalar_type = self._dagster_type_repr(config_type.scalar_type)
+                non_scalar_type = self._dagster_type_repr(config_type.non_scalar_type)
+                return f"{scalar_type} | {non_scalar_type}"
+            elif config_type.kind == ConfigTypeKind.NONEABLE:
+                inner_type = self._dagster_type_repr(config_type.inner_type)
+                return f"{inner_type} | None"
+            else:
+                return "unknown"
+        except Exception:
+            return "unknown"
 
     def _format_parameters(self, schema: dict[str, Any]) -> list[dict[str, Any]]:
         """Format schema properties into a readable parameter list."""
@@ -474,71 +582,145 @@ class ConfigSchemaExtension(griffe.Extension):
                 self._extract_section_fields(field_info["nested_fields"], section_name, parameters, param_name)
 
     def _add_schema_members(self, obj: Object, schema_info: dict[str, Any]) -> None:
-        """Add configuration schema parameters as individual members of the object."""
-        from griffe import Attribute, Kind
+        """Add configuration schema documentation to the object's docstring."""
 
-        # Add "Fields:" section to the main object's docstring (only once)
-        if schema_info["parameters"] and obj.docstring:
-            # Get existing docstring content
-            existing_content = obj.docstring.value if obj.docstring.value else ""
+        if not schema_info["parameters"] or not obj.docstring:
+            return
 
-            # Only add Fields section if it doesn't already exist
-            if "Fields:" not in existing_content:
-                # Create Fields section as a vertical list with cross-references and types
-                fields_lines = ["", "Fields:", ""]
-                for param in schema_info["parameters"]:
-                    field_name = param["name"]
-                    field_type = self._format_type_with_crossrefs(param["type"])
-                    # Create cross-reference to the attribute and show type in parentheses
-                    # Use bullet points to avoid code block formatting
-                    fields_lines.append(f"- [{field_name}][{obj.path}.{field_name}] ({field_type})")
+        # Get existing docstring content
+        existing_content = obj.docstring.value if obj.docstring.value else ""
 
-                fields_section = "\n".join(fields_lines)
+        # Only add configuration section if it doesn't already exist
+        # Look for the exact pattern we add: "Configuration:" as a standalone section
+        if "\nConfiguration:\n" not in existing_content:
+            # Create YAML-style nested configuration documentation
+            config_lines = ["", "Configuration:", "", "```yaml"]
 
-                # Update the docstring
-                obj.docstring = griffe.Docstring(existing_content + fields_section)
+            # Group parameters by their structure
+            structure = self._build_config_structure(schema_info["parameters"])
 
-        # Add each parameter as a direct member of the object
-        for param in schema_info["parameters"]:
-            param_attr = Attribute(name=param["name"], lineno=1, parent=obj)
-            param_attr.kind = Kind.ATTRIBUTE
-            param_attr.annotation = self._make_type_annotation_with_crossrefs(param["type"])
+            # Format as nested YAML-style structure
+            yaml_lines = self._format_yaml_structure(structure, 0)
+            config_lines.extend(yaml_lines)
 
-            # Create clean docstring with just the description and default value
-            doc_parts = []
+            config_lines.append("```")
+            config_section = "\n".join(config_lines)
 
-            # Add description first
-            if param.get("description"):
-                doc_parts.append(param["description"])
+            # Update the docstring
+            obj.docstring = griffe.Docstring(existing_content + config_section)
 
-            # Only add default value if it exists (don't mention required/optional status)
-            if not param.get("required"):
-                default_val = param.get("default")
-                if default_val is not None:
-                    doc_parts.append(f"Default: `{default_val}`")
+    def _build_config_structure(self, parameters: list[dict[str, Any]]) -> dict:
+        """Build nested structure from flat parameter list."""
+        structure = {}
 
-            param_attr.docstring = griffe.Docstring("\n\n".join(doc_parts)) if doc_parts else None
+        # First, identify ALL parameter paths that have nested children
+        has_children = set()
+        all_paths = [param["name"] for param in parameters]
 
-            # Add as direct member of the main object
-            obj.members[param["name"]] = param_attr
+        for path in all_paths:
+            # Check if any other path starts with this path + "."
+            for other_path in all_paths:
+                if other_path.startswith(path + "."):
+                    has_children.add(path)
+                    break
 
-        # Also add a JSON schema member if we have schema data for advanced users
-        if "schema" in schema_info:
-            schema_member = Attribute(name="__config_schema__", lineno=1, parent=obj)
-            schema_member.kind = Kind.ATTRIBUTE
-            schema_member.annotation = "dict"
+        for param in parameters:
+            param_name = param["name"]
+            parts = param_name.split(".")
 
-            # Create docstring with foldable JSON schema
-            doc_parts = []
-            doc_parts.append("")
-            doc_parts.append("<details>")
-            doc_parts.append("<summary>JSON Schema</summary>")
-            doc_parts.append("")
-            doc_parts.append("```json")
-            doc_parts.append(schema_info["schema_json"])
-            doc_parts.append("```")
-            doc_parts.append("")
-            doc_parts.append("</details>")
+            if param_name in has_children:
+                # This parameter has nested children, skip it - we'll show the nested structure instead
+                continue
 
-            schema_member.docstring = griffe.Docstring("\n".join(doc_parts))
-            obj.members["__config_schema__"] = schema_member
+            # Build the nested structure
+            current = structure
+            for i, part in enumerate(parts[:-1]):
+                if part not in current:
+                    current[part] = {}
+                current = current[part]
+
+            # Add the final parameter
+            final_key = parts[-1]
+            current[final_key] = param
+
+        return structure
+
+    def _format_yaml_structure(self, structure: dict, indent_level: int) -> list[str]:
+        """Format the structure as proper YAML with type and description comments."""
+        lines = []
+        indent = "  " * indent_level
+
+        for key, value in structure.items():
+            if isinstance(value, dict) and "type" in value:
+                # This is a leaf parameter - show it with its value
+                param_type = value["type"]
+                required = value.get("required", True)
+                default = value.get("default")
+                description = value.get("description", "")
+
+                # Format as YAML with type and description as comment (keep description intact on one line)
+                comment_parts = []
+                comment_parts.append(f"({param_type})")
+                if description:
+                    # Keep description intact but on one line
+                    clean_desc = description.replace("\n", " ").strip()
+                    comment_parts.append(clean_desc)
+
+                comment = " # " + " - ".join(comment_parts) if comment_parts else ""
+
+                # Show proper YAML value
+                if default is not None:
+                    if isinstance(default, str):
+                        yaml_value = f'"{default}"'
+                    elif isinstance(default, bool):
+                        yaml_value = str(default).lower()
+                    elif default == {}:
+                        yaml_value = "{}"
+                    elif default == []:
+                        yaml_value = "[]"
+                    elif isinstance(default, dict):
+                        yaml_value = "# has default configuration"
+                    elif isinstance(default, list):
+                        yaml_value = "# has default list"
+                    else:
+                        yaml_value = str(default)
+                elif not required:
+                    yaml_value = "null  # optional"
+                else:
+                    yaml_value = "# required"
+
+                lines.append(f"{indent}{key}: {yaml_value}{comment}")
+
+            elif isinstance(value, dict):
+                # This is a nested section - always expand it
+                lines.append(f"{indent}{key}:")
+                lines.extend(self._format_yaml_structure(value, indent_level + 1))
+
+        return lines
+
+    def _format_config_parameter_simple(self, param: dict[str, Any]) -> list[str]:
+        """Format a single configuration parameter for documentation."""
+        lines = []
+
+        # Parameter name and type
+        param_name = param["name"]
+        param_type = param["type"]
+        optional_indicator = " (optional)" if not param.get("required") else ""
+
+        lines.append(f"#### {param_name}{optional_indicator}")
+        lines.append("")
+        lines.append(f"Type: {param_type}")
+        lines.append("")
+
+        # Description
+        if param.get("description"):
+            lines.append(param["description"])
+            lines.append("")
+
+        # Default value
+        if not param.get("required") and param.get("default") is not None:
+            default_val = param["default"]
+            lines.append(f"Default: `{default_val}`")
+            lines.append("")
+
+        return lines

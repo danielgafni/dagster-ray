@@ -164,13 +164,11 @@ class RayClusterConfig(dg.Config):
 
     def to_k8s(
         self,
-        context: AnyDagsterContext,
         image: str | None = None,  # is injected into headgroup and workergroups, unless already specified there
         labels: Mapping[str, str] | None = None,
         annotations: Mapping[str, str] | None = None,
         env_vars: Mapping[str, str] | None = None,
     ) -> dict[str, Any]:
-        assert context.log is not None
         """Convert into Kubernetes manifests in camelCase format and inject additional information"""
 
         labels = labels or {}
@@ -186,7 +184,7 @@ class RayClusterConfig(dg.Config):
                     "annotations": {**self.metadata.get("annotations", {}), **annotations},
                 }
             ),
-            "spec": self.spec.to_k8s(context=context, image=image, env_vars=env_vars),
+            "spec": self.spec.to_k8s(image=image, env_vars=env_vars),
         }
 
 
@@ -216,7 +214,6 @@ class RayJobSpec(dg.PermissiveConfig):
 
     def to_k8s(
         self,
-        context: AnyDagsterContext,
         image: str | None = None,  # is injected into headgroup and workergroups, unless already specified there
         env_vars: Mapping[str, str] | None = None,
     ) -> dict[str, Any]:
@@ -240,7 +237,7 @@ class RayJobSpec(dg.PermissiveConfig):
                 "ttlSecondsAfterFinished": self.ttl_seconds_after_finished,
                 "shutdownAfterJobFinishes": self.shutdown_after_job_finishes,
                 "suspend": self.suspend,
-                "rayClusterSpec": self.ray_cluster_spec.to_k8s(context=context, image=image, env_vars=env_vars)
+                "rayClusterSpec": self.ray_cluster_spec.to_k8s(image=image, env_vars=env_vars)
                 if self.ray_cluster_spec is not None
                 else None,
             }
@@ -262,7 +259,6 @@ class RayJobConfig(dg.Config):
 
     def to_k8s(
         self,
-        context: AnyDagsterContext,
         image: str | None = None,  # is injected into headgroup and workergroups, unless already specified there
         labels: Mapping[str, str] | None = None,
         annotations: Mapping[str, str] | None = None,
@@ -284,7 +280,6 @@ class RayJobConfig(dg.Config):
                 }
             ),
             "spec": self.spec.to_k8s(
-                context=context,
                 image=image,
                 env_vars=env_vars,
             ),

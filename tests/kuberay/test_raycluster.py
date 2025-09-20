@@ -279,10 +279,9 @@ def test_kuberay_cleanup_job(
 def test_ray_cluster_builder_debug():
     kuberay_cluster = KubeRayCluster(enable_debug_post_mortem=True, image="test")
     kuberay_cluster._cluster_name = "test-cluster"
-    context = dg.build_init_resource_context()
 
     ray_cluster_config = kuberay_cluster.ray_cluster.to_k8s(
-        context, env_vars=kuberay_cluster.get_env_vars_to_inject(), labels={"foo": "bar"}, image="test"
+        env_vars=kuberay_cluster.get_env_vars_to_inject(), labels={"foo": "bar"}, image="test"
     )
     assert ray_cluster_config["metadata"]["labels"]["foo"] == "bar"
     for group_spec in [ray_cluster_config["spec"]["headGroupSpec"], *ray_cluster_config["spec"]["workerGroupSpecs"]]:
@@ -292,7 +291,7 @@ def test_ray_cluster_builder_debug():
     kuberay_cluster = KubeRayCluster(enable_tracing=True)
     kuberay_cluster._cluster_name = "test-cluster"
     ray_cluster_config = kuberay_cluster.ray_cluster.to_k8s(
-        context, env_vars=kuberay_cluster.get_env_vars_to_inject(), image="test"
+        env_vars=kuberay_cluster.get_env_vars_to_inject(), image="test"
     )
     for group_spec in [ray_cluster_config["spec"]["headGroupSpec"], *ray_cluster_config["spec"]["workerGroupSpecs"]]:
         for container in group_spec["template"]["spec"]["containers"]:
@@ -301,7 +300,7 @@ def test_ray_cluster_builder_debug():
     kuberay_cluster = KubeRayCluster(enable_actor_task_logging=True)
     kuberay_cluster._cluster_name = "test-cluster"
     ray_cluster_config = kuberay_cluster.ray_cluster.to_k8s(
-        context, env_vars=kuberay_cluster.get_env_vars_to_inject(), image="test"
+        env_vars=kuberay_cluster.get_env_vars_to_inject(), image="test"
     )
     kuberay_cluster._cluster_name = "test-cluster"
     for group_spec in [ray_cluster_config["spec"]["headGroupSpec"], *ray_cluster_config["spec"]["workerGroupSpecs"]]:

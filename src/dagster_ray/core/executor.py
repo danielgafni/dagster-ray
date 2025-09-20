@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from collections.abc import Iterator
 from typing import TYPE_CHECKING, Any, cast
 
@@ -23,14 +21,14 @@ try:
 except ImportError:
     # for new versions of dagster > 1.11.6
     from dagster._core.remote_origin import RemoteJobOrigin  # pyright: ignore[reportMissingImports]
+
 from dagster._utils.merger import merge_dicts
 from packaging.version import Version
 from pydantic import Field
 
 from dagster_ray.configs import RayExecutionConfig, RayJobSubmissionClientConfig
 from dagster_ray.core.run_launcher import RayRunLauncher
-from dagster_ray.kuberay.utils import get_k8s_object_name
-from dagster_ray.utils import resolve_env_vars_list
+from dagster_ray.utils import get_k8s_object_name, resolve_env_vars_list
 
 if TYPE_CHECKING:
     from ray.job_submission import JobSubmissionClient
@@ -129,7 +127,7 @@ class RayStepHandler(StepHandler):
 
     def __init__(
         self,
-        client: JobSubmissionClient,
+        client: "JobSubmissionClient",
         env_vars: list[str] | None,
         runtime_env: dict[str, Any] | None,
         num_cpus: float | None,
