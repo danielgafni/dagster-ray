@@ -249,7 +249,7 @@ definitions = dg.Definitions(
 )
 ```
 
-1. :bulb: `dagster-pipes` have to be installed in the remote environment!
+1. :bulb: `dagster-pipes` has to be installed in the remote environment!
 
 When materializing the asset, the `PipesRayJobClient` will submit the script as a Ray job, monitor its status, and stream back logs and Dagster metadata.
 

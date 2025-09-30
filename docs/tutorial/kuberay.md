@@ -8,7 +8,7 @@ Before getting started, you'll need:
 
 - A Kubernetes cluster with KubeRay Operator installed
 - A `kubectl` configured to access your cluster or a kubeconfig file (resources can be configured to use it)
-- dagster-ray installed with KubeRay support:
+- `dagster-ray` installed with KubeRay support:
   ```bash
   pip install 'dagster-ray[kuberay]'
   ```
@@ -206,6 +206,7 @@ class MLTrainingConfig(dg.Config):
 @dg.asset
 def distributed_computation(
     context: dg.AssetExecutionContext,
+    config: MLTrainingConfig,
     ray_pipes_client: PipesKubeRayJobClient,
 ) -> None:
     """Run distributed computation using Pipes + KubeRay."""
@@ -233,6 +234,6 @@ definitions = dg.Definitions(
 )
 ```
 
-1. :bulb: `dagster-pipes` have to be installed in the remote environment!
+1. :bulb: `dagster-pipes` has to be installed in the remote environment!
 
-When materializing the asset, the `PipesKubeRayJobClient` will submit the script as a `RayJob` custom resource, monitor its status, and stream back logs and Dagster metadata.
+When materializing the asset, `PipesKubeRayJobClient` will submit the script as a `RayJob` custom resource, monitor its status, and stream back logs and Dagster metadata.
