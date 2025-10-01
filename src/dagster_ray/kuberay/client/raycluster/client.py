@@ -112,12 +112,23 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
         name: str,
         namespace: str,
         timeout: float,
-        image: str | None = None,
+        failure_tolerance_timeout: float = 0.0,
         poll_interval: float = 5.0,
         log_cluster_conditions: bool = False,
     ) -> tuple[str, RayClusterEndpoints]:
         """
         If ready, returns service ip address and a dictionary of ports.
+
+        Parameters:
+            name (str): The name of the `RayCluster` resource
+            namespace (str): The namespace of the `RayCluster` resource
+            timeout (float): The timeout in seconds to wait for the cluster to become ready.
+            failure_tolerance_timeout (float): The period in seconds to wait for the cluster to transition out of `failed` state if it reaches it. This state can be transient under certain conditions. With the default value of 0, the first `failed` state appearance will raise an exception immediately.
+            poll_interval (float): The interval in seconds to poll the cluster status.
+            log_cluster_conditions (bool): Whether to log cluster conditions. See [KubeRay docs](https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/observability.html#raycluster-status-conditions)
+
+        Returns:
+            tuple[str, RayClusterEndpoints]: The service ip address and a dictionary of ports.
         """
         start_time = time.time()
 
@@ -150,12 +161,17 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
                     logger.info(f"RayCluster {namespace}/{name} condition: {conditions[condition_index_to_log]}")
                     condition_index_to_log += 1
 
-            if state == "failed":
-                raise Exception(
-                    f"RayCluster {namespace}/{name} failed to start. Status:\n\n{status}\n\nMore details: `kubectl -n {namespace} describe RayCluster {name}`"
+            if state == "failed" and (time.time() - start_time > failure_tolerance_timeout):
+                raise RuntimeError(
+                    f"RayCluster {namespace}/{name} status transitioned into `failed`. Consider increasing `failure_tolerance_timeout` ({failure_tolerance_timeout:.1f}s). Status:\n\n{status}\n\nMore details: `kubectl -n {namespace} describe RayCluster {name}`"
                 )
 
-            if state == "ready" and status.get("head") and status.get("endpoints", {}).get("dashboard"):
+            if (
+                state == "ready"
+                and status.get("head")
+                and status.get("endpoints", {}).get("dashboard")
+                and status.get("head", {}).get("serviceIP")
+            ):
                 logger.debug(f"RayCluster {namespace}/{name} is ready!")
                 return status["head"]["serviceIP"], status["endpoints"]  # pyright: ignore[reportTypedDictNotRequiredAccess]
 

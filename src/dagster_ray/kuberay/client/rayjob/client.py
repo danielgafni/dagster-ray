@@ -71,12 +71,24 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
         name: str,
         namespace: str,
         timeout: float = 600,
+        failure_tolerance_timeout: float = 0.0,
         poll_interval: float = 1.0,
         log_cluster_conditions: bool = False,
     ) -> tuple[str, RayClusterEndpoints]:
         """Wait until the RayCluster attached to the RayJob is ready.
 
         This doesn't necessarily mean that the cluster has already taken a job, just that it is ready to accept connections.
+
+        Parameters:
+            name (str): The name of the `RayJob` resource
+            namespace (str): The namespace of the `RayJob` resource
+            timeout (float): The timeout in seconds to wait for the cluster to become ready.
+            failure_tolerance_timeout (float): The period in seconds to wait for the cluster to transition out of `failed` state if it reaches it. This state can be transient under certain conditions. With the default value of 0, the first `failed` state appearance will raise an exception immediately.
+            poll_interval (float): The interval in seconds to poll the cluster status.
+            log_cluster_conditions (bool): Whether to log cluster conditions. See [KubeRay docs](https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/observability.html#raycluster-status-conditions)
+
+        Returns:
+            tuple[str, RayClusterEndpoints]: The service ip address and a dictionary of ports.
         """
         ray_cluster_name = self.get_ray_cluster_name(name, namespace, timeout=timeout, poll_interval=poll_interval)
         ray_cluster_client = self.ray_cluster_client
@@ -87,6 +99,7 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
             ray_cluster_name,
             namespace=namespace,
             timeout=timeout,
+            failure_tolerance_timeout=failure_tolerance_timeout,
             poll_interval=poll_interval,
             log_cluster_conditions=log_cluster_conditions,
         )
