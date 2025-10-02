@@ -15,6 +15,7 @@ These resources initialize Ray client connection with a remote cluster.
         - "lifecycle"
         - "ray_job"
         - "client"
+        - "failure_tolerance_timeout"
         - "log_cluster_conditions"
 
 
@@ -25,6 +26,7 @@ These resources initialize Ray client connection with a remote cluster.
         - "lifecycle"
         - "ray_cluster"
         - "client"
+        - "failure_tolerance_timeout"
         - "log_cluster_conditions"
 
 ---

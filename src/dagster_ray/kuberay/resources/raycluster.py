@@ -120,6 +120,7 @@ class KubeRayCluster(BaseKubeRayResourceConfig, RayResource):
             self.name,
             namespace=self.namespace,
             timeout=self.timeout,
+            failure_tolerance_timeout=self.failure_tolerance_timeout,
             poll_interval=self.poll_interval,
             log_cluster_conditions=self.log_cluster_conditions,
         )

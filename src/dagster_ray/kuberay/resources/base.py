@@ -21,6 +21,10 @@ class BaseKubeRayResourceConfig(dg.Config):
         default=DEFAULT_DEPLOYMENT_NAME,
         description="Dagster deployment name. Is used as a prefix for the Kubernetes resource name. Dagster Cloud variables are used to determine the default value.",
     )
+    failure_tolerance_timeout: float = Field(
+        default=0.0,
+        description="The period in seconds to wait for the cluster to transition out of `failed` state if it reaches it. This state can be transient under certain conditions. With the default value of 0, the first `failed` state appearance will raise an exception immediately.",
+    )
     poll_interval: float = Field(default=1.0, description="Poll interval for various API requests")
 
     _host: str = PrivateAttr()

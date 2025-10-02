@@ -150,6 +150,7 @@ class KubeRayInteractiveJob(RayResource, BaseKubeRayResourceConfig):
         self.client.wait_until_ready(
             name=self.name,
             namespace=self.namespace,
+            failure_tolerance_timeout=self.failure_tolerance_timeout,
             log_cluster_conditions=self.log_cluster_conditions,
             timeout=self.timeout,
             poll_interval=self.poll_interval,
