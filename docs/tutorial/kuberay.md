@@ -69,17 +69,21 @@ By default, the image will be inherited from the `dagster/image` Run tag. Altern
 You can customize the Ray cluster configuration:
 
 ```python
-from dagster_ray.kuberay import KubeRayInteractiveJob
-from dagster_ray.kuberay.configs import RayJobConfig, RayJobSpec, RayClusterSpec
+from dagster_ray.kuberay import (
+    InteractiveRayJobConfig,
+    InteractiveRayJobSpec,
+    KubeRayInteractiveJob,
+)
+from dagster_ray.kuberay.configs import RayClusterSpec
 
 ray_cluster = KubeRayInteractiveJob(
-    ray_job=RayJobConfig(
+    ray_job=InteractiveRayJobConfig(
         metadata={
             "namespace": "my-custom-namespace",
             "labels": {"team": "my-team"},
             "annotations": {"example": "annotation"},
         },
-        spec=RayJobSpec(
+        spec=InteractiveRayJobSpec(
             ttl_seconds_after_finished=3600,
             deletion_strategy={
                 "onSuccess": {"policy": "DeleteSelf"},
