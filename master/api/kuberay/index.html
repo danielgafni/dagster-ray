@@ -718,6 +718,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#dagster_ray.kuberay.KubeRayInteractiveJob.failure_tolerance_timeout" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;failure_tolerance_timeout
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#dagster_ray.kuberay.KubeRayInteractiveJob.log_cluster_conditions" class="md-nav__link">
     <span class="md-ellipsis">
       <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;log_cluster_conditions
@@ -778,6 +787,15 @@
   <a href="#dagster_ray.kuberay.KubeRayCluster.client" class="md-nav__link">
     <span class="md-ellipsis">
       <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;client
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dagster_ray.kuberay.KubeRayCluster.failure_tolerance_timeout" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;failure_tolerance_timeout
     </span>
   </a>
   
@@ -1965,6 +1983,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#dagster_ray.kuberay.KubeRayInteractiveJob.failure_tolerance_timeout" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;failure_tolerance_timeout
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#dagster_ray.kuberay.KubeRayInteractiveJob.log_cluster_conditions" class="md-nav__link">
     <span class="md-ellipsis">
       <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;log_cluster_conditions
@@ -2025,6 +2052,15 @@
   <a href="#dagster_ray.kuberay.KubeRayCluster.client" class="md-nav__link">
     <span class="md-ellipsis">
       <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;client
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dagster_ray.kuberay.KubeRayCluster.failure_tolerance_timeout" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;failure_tolerance_timeout
     </span>
   </a>
   
@@ -3645,99 +3681,105 @@
 </span><span id="__span-0-530"><a id="__codelineno-0-530" name="__codelineno-0-530" href="#__codelineno-0-530"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Deployment Name&quot;</span><span class="p">,</span>
 </span><span id="__span-0-531"><a id="__codelineno-0-531" name="__codelineno-0-531" href="#__codelineno-0-531"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
 </span><span id="__span-0-532"><a id="__codelineno-0-532" name="__codelineno-0-532" href="#__codelineno-0-532"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-0-533"><a id="__codelineno-0-533" name="__codelineno-0-533" href="#__codelineno-0-533"></a><span class="w">    </span><span class="nt">&quot;poll_interval&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-534"><a id="__codelineno-0-534" name="__codelineno-0-534" href="#__codelineno-0-534"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
-</span><span id="__span-0-535"><a id="__codelineno-0-535" name="__codelineno-0-535" href="#__codelineno-0-535"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Poll interval for various API requests&quot;</span><span class="p">,</span>
-</span><span id="__span-0-536"><a id="__codelineno-0-536" name="__codelineno-0-536" href="#__codelineno-0-536"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Poll Interval&quot;</span><span class="p">,</span>
+</span><span id="__span-0-533"><a id="__codelineno-0-533" name="__codelineno-0-533" href="#__codelineno-0-533"></a><span class="w">    </span><span class="nt">&quot;failure_tolerance_timeout&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-534"><a id="__codelineno-0-534" name="__codelineno-0-534" href="#__codelineno-0-534"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+</span><span id="__span-0-535"><a id="__codelineno-0-535" name="__codelineno-0-535" href="#__codelineno-0-535"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The period in seconds to wait for the cluster to transition out of `failed` state if it reaches it. This state can be transient under certain conditions. With the default value of 0, the first `failed` state appearance will raise an exception immediately.&quot;</span><span class="p">,</span>
+</span><span id="__span-0-536"><a id="__codelineno-0-536" name="__codelineno-0-536" href="#__codelineno-0-536"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Failure Tolerance Timeout&quot;</span><span class="p">,</span>
 </span><span id="__span-0-537"><a id="__codelineno-0-537" name="__codelineno-0-537" href="#__codelineno-0-537"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;number&quot;</span>
 </span><span id="__span-0-538"><a id="__codelineno-0-538" name="__codelineno-0-538" href="#__codelineno-0-538"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-0-539"><a id="__codelineno-0-539" name="__codelineno-0-539" href="#__codelineno-0-539"></a><span class="w">    </span><span class="nt">&quot;lifecycle&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-540"><a id="__codelineno-0-540" name="__codelineno-0-540" href="#__codelineno-0-540"></a><span class="w">      </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Lifecycle&quot;</span><span class="p">,</span>
-</span><span id="__span-0-541"><a id="__codelineno-0-541" name="__codelineno-0-541" href="#__codelineno-0-541"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Actions to perform during resource setup.&quot;</span>
-</span><span id="__span-0-542"><a id="__codelineno-0-542" name="__codelineno-0-542" href="#__codelineno-0-542"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-0-543"><a id="__codelineno-0-543" name="__codelineno-0-543" href="#__codelineno-0-543"></a><span class="w">    </span><span class="nt">&quot;timeout&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-544"><a id="__codelineno-0-544" name="__codelineno-0-544" href="#__codelineno-0-544"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">600.0</span><span class="p">,</span>
-</span><span id="__span-0-545"><a id="__codelineno-0-545" name="__codelineno-0-545" href="#__codelineno-0-545"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Timeout for Ray readiness in seconds&quot;</span><span class="p">,</span>
-</span><span id="__span-0-546"><a id="__codelineno-0-546" name="__codelineno-0-546" href="#__codelineno-0-546"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Timeout&quot;</span><span class="p">,</span>
-</span><span id="__span-0-547"><a id="__codelineno-0-547" name="__codelineno-0-547" href="#__codelineno-0-547"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;number&quot;</span>
+</span><span id="__span-0-539"><a id="__codelineno-0-539" name="__codelineno-0-539" href="#__codelineno-0-539"></a><span class="w">    </span><span class="nt">&quot;poll_interval&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-540"><a id="__codelineno-0-540" name="__codelineno-0-540" href="#__codelineno-0-540"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
+</span><span id="__span-0-541"><a id="__codelineno-0-541" name="__codelineno-0-541" href="#__codelineno-0-541"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Poll interval for various API requests&quot;</span><span class="p">,</span>
+</span><span id="__span-0-542"><a id="__codelineno-0-542" name="__codelineno-0-542" href="#__codelineno-0-542"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Poll Interval&quot;</span><span class="p">,</span>
+</span><span id="__span-0-543"><a id="__codelineno-0-543" name="__codelineno-0-543" href="#__codelineno-0-543"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;number&quot;</span>
+</span><span id="__span-0-544"><a id="__codelineno-0-544" name="__codelineno-0-544" href="#__codelineno-0-544"></a><span class="w">    </span><span class="p">},</span>
+</span><span id="__span-0-545"><a id="__codelineno-0-545" name="__codelineno-0-545" href="#__codelineno-0-545"></a><span class="w">    </span><span class="nt">&quot;lifecycle&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-546"><a id="__codelineno-0-546" name="__codelineno-0-546" href="#__codelineno-0-546"></a><span class="w">      </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Lifecycle&quot;</span><span class="p">,</span>
+</span><span id="__span-0-547"><a id="__codelineno-0-547" name="__codelineno-0-547" href="#__codelineno-0-547"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Actions to perform during resource setup.&quot;</span>
 </span><span id="__span-0-548"><a id="__codelineno-0-548" name="__codelineno-0-548" href="#__codelineno-0-548"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-0-549"><a id="__codelineno-0-549" name="__codelineno-0-549" href="#__codelineno-0-549"></a><span class="w">    </span><span class="nt">&quot;ray_init_options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-550"><a id="__codelineno-0-550" name="__codelineno-0-550" href="#__codelineno-0-550"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Additional keyword arguments to pass to `ray.init()` call, such as `runtime_env`, `num_cpus`, etc. Dagster&#39;s `EnvVar` is supported. More details in [Ray docs](https://docs.ray.io/en/latest/ray-core/api/doc/ray.init.html).&quot;</span><span class="p">,</span>
-</span><span id="__span-0-551"><a id="__codelineno-0-551" name="__codelineno-0-551" href="#__codelineno-0-551"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Ray Init Options&quot;</span><span class="p">,</span>
-</span><span id="__span-0-552"><a id="__codelineno-0-552" name="__codelineno-0-552" href="#__codelineno-0-552"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
-</span><span id="__span-0-553"><a id="__codelineno-0-553" name="__codelineno-0-553" href="#__codelineno-0-553"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-0-554"><a id="__codelineno-0-554" name="__codelineno-0-554" href="#__codelineno-0-554"></a><span class="w">    </span><span class="nt">&quot;data_execution_options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-555"><a id="__codelineno-0-555" name="__codelineno-0-555" href="#__codelineno-0-555"></a><span class="w">      </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/RayDataExecutionOptions&quot;</span>
-</span><span id="__span-0-556"><a id="__codelineno-0-556" name="__codelineno-0-556" href="#__codelineno-0-556"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-0-557"><a id="__codelineno-0-557" name="__codelineno-0-557" href="#__codelineno-0-557"></a><span class="w">    </span><span class="nt">&quot;redis_port&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-558"><a id="__codelineno-0-558" name="__codelineno-0-558" href="#__codelineno-0-558"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10001</span><span class="p">,</span>
-</span><span id="__span-0-559"><a id="__codelineno-0-559" name="__codelineno-0-559" href="#__codelineno-0-559"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Redis port for connection. Make sure to match with the actual available port.&quot;</span><span class="p">,</span>
-</span><span id="__span-0-560"><a id="__codelineno-0-560" name="__codelineno-0-560" href="#__codelineno-0-560"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Redis Port&quot;</span><span class="p">,</span>
-</span><span id="__span-0-561"><a id="__codelineno-0-561" name="__codelineno-0-561" href="#__codelineno-0-561"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;integer&quot;</span>
+</span><span id="__span-0-549"><a id="__codelineno-0-549" name="__codelineno-0-549" href="#__codelineno-0-549"></a><span class="w">    </span><span class="nt">&quot;timeout&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-550"><a id="__codelineno-0-550" name="__codelineno-0-550" href="#__codelineno-0-550"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">600.0</span><span class="p">,</span>
+</span><span id="__span-0-551"><a id="__codelineno-0-551" name="__codelineno-0-551" href="#__codelineno-0-551"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Timeout for Ray readiness in seconds&quot;</span><span class="p">,</span>
+</span><span id="__span-0-552"><a id="__codelineno-0-552" name="__codelineno-0-552" href="#__codelineno-0-552"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Timeout&quot;</span><span class="p">,</span>
+</span><span id="__span-0-553"><a id="__codelineno-0-553" name="__codelineno-0-553" href="#__codelineno-0-553"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;number&quot;</span>
+</span><span id="__span-0-554"><a id="__codelineno-0-554" name="__codelineno-0-554" href="#__codelineno-0-554"></a><span class="w">    </span><span class="p">},</span>
+</span><span id="__span-0-555"><a id="__codelineno-0-555" name="__codelineno-0-555" href="#__codelineno-0-555"></a><span class="w">    </span><span class="nt">&quot;ray_init_options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-556"><a id="__codelineno-0-556" name="__codelineno-0-556" href="#__codelineno-0-556"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Additional keyword arguments to pass to `ray.init()` call, such as `runtime_env`, `num_cpus`, etc. Dagster&#39;s `EnvVar` is supported. More details in [Ray docs](https://docs.ray.io/en/latest/ray-core/api/doc/ray.init.html).&quot;</span><span class="p">,</span>
+</span><span id="__span-0-557"><a id="__codelineno-0-557" name="__codelineno-0-557" href="#__codelineno-0-557"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Ray Init Options&quot;</span><span class="p">,</span>
+</span><span id="__span-0-558"><a id="__codelineno-0-558" name="__codelineno-0-558" href="#__codelineno-0-558"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
+</span><span id="__span-0-559"><a id="__codelineno-0-559" name="__codelineno-0-559" href="#__codelineno-0-559"></a><span class="w">    </span><span class="p">},</span>
+</span><span id="__span-0-560"><a id="__codelineno-0-560" name="__codelineno-0-560" href="#__codelineno-0-560"></a><span class="w">    </span><span class="nt">&quot;data_execution_options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-561"><a id="__codelineno-0-561" name="__codelineno-0-561" href="#__codelineno-0-561"></a><span class="w">      </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/RayDataExecutionOptions&quot;</span>
 </span><span id="__span-0-562"><a id="__codelineno-0-562" name="__codelineno-0-562" href="#__codelineno-0-562"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-0-563"><a id="__codelineno-0-563" name="__codelineno-0-563" href="#__codelineno-0-563"></a><span class="w">    </span><span class="nt">&quot;dashboard_port&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-564"><a id="__codelineno-0-564" name="__codelineno-0-564" href="#__codelineno-0-564"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8265</span><span class="p">,</span>
-</span><span id="__span-0-565"><a id="__codelineno-0-565" name="__codelineno-0-565" href="#__codelineno-0-565"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Dashboard port for connection. Make sure to match with the actual available port.&quot;</span><span class="p">,</span>
-</span><span id="__span-0-566"><a id="__codelineno-0-566" name="__codelineno-0-566" href="#__codelineno-0-566"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Dashboard Port&quot;</span><span class="p">,</span>
+</span><span id="__span-0-563"><a id="__codelineno-0-563" name="__codelineno-0-563" href="#__codelineno-0-563"></a><span class="w">    </span><span class="nt">&quot;redis_port&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-564"><a id="__codelineno-0-564" name="__codelineno-0-564" href="#__codelineno-0-564"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10001</span><span class="p">,</span>
+</span><span id="__span-0-565"><a id="__codelineno-0-565" name="__codelineno-0-565" href="#__codelineno-0-565"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Redis port for connection. Make sure to match with the actual available port.&quot;</span><span class="p">,</span>
+</span><span id="__span-0-566"><a id="__codelineno-0-566" name="__codelineno-0-566" href="#__codelineno-0-566"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Redis Port&quot;</span><span class="p">,</span>
 </span><span id="__span-0-567"><a id="__codelineno-0-567" name="__codelineno-0-567" href="#__codelineno-0-567"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;integer&quot;</span>
 </span><span id="__span-0-568"><a id="__codelineno-0-568" name="__codelineno-0-568" href="#__codelineno-0-568"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-0-569"><a id="__codelineno-0-569" name="__codelineno-0-569" href="#__codelineno-0-569"></a><span class="w">    </span><span class="nt">&quot;env_vars&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-570"><a id="__codelineno-0-570" name="__codelineno-0-570" href="#__codelineno-0-570"></a><span class="w">      </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-0-571"><a id="__codelineno-0-571" name="__codelineno-0-571" href="#__codelineno-0-571"></a><span class="w">        </span><span class="p">{</span>
-</span><span id="__span-0-572"><a id="__codelineno-0-572" name="__codelineno-0-572" href="#__codelineno-0-572"></a><span class="w">          </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-573"><a id="__codelineno-0-573" name="__codelineno-0-573" href="#__codelineno-0-573"></a><span class="w">            </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
-</span><span id="__span-0-574"><a id="__codelineno-0-574" name="__codelineno-0-574" href="#__codelineno-0-574"></a><span class="w">          </span><span class="p">},</span>
-</span><span id="__span-0-575"><a id="__codelineno-0-575" name="__codelineno-0-575" href="#__codelineno-0-575"></a><span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
-</span><span id="__span-0-576"><a id="__codelineno-0-576" name="__codelineno-0-576" href="#__codelineno-0-576"></a><span class="w">        </span><span class="p">},</span>
+</span><span id="__span-0-569"><a id="__codelineno-0-569" name="__codelineno-0-569" href="#__codelineno-0-569"></a><span class="w">    </span><span class="nt">&quot;dashboard_port&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-570"><a id="__codelineno-0-570" name="__codelineno-0-570" href="#__codelineno-0-570"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8265</span><span class="p">,</span>
+</span><span id="__span-0-571"><a id="__codelineno-0-571" name="__codelineno-0-571" href="#__codelineno-0-571"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Dashboard port for connection. Make sure to match with the actual available port.&quot;</span><span class="p">,</span>
+</span><span id="__span-0-572"><a id="__codelineno-0-572" name="__codelineno-0-572" href="#__codelineno-0-572"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Dashboard Port&quot;</span><span class="p">,</span>
+</span><span id="__span-0-573"><a id="__codelineno-0-573" name="__codelineno-0-573" href="#__codelineno-0-573"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;integer&quot;</span>
+</span><span id="__span-0-574"><a id="__codelineno-0-574" name="__codelineno-0-574" href="#__codelineno-0-574"></a><span class="w">    </span><span class="p">},</span>
+</span><span id="__span-0-575"><a id="__codelineno-0-575" name="__codelineno-0-575" href="#__codelineno-0-575"></a><span class="w">    </span><span class="nt">&quot;env_vars&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-576"><a id="__codelineno-0-576" name="__codelineno-0-576" href="#__codelineno-0-576"></a><span class="w">      </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 </span><span id="__span-0-577"><a id="__codelineno-0-577" name="__codelineno-0-577" href="#__codelineno-0-577"></a><span class="w">        </span><span class="p">{</span>
-</span><span id="__span-0-578"><a id="__codelineno-0-578" name="__codelineno-0-578" href="#__codelineno-0-578"></a><span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
-</span><span id="__span-0-579"><a id="__codelineno-0-579" name="__codelineno-0-579" href="#__codelineno-0-579"></a><span class="w">        </span><span class="p">}</span>
-</span><span id="__span-0-580"><a id="__codelineno-0-580" name="__codelineno-0-580" href="#__codelineno-0-580"></a><span class="w">      </span><span class="p">],</span>
-</span><span id="__span-0-581"><a id="__codelineno-0-581" name="__codelineno-0-581" href="#__codelineno-0-581"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Environment variables to pass to the Ray cluster.&quot;</span><span class="p">,</span>
-</span><span id="__span-0-582"><a id="__codelineno-0-582" name="__codelineno-0-582" href="#__codelineno-0-582"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Env Vars&quot;</span>
-</span><span id="__span-0-583"><a id="__codelineno-0-583" name="__codelineno-0-583" href="#__codelineno-0-583"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-0-584"><a id="__codelineno-0-584" name="__codelineno-0-584" href="#__codelineno-0-584"></a><span class="w">    </span><span class="nt">&quot;enable_tracing&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-585"><a id="__codelineno-0-585" name="__codelineno-0-585" href="#__codelineno-0-585"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
-</span><span id="__span-0-586"><a id="__codelineno-0-586" name="__codelineno-0-586" href="#__codelineno-0-586"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable tracing: inject `RAY_PROFILING=1` and `RAY_task_events_report_interval_ms=0` into the Ray cluster configuration. This allows using `ray.timeline()` to fetch recorded task events. Learn more: [KubeRay docs](https://docs.ray.io/en/latest/ray-core/api/doc/ray.timeline.html#ray-timeline)&quot;</span><span class="p">,</span>
-</span><span id="__span-0-587"><a id="__codelineno-0-587" name="__codelineno-0-587" href="#__codelineno-0-587"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable Tracing&quot;</span><span class="p">,</span>
-</span><span id="__span-0-588"><a id="__codelineno-0-588" name="__codelineno-0-588" href="#__codelineno-0-588"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
+</span><span id="__span-0-578"><a id="__codelineno-0-578" name="__codelineno-0-578" href="#__codelineno-0-578"></a><span class="w">          </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-579"><a id="__codelineno-0-579" name="__codelineno-0-579" href="#__codelineno-0-579"></a><span class="w">            </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+</span><span id="__span-0-580"><a id="__codelineno-0-580" name="__codelineno-0-580" href="#__codelineno-0-580"></a><span class="w">          </span><span class="p">},</span>
+</span><span id="__span-0-581"><a id="__codelineno-0-581" name="__codelineno-0-581" href="#__codelineno-0-581"></a><span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
+</span><span id="__span-0-582"><a id="__codelineno-0-582" name="__codelineno-0-582" href="#__codelineno-0-582"></a><span class="w">        </span><span class="p">},</span>
+</span><span id="__span-0-583"><a id="__codelineno-0-583" name="__codelineno-0-583" href="#__codelineno-0-583"></a><span class="w">        </span><span class="p">{</span>
+</span><span id="__span-0-584"><a id="__codelineno-0-584" name="__codelineno-0-584" href="#__codelineno-0-584"></a><span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+</span><span id="__span-0-585"><a id="__codelineno-0-585" name="__codelineno-0-585" href="#__codelineno-0-585"></a><span class="w">        </span><span class="p">}</span>
+</span><span id="__span-0-586"><a id="__codelineno-0-586" name="__codelineno-0-586" href="#__codelineno-0-586"></a><span class="w">      </span><span class="p">],</span>
+</span><span id="__span-0-587"><a id="__codelineno-0-587" name="__codelineno-0-587" href="#__codelineno-0-587"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Environment variables to pass to the Ray cluster.&quot;</span><span class="p">,</span>
+</span><span id="__span-0-588"><a id="__codelineno-0-588" name="__codelineno-0-588" href="#__codelineno-0-588"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Env Vars&quot;</span>
 </span><span id="__span-0-589"><a id="__codelineno-0-589" name="__codelineno-0-589" href="#__codelineno-0-589"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-0-590"><a id="__codelineno-0-590" name="__codelineno-0-590" href="#__codelineno-0-590"></a><span class="w">    </span><span class="nt">&quot;enable_actor_task_logging&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-590"><a id="__codelineno-0-590" name="__codelineno-0-590" href="#__codelineno-0-590"></a><span class="w">    </span><span class="nt">&quot;enable_tracing&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-0-591"><a id="__codelineno-0-591" name="__codelineno-0-591" href="#__codelineno-0-591"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
-</span><span id="__span-0-592"><a id="__codelineno-0-592" name="__codelineno-0-592" href="#__codelineno-0-592"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable actor task logging: inject `RAY_ENABLE_RECORD_ACTOR_TASK_LOGGING=1` into the Ray cluster configuration.&quot;</span><span class="p">,</span>
-</span><span id="__span-0-593"><a id="__codelineno-0-593" name="__codelineno-0-593" href="#__codelineno-0-593"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable Actor Task Logging&quot;</span><span class="p">,</span>
+</span><span id="__span-0-592"><a id="__codelineno-0-592" name="__codelineno-0-592" href="#__codelineno-0-592"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable tracing: inject `RAY_PROFILING=1` and `RAY_task_events_report_interval_ms=0` into the Ray cluster configuration. This allows using `ray.timeline()` to fetch recorded task events. Learn more: [KubeRay docs](https://docs.ray.io/en/latest/ray-core/api/doc/ray.timeline.html#ray-timeline)&quot;</span><span class="p">,</span>
+</span><span id="__span-0-593"><a id="__codelineno-0-593" name="__codelineno-0-593" href="#__codelineno-0-593"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable Tracing&quot;</span><span class="p">,</span>
 </span><span id="__span-0-594"><a id="__codelineno-0-594" name="__codelineno-0-594" href="#__codelineno-0-594"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
 </span><span id="__span-0-595"><a id="__codelineno-0-595" name="__codelineno-0-595" href="#__codelineno-0-595"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-0-596"><a id="__codelineno-0-596" name="__codelineno-0-596" href="#__codelineno-0-596"></a><span class="w">    </span><span class="nt">&quot;enable_debug_post_mortem&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-596"><a id="__codelineno-0-596" name="__codelineno-0-596" href="#__codelineno-0-596"></a><span class="w">    </span><span class="nt">&quot;enable_actor_task_logging&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-0-597"><a id="__codelineno-0-597" name="__codelineno-0-597" href="#__codelineno-0-597"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
-</span><span id="__span-0-598"><a id="__codelineno-0-598" name="__codelineno-0-598" href="#__codelineno-0-598"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable post-mortem debugging: inject `RAY_DEBUG_POST_MORTEM=1` into the Ray cluster configuration. Learn more: [KubeRay docs](https://docs.ray.io/en/latest/ray-observability/ray-distributed-debugger.html)&quot;</span><span class="p">,</span>
-</span><span id="__span-0-599"><a id="__codelineno-0-599" name="__codelineno-0-599" href="#__codelineno-0-599"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable Debug Post Mortem&quot;</span><span class="p">,</span>
+</span><span id="__span-0-598"><a id="__codelineno-0-598" name="__codelineno-0-598" href="#__codelineno-0-598"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable actor task logging: inject `RAY_ENABLE_RECORD_ACTOR_TASK_LOGGING=1` into the Ray cluster configuration.&quot;</span><span class="p">,</span>
+</span><span id="__span-0-599"><a id="__codelineno-0-599" name="__codelineno-0-599" href="#__codelineno-0-599"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable Actor Task Logging&quot;</span><span class="p">,</span>
 </span><span id="__span-0-600"><a id="__codelineno-0-600" name="__codelineno-0-600" href="#__codelineno-0-600"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
 </span><span id="__span-0-601"><a id="__codelineno-0-601" name="__codelineno-0-601" href="#__codelineno-0-601"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-0-602"><a id="__codelineno-0-602" name="__codelineno-0-602" href="#__codelineno-0-602"></a><span class="w">    </span><span class="nt">&quot;enable_legacy_debugger&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-602"><a id="__codelineno-0-602" name="__codelineno-0-602" href="#__codelineno-0-602"></a><span class="w">    </span><span class="nt">&quot;enable_debug_post_mortem&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-0-603"><a id="__codelineno-0-603" name="__codelineno-0-603" href="#__codelineno-0-603"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
-</span><span id="__span-0-604"><a id="__codelineno-0-604" name="__codelineno-0-604" href="#__codelineno-0-604"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable legacy debugger: inject `RAY_DEBUG=legacy` into the Ray cluster configuration. Learn more: [KubeRay docs](https://docs.ray.io/en/latest/ray-observability/user-guides/debug-apps/ray-debugging.html#using-the-ray-debugger)&quot;</span><span class="p">,</span>
-</span><span id="__span-0-605"><a id="__codelineno-0-605" name="__codelineno-0-605" href="#__codelineno-0-605"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable Legacy Debugger&quot;</span><span class="p">,</span>
+</span><span id="__span-0-604"><a id="__codelineno-0-604" name="__codelineno-0-604" href="#__codelineno-0-604"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable post-mortem debugging: inject `RAY_DEBUG_POST_MORTEM=1` into the Ray cluster configuration. Learn more: [KubeRay docs](https://docs.ray.io/en/latest/ray-observability/ray-distributed-debugger.html)&quot;</span><span class="p">,</span>
+</span><span id="__span-0-605"><a id="__codelineno-0-605" name="__codelineno-0-605" href="#__codelineno-0-605"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable Debug Post Mortem&quot;</span><span class="p">,</span>
 </span><span id="__span-0-606"><a id="__codelineno-0-606" name="__codelineno-0-606" href="#__codelineno-0-606"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
 </span><span id="__span-0-607"><a id="__codelineno-0-607" name="__codelineno-0-607" href="#__codelineno-0-607"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-0-608"><a id="__codelineno-0-608" name="__codelineno-0-608" href="#__codelineno-0-608"></a><span class="w">    </span><span class="nt">&quot;ray_job&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-609"><a id="__codelineno-0-609" name="__codelineno-0-609" href="#__codelineno-0-609"></a><span class="w">      </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/InteractiveRayJobConfig&quot;</span><span class="p">,</span>
-</span><span id="__span-0-610"><a id="__codelineno-0-610" name="__codelineno-0-610" href="#__codelineno-0-610"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Configuration for the Kubernetes `RayJob` CR&quot;</span>
-</span><span id="__span-0-611"><a id="__codelineno-0-611" name="__codelineno-0-611" href="#__codelineno-0-611"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-0-612"><a id="__codelineno-0-612" name="__codelineno-0-612" href="#__codelineno-0-612"></a><span class="w">    </span><span class="nt">&quot;client&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-613"><a id="__codelineno-0-613" name="__codelineno-0-613" href="#__codelineno-0-613"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Kubernetes `RayJob` client&quot;</span><span class="p">,</span>
-</span><span id="__span-0-614"><a id="__codelineno-0-614" name="__codelineno-0-614" href="#__codelineno-0-614"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Client&quot;</span>
-</span><span id="__span-0-615"><a id="__codelineno-0-615" name="__codelineno-0-615" href="#__codelineno-0-615"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-0-616"><a id="__codelineno-0-616" name="__codelineno-0-616" href="#__codelineno-0-616"></a><span class="w">    </span><span class="nt">&quot;log_cluster_conditions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-617"><a id="__codelineno-0-617" name="__codelineno-0-617" href="#__codelineno-0-617"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-</span><span id="__span-0-618"><a id="__codelineno-0-618" name="__codelineno-0-618" href="#__codelineno-0-618"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Whether to log `RayCluster` conditions while waiting for the RayCluster to become ready. Learn more: [KubeRay docs](https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/observability.html#raycluster-status-conditions).&quot;</span><span class="p">,</span>
-</span><span id="__span-0-619"><a id="__codelineno-0-619" name="__codelineno-0-619" href="#__codelineno-0-619"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Log Cluster Conditions&quot;</span><span class="p">,</span>
-</span><span id="__span-0-620"><a id="__codelineno-0-620" name="__codelineno-0-620" href="#__codelineno-0-620"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
-</span><span id="__span-0-621"><a id="__codelineno-0-621" name="__codelineno-0-621" href="#__codelineno-0-621"></a><span class="w">    </span><span class="p">}</span>
-</span><span id="__span-0-622"><a id="__codelineno-0-622" name="__codelineno-0-622" href="#__codelineno-0-622"></a><span class="w">  </span><span class="p">},</span>
-</span><span id="__span-0-623"><a id="__codelineno-0-623" name="__codelineno-0-623" href="#__codelineno-0-623"></a><span class="w">  </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;KubeRayInteractiveJob&quot;</span><span class="p">,</span>
-</span><span id="__span-0-624"><a id="__codelineno-0-624" name="__codelineno-0-624" href="#__codelineno-0-624"></a><span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
-</span><span id="__span-0-625"><a id="__codelineno-0-625" name="__codelineno-0-625" href="#__codelineno-0-625"></a><span class="p">}</span>
+</span><span id="__span-0-608"><a id="__codelineno-0-608" name="__codelineno-0-608" href="#__codelineno-0-608"></a><span class="w">    </span><span class="nt">&quot;enable_legacy_debugger&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-609"><a id="__codelineno-0-609" name="__codelineno-0-609" href="#__codelineno-0-609"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+</span><span id="__span-0-610"><a id="__codelineno-0-610" name="__codelineno-0-610" href="#__codelineno-0-610"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable legacy debugger: inject `RAY_DEBUG=legacy` into the Ray cluster configuration. Learn more: [KubeRay docs](https://docs.ray.io/en/latest/ray-observability/user-guides/debug-apps/ray-debugging.html#using-the-ray-debugger)&quot;</span><span class="p">,</span>
+</span><span id="__span-0-611"><a id="__codelineno-0-611" name="__codelineno-0-611" href="#__codelineno-0-611"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable Legacy Debugger&quot;</span><span class="p">,</span>
+</span><span id="__span-0-612"><a id="__codelineno-0-612" name="__codelineno-0-612" href="#__codelineno-0-612"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
+</span><span id="__span-0-613"><a id="__codelineno-0-613" name="__codelineno-0-613" href="#__codelineno-0-613"></a><span class="w">    </span><span class="p">},</span>
+</span><span id="__span-0-614"><a id="__codelineno-0-614" name="__codelineno-0-614" href="#__codelineno-0-614"></a><span class="w">    </span><span class="nt">&quot;ray_job&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-615"><a id="__codelineno-0-615" name="__codelineno-0-615" href="#__codelineno-0-615"></a><span class="w">      </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/InteractiveRayJobConfig&quot;</span><span class="p">,</span>
+</span><span id="__span-0-616"><a id="__codelineno-0-616" name="__codelineno-0-616" href="#__codelineno-0-616"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Configuration for the Kubernetes `RayJob` CR&quot;</span>
+</span><span id="__span-0-617"><a id="__codelineno-0-617" name="__codelineno-0-617" href="#__codelineno-0-617"></a><span class="w">    </span><span class="p">},</span>
+</span><span id="__span-0-618"><a id="__codelineno-0-618" name="__codelineno-0-618" href="#__codelineno-0-618"></a><span class="w">    </span><span class="nt">&quot;client&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-619"><a id="__codelineno-0-619" name="__codelineno-0-619" href="#__codelineno-0-619"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Kubernetes `RayJob` client&quot;</span><span class="p">,</span>
+</span><span id="__span-0-620"><a id="__codelineno-0-620" name="__codelineno-0-620" href="#__codelineno-0-620"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Client&quot;</span>
+</span><span id="__span-0-621"><a id="__codelineno-0-621" name="__codelineno-0-621" href="#__codelineno-0-621"></a><span class="w">    </span><span class="p">},</span>
+</span><span id="__span-0-622"><a id="__codelineno-0-622" name="__codelineno-0-622" href="#__codelineno-0-622"></a><span class="w">    </span><span class="nt">&quot;log_cluster_conditions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-623"><a id="__codelineno-0-623" name="__codelineno-0-623" href="#__codelineno-0-623"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+</span><span id="__span-0-624"><a id="__codelineno-0-624" name="__codelineno-0-624" href="#__codelineno-0-624"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Whether to log `RayCluster` conditions while waiting for the RayCluster to become ready. Learn more: [KubeRay docs](https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/observability.html#raycluster-status-conditions).&quot;</span><span class="p">,</span>
+</span><span id="__span-0-625"><a id="__codelineno-0-625" name="__codelineno-0-625" href="#__codelineno-0-625"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Log Cluster Conditions&quot;</span><span class="p">,</span>
+</span><span id="__span-0-626"><a id="__codelineno-0-626" name="__codelineno-0-626" href="#__codelineno-0-626"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
+</span><span id="__span-0-627"><a id="__codelineno-0-627" name="__codelineno-0-627" href="#__codelineno-0-627"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-0-628"><a id="__codelineno-0-628" name="__codelineno-0-628" href="#__codelineno-0-628"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-0-629"><a id="__codelineno-0-629" name="__codelineno-0-629" href="#__codelineno-0-629"></a><span class="w">  </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;KubeRayInteractiveJob&quot;</span><span class="p">,</span>
+</span><span id="__span-0-630"><a id="__codelineno-0-630" name="__codelineno-0-630" href="#__codelineno-0-630"></a><span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
+</span><span id="__span-0-631"><a id="__codelineno-0-631" name="__codelineno-0-631" href="#__codelineno-0-631"></a><span class="p">}</span>
 </span></code></pre></div>
       </details>
     
@@ -3761,6 +3803,15 @@
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
   &lt;/span&gt; (&lt;code&gt;dagster_ray.kuberay.resources.rayjob.KubeRayInteractiveJob.deployment_name&lt;/code&gt;)" href="#dagster_ray.kuberay.resources.base.BaseKubeRayResourceConfig.deployment_name">deployment_name</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>)
+            </li>
+            <li>
+              <code><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-attribute-name&quot;&gt;failure_tolerance_timeout&lt;/span&gt;
+
+
+  &lt;span class=&quot;doc doc-labels&quot;&gt;
+      &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
+  &lt;/span&gt; (&lt;code&gt;dagster_ray.kuberay.resources.rayjob.KubeRayInteractiveJob.failure_tolerance_timeout&lt;/code&gt;)" href="#dagster_ray.kuberay.KubeRayInteractiveJob.failure_tolerance_timeout">failure_tolerance_timeout</a></code>
+                (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></code>)
             </li>
             <li>
               <code><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-attribute-name&quot;&gt;poll_interval&lt;/span&gt;
@@ -4023,6 +4074,30 @@
     <div class="doc doc-contents ">
 
         <p>Kubernetes <code>RayJob</code> client</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h5 id="dagster_ray.kuberay.KubeRayInteractiveJob.failure_tolerance_timeout" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">failure_tolerance_timeout</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+<a href="#dagster_ray.kuberay.KubeRayInteractiveJob.failure_tolerance_timeout" class="headerlink" title="Permanent link">&para;</a></h5>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">failure_tolerance_timeout</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span> <span class="o">=</span> <span class="mf">0.0</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>The period in seconds to wait for the cluster to transition out of <code>failed</code> state if it reaches it. This state can be transient under certain conditions. With the default value of 0, the first <code>failed</code> state appearance will raise an exception immediately.</p>
 
     </div>
 
@@ -4514,30 +4589,36 @@
 </span><span id="__span-0-401"><a id="__codelineno-0-401" name="__codelineno-0-401" href="#__codelineno-0-401"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Deployment Name&quot;</span><span class="p">,</span>
 </span><span id="__span-0-402"><a id="__codelineno-0-402" name="__codelineno-0-402" href="#__codelineno-0-402"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
 </span><span id="__span-0-403"><a id="__codelineno-0-403" name="__codelineno-0-403" href="#__codelineno-0-403"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-0-404"><a id="__codelineno-0-404" name="__codelineno-0-404" href="#__codelineno-0-404"></a><span class="w">    </span><span class="nt">&quot;poll_interval&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-405"><a id="__codelineno-0-405" name="__codelineno-0-405" href="#__codelineno-0-405"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
-</span><span id="__span-0-406"><a id="__codelineno-0-406" name="__codelineno-0-406" href="#__codelineno-0-406"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Poll interval for various API requests&quot;</span><span class="p">,</span>
-</span><span id="__span-0-407"><a id="__codelineno-0-407" name="__codelineno-0-407" href="#__codelineno-0-407"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Poll Interval&quot;</span><span class="p">,</span>
+</span><span id="__span-0-404"><a id="__codelineno-0-404" name="__codelineno-0-404" href="#__codelineno-0-404"></a><span class="w">    </span><span class="nt">&quot;failure_tolerance_timeout&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-405"><a id="__codelineno-0-405" name="__codelineno-0-405" href="#__codelineno-0-405"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+</span><span id="__span-0-406"><a id="__codelineno-0-406" name="__codelineno-0-406" href="#__codelineno-0-406"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The period in seconds to wait for the cluster to transition out of `failed` state if it reaches it. This state can be transient under certain conditions. With the default value of 0, the first `failed` state appearance will raise an exception immediately.&quot;</span><span class="p">,</span>
+</span><span id="__span-0-407"><a id="__codelineno-0-407" name="__codelineno-0-407" href="#__codelineno-0-407"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Failure Tolerance Timeout&quot;</span><span class="p">,</span>
 </span><span id="__span-0-408"><a id="__codelineno-0-408" name="__codelineno-0-408" href="#__codelineno-0-408"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;number&quot;</span>
 </span><span id="__span-0-409"><a id="__codelineno-0-409" name="__codelineno-0-409" href="#__codelineno-0-409"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-0-410"><a id="__codelineno-0-410" name="__codelineno-0-410" href="#__codelineno-0-410"></a><span class="w">    </span><span class="nt">&quot;ray_cluster&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-411"><a id="__codelineno-0-411" name="__codelineno-0-411" href="#__codelineno-0-411"></a><span class="w">      </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/RayClusterConfig&quot;</span><span class="p">,</span>
-</span><span id="__span-0-412"><a id="__codelineno-0-412" name="__codelineno-0-412" href="#__codelineno-0-412"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Kubernetes `RayCluster` CR configuration.&quot;</span>
-</span><span id="__span-0-413"><a id="__codelineno-0-413" name="__codelineno-0-413" href="#__codelineno-0-413"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-0-414"><a id="__codelineno-0-414" name="__codelineno-0-414" href="#__codelineno-0-414"></a><span class="w">    </span><span class="nt">&quot;client&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-415"><a id="__codelineno-0-415" name="__codelineno-0-415" href="#__codelineno-0-415"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Kubernetes `RayCluster` client&quot;</span><span class="p">,</span>
-</span><span id="__span-0-416"><a id="__codelineno-0-416" name="__codelineno-0-416" href="#__codelineno-0-416"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Client&quot;</span>
-</span><span id="__span-0-417"><a id="__codelineno-0-417" name="__codelineno-0-417" href="#__codelineno-0-417"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-0-418"><a id="__codelineno-0-418" name="__codelineno-0-418" href="#__codelineno-0-418"></a><span class="w">    </span><span class="nt">&quot;log_cluster_conditions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-419"><a id="__codelineno-0-419" name="__codelineno-0-419" href="#__codelineno-0-419"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-</span><span id="__span-0-420"><a id="__codelineno-0-420" name="__codelineno-0-420" href="#__codelineno-0-420"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Whether to log RayCluster conditions while waiting for the RayCluster to become ready. Learn more: [KubeRay docs](https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/observability.html#raycluster-status-conditions).&quot;</span><span class="p">,</span>
-</span><span id="__span-0-421"><a id="__codelineno-0-421" name="__codelineno-0-421" href="#__codelineno-0-421"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Log Cluster Conditions&quot;</span><span class="p">,</span>
-</span><span id="__span-0-422"><a id="__codelineno-0-422" name="__codelineno-0-422" href="#__codelineno-0-422"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
-</span><span id="__span-0-423"><a id="__codelineno-0-423" name="__codelineno-0-423" href="#__codelineno-0-423"></a><span class="w">    </span><span class="p">}</span>
-</span><span id="__span-0-424"><a id="__codelineno-0-424" name="__codelineno-0-424" href="#__codelineno-0-424"></a><span class="w">  </span><span class="p">},</span>
-</span><span id="__span-0-425"><a id="__codelineno-0-425" name="__codelineno-0-425" href="#__codelineno-0-425"></a><span class="w">  </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;KubeRayCluster&quot;</span><span class="p">,</span>
-</span><span id="__span-0-426"><a id="__codelineno-0-426" name="__codelineno-0-426" href="#__codelineno-0-426"></a><span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
-</span><span id="__span-0-427"><a id="__codelineno-0-427" name="__codelineno-0-427" href="#__codelineno-0-427"></a><span class="p">}</span>
+</span><span id="__span-0-410"><a id="__codelineno-0-410" name="__codelineno-0-410" href="#__codelineno-0-410"></a><span class="w">    </span><span class="nt">&quot;poll_interval&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-411"><a id="__codelineno-0-411" name="__codelineno-0-411" href="#__codelineno-0-411"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
+</span><span id="__span-0-412"><a id="__codelineno-0-412" name="__codelineno-0-412" href="#__codelineno-0-412"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Poll interval for various API requests&quot;</span><span class="p">,</span>
+</span><span id="__span-0-413"><a id="__codelineno-0-413" name="__codelineno-0-413" href="#__codelineno-0-413"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Poll Interval&quot;</span><span class="p">,</span>
+</span><span id="__span-0-414"><a id="__codelineno-0-414" name="__codelineno-0-414" href="#__codelineno-0-414"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;number&quot;</span>
+</span><span id="__span-0-415"><a id="__codelineno-0-415" name="__codelineno-0-415" href="#__codelineno-0-415"></a><span class="w">    </span><span class="p">},</span>
+</span><span id="__span-0-416"><a id="__codelineno-0-416" name="__codelineno-0-416" href="#__codelineno-0-416"></a><span class="w">    </span><span class="nt">&quot;ray_cluster&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-417"><a id="__codelineno-0-417" name="__codelineno-0-417" href="#__codelineno-0-417"></a><span class="w">      </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/RayClusterConfig&quot;</span><span class="p">,</span>
+</span><span id="__span-0-418"><a id="__codelineno-0-418" name="__codelineno-0-418" href="#__codelineno-0-418"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Kubernetes `RayCluster` CR configuration.&quot;</span>
+</span><span id="__span-0-419"><a id="__codelineno-0-419" name="__codelineno-0-419" href="#__codelineno-0-419"></a><span class="w">    </span><span class="p">},</span>
+</span><span id="__span-0-420"><a id="__codelineno-0-420" name="__codelineno-0-420" href="#__codelineno-0-420"></a><span class="w">    </span><span class="nt">&quot;client&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-421"><a id="__codelineno-0-421" name="__codelineno-0-421" href="#__codelineno-0-421"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Kubernetes `RayCluster` client&quot;</span><span class="p">,</span>
+</span><span id="__span-0-422"><a id="__codelineno-0-422" name="__codelineno-0-422" href="#__codelineno-0-422"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Client&quot;</span>
+</span><span id="__span-0-423"><a id="__codelineno-0-423" name="__codelineno-0-423" href="#__codelineno-0-423"></a><span class="w">    </span><span class="p">},</span>
+</span><span id="__span-0-424"><a id="__codelineno-0-424" name="__codelineno-0-424" href="#__codelineno-0-424"></a><span class="w">    </span><span class="nt">&quot;log_cluster_conditions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-425"><a id="__codelineno-0-425" name="__codelineno-0-425" href="#__codelineno-0-425"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+</span><span id="__span-0-426"><a id="__codelineno-0-426" name="__codelineno-0-426" href="#__codelineno-0-426"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Whether to log RayCluster conditions while waiting for the RayCluster to become ready. Learn more: [KubeRay docs](https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/observability.html#raycluster-status-conditions).&quot;</span><span class="p">,</span>
+</span><span id="__span-0-427"><a id="__codelineno-0-427" name="__codelineno-0-427" href="#__codelineno-0-427"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Log Cluster Conditions&quot;</span><span class="p">,</span>
+</span><span id="__span-0-428"><a id="__codelineno-0-428" name="__codelineno-0-428" href="#__codelineno-0-428"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
+</span><span id="__span-0-429"><a id="__codelineno-0-429" name="__codelineno-0-429" href="#__codelineno-0-429"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-0-430"><a id="__codelineno-0-430" name="__codelineno-0-430" href="#__codelineno-0-430"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-0-431"><a id="__codelineno-0-431" name="__codelineno-0-431" href="#__codelineno-0-431"></a><span class="w">  </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;KubeRayCluster&quot;</span><span class="p">,</span>
+</span><span id="__span-0-432"><a id="__codelineno-0-432" name="__codelineno-0-432" href="#__codelineno-0-432"></a><span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
+</span><span id="__span-0-433"><a id="__codelineno-0-433" name="__codelineno-0-433" href="#__codelineno-0-433"></a><span class="p">}</span>
 </span></code></pre></div>
       </details>
     
@@ -4665,6 +4746,15 @@
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
   &lt;/span&gt; (&lt;code&gt;dagster_ray.kuberay.resources.raycluster.KubeRayCluster.deployment_name&lt;/code&gt;)" href="#dagster_ray.kuberay.resources.base.BaseKubeRayResourceConfig.deployment_name">deployment_name</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>)
+            </li>
+            <li>
+              <code><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-attribute-name&quot;&gt;failure_tolerance_timeout&lt;/span&gt;
+
+
+  &lt;span class=&quot;doc doc-labels&quot;&gt;
+      &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
+  &lt;/span&gt; (&lt;code&gt;dagster_ray.kuberay.resources.raycluster.KubeRayCluster.failure_tolerance_timeout&lt;/code&gt;)" href="#dagster_ray.kuberay.KubeRayInteractiveJob.failure_tolerance_timeout">failure_tolerance_timeout</a></code>
+                (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></code>)
             </li>
             <li>
               <code><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-attribute-name&quot;&gt;poll_interval&lt;/span&gt;
@@ -4819,6 +4909,30 @@
     <div class="doc doc-contents ">
 
         <p>Kubernetes <code>RayCluster</code> client</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h5 id="dagster_ray.kuberay.KubeRayCluster.failure_tolerance_timeout" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">failure_tolerance_timeout</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+<a href="#dagster_ray.kuberay.KubeRayCluster.failure_tolerance_timeout" class="headerlink" title="Permanent link">&para;</a></h5>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">failure_tolerance_timeout</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span> <span class="o">=</span> <span class="mf">0.0</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>The period in seconds to wait for the cluster to transition out of <code>failed</code> state if it reaches it. This state can be transient under certain conditions. With the default value of 0, the first <code>failed</code> state appearance will raise an exception immediately.</p>
 
     </div>
 
@@ -8158,16 +8272,22 @@ Is useful when running in a local environment.</p>
 </span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Deployment Name&quot;</span><span class="p">,</span>
 </span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
 </span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">    </span><span class="nt">&quot;poll_interval&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Poll interval for various API requests&quot;</span><span class="p">,</span>
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Poll Interval&quot;</span><span class="p">,</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">    </span><span class="nt">&quot;failure_tolerance_timeout&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The period in seconds to wait for the cluster to transition out of `failed` state if it reaches it. This state can be transient under certain conditions. With the default value of 0, the first `failed` state appearance will raise an exception immediately.&quot;</span><span class="p">,</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Failure Tolerance Timeout&quot;</span><span class="p">,</span>
 </span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;number&quot;</span>
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">    </span><span class="p">}</span>
-</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="w">  </span><span class="p">},</span>
-</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="w">  </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;BaseKubeRayResourceConfig&quot;</span><span class="p">,</span>
-</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
-</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="p">}</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">    </span><span class="p">},</span>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="w">    </span><span class="nt">&quot;poll_interval&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Poll interval for various API requests&quot;</span><span class="p">,</span>
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Poll Interval&quot;</span><span class="p">,</span>
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;number&quot;</span>
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="w">  </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;BaseKubeRayResourceConfig&quot;</span><span class="p">,</span>
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="p">}</span>
 </span></code></pre></div>
       </details>
     
@@ -8191,6 +8311,15 @@ Is useful when running in a local environment.</p>
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
   &lt;/span&gt; (&lt;code&gt;dagster_ray.kuberay.resources.base.BaseKubeRayResourceConfig.deployment_name&lt;/code&gt;)" href="#dagster_ray.kuberay.resources.base.BaseKubeRayResourceConfig.deployment_name">deployment_name</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></code>)
+            </li>
+            <li>
+              <code><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-attribute-name&quot;&gt;failure_tolerance_timeout&lt;/span&gt;
+
+
+  &lt;span class=&quot;doc doc-labels&quot;&gt;
+      &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
+  &lt;/span&gt; (&lt;code&gt;dagster_ray.kuberay.resources.base.BaseKubeRayResourceConfig.failure_tolerance_timeout&lt;/code&gt;)" href="#dagster_ray.kuberay.KubeRayInteractiveJob.failure_tolerance_timeout">failure_tolerance_timeout</a></code>
+                (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></code>)
             </li>
             <li>
               <code><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-attribute-name&quot;&gt;poll_interval&lt;/span&gt;
@@ -8513,9 +8642,7 @@ Is useful when running in a local environment.</p>
 
                   <details class="quote">
                     <summary>Source code in <code>src/dagster_ray/kuberay/client/raycluster/client.py</code></summary>
-                    <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-97"> 97</a></span>
-<span class="normal"><a href="#__codelineno-0-98"> 98</a></span>
-<span class="normal"><a href="#__codelineno-0-99"> 99</a></span>
+                    <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-99"> 99</a></span>
 <span class="normal"><a href="#__codelineno-0-100">100</a></span>
 <span class="normal"><a href="#__codelineno-0-101">101</a></span>
 <span class="normal"><a href="#__codelineno-0-102">102</a></span>
@@ -8524,18 +8651,20 @@ Is useful when running in a local environment.</p>
 <span class="normal"><a href="#__codelineno-0-105">105</a></span>
 <span class="normal"><a href="#__codelineno-0-106">106</a></span>
 <span class="normal"><a href="#__codelineno-0-107">107</a></span>
-<span class="normal"><a href="#__codelineno-0-108">108</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-97"><a id="__codelineno-0-97" name="__codelineno-0-97"></a><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
-</span><span id="__span-0-98"><a id="__codelineno-0-98" name="__codelineno-0-98"></a>    <span class="bp">self</span><span class="p">,</span>
-</span><span id="__span-0-99"><a id="__codelineno-0-99" name="__codelineno-0-99"></a>    <span class="n">kube_config</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-0-100"><a id="__codelineno-0-100" name="__codelineno-0-100"></a>    <span class="n">kube_context</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-0-101"><a id="__codelineno-0-101" name="__codelineno-0-101"></a>    <span class="n">api_client</span><span class="p">:</span> <span class="n">ApiClient</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-0-102"><a id="__codelineno-0-102" name="__codelineno-0-102"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="__span-0-103"><a id="__codelineno-0-103" name="__codelineno-0-103"></a>    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="n">GROUP</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="n">VERSION</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="n">KIND</span><span class="p">,</span> <span class="n">plural</span><span class="o">=</span><span class="n">PLURAL</span><span class="p">,</span> <span class="n">api_client</span><span class="o">=</span><span class="n">api_client</span><span class="p">)</span>
-</span><span id="__span-0-104"><a id="__codelineno-0-104" name="__codelineno-0-104"></a>
-</span><span id="__span-0-105"><a id="__codelineno-0-105" name="__codelineno-0-105"></a>    <span class="c1"># these are only used because of kubectl port-forward CLI command</span>
-</span><span id="__span-0-106"><a id="__codelineno-0-106" name="__codelineno-0-106"></a>    <span class="c1"># TODO: remove kubectl usage and remove these attributes</span>
-</span><span id="__span-0-107"><a id="__codelineno-0-107" name="__codelineno-0-107"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">config_file</span> <span class="o">=</span> <span class="n">kube_config</span>
-</span><span id="__span-0-108"><a id="__codelineno-0-108" name="__codelineno-0-108"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">context</span> <span class="o">=</span> <span class="n">kube_context</span>
+<span class="normal"><a href="#__codelineno-0-108">108</a></span>
+<span class="normal"><a href="#__codelineno-0-109">109</a></span>
+<span class="normal"><a href="#__codelineno-0-110">110</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-99"><a id="__codelineno-0-99" name="__codelineno-0-99"></a><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+</span><span id="__span-0-100"><a id="__codelineno-0-100" name="__codelineno-0-100"></a>    <span class="bp">self</span><span class="p">,</span>
+</span><span id="__span-0-101"><a id="__codelineno-0-101" name="__codelineno-0-101"></a>    <span class="n">kube_config</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-102"><a id="__codelineno-0-102" name="__codelineno-0-102"></a>    <span class="n">kube_context</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-103"><a id="__codelineno-0-103" name="__codelineno-0-103"></a>    <span class="n">api_client</span><span class="p">:</span> <span class="n">ApiClient</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-104"><a id="__codelineno-0-104" name="__codelineno-0-104"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-105"><a id="__codelineno-0-105" name="__codelineno-0-105"></a>    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="n">GROUP</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="n">VERSION</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="n">KIND</span><span class="p">,</span> <span class="n">plural</span><span class="o">=</span><span class="n">PLURAL</span><span class="p">,</span> <span class="n">api_client</span><span class="o">=</span><span class="n">api_client</span><span class="p">)</span>
+</span><span id="__span-0-106"><a id="__codelineno-0-106" name="__codelineno-0-106"></a>
+</span><span id="__span-0-107"><a id="__codelineno-0-107" name="__codelineno-0-107"></a>    <span class="c1"># these are only used because of kubectl port-forward CLI command</span>
+</span><span id="__span-0-108"><a id="__codelineno-0-108" name="__codelineno-0-108"></a>    <span class="c1"># TODO: remove kubectl usage and remove these attributes</span>
+</span><span id="__span-0-109"><a id="__codelineno-0-109" name="__codelineno-0-109"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">config_file</span> <span class="o">=</span> <span class="n">kube_config</span>
+</span><span id="__span-0-110"><a id="__codelineno-0-110" name="__codelineno-0-110"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">context</span> <span class="o">=</span> <span class="n">kube_context</span>
 </span></code></pre></div></td></tr></table></div>
                   </details>
 
