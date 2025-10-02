@@ -5,6 +5,14 @@ All notable user-facing changes to `dagster-ray` will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.3.1
+
+### Added
+- A new `failure_tolerance_timeout` configuration parameter for `KubeRayInteractiveJob` and `KubeRayCluster`. It can be set to a positive value to give the cluster some time to transition out of `failed` state (which can be transient in some scenarios) before raising an error.
+
+### Fixes
+- ensure both `.head.serviceIP` and `.head.serviceName` are set on the `RayCluster` while waiting for cluster readiness
+
 ## 0.3.0
 
 This release includes massive docs improvements and drops support for Python 3.9
