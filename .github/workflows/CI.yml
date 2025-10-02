@@ -35,6 +35,7 @@ jobs:
       with:
         filters: |
           src:
+            - .github/workflows/CI.yml
             - 'src/dagster_ray/**'
             - 'tests/**'
             - 'examles/**'
@@ -43,11 +44,13 @@ jobs:
             - .pre-commit-config.yaml
             - Dockerfile
             - .dockerignore
-            - .github/workflows/CI.yml
           docs:
+            - .github/workflows/CI.yml
             - 'docs/**'
-            - uv.lock
             - mkdocs.yml
+            - 'src/dagster_ray/**'
+            - pyproject.toml
+            - uv.lock
 
   test:
     name: Test Python ${{ matrix.py }} - Ray ${{ matrix.ray }} - Dagster ${{ matrix.dagster }} - KubeRay ${{ matrix.kuberay }}
@@ -152,14 +155,9 @@ jobs:
 
   build-docs:
     name: Build Docs
-    runs-on: ${{ matrix.os }}-latest
+    runs-on: Ubuntu-latest
     needs: changes
     if: ${{ needs.changes.outputs.docs == 'true' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - Ubuntu
     steps:
       - uses: actions/checkout@v4
       - name: Install uv
@@ -167,8 +165,8 @@ jobs:
         with:
           version: 0.8.12
           enable-cache: true
-      - name: Set up Python ${{ matrix.py }}
-        run: uv python install ${{ matrix.py }} && uv python pin ${{ matrix.py }}
+      - name: Set up Python 3.10
+        run: uv python install 3.10 && uv python pin 3.10
       - name: Build Docs
         run: uv run --group docs mkdocs build --strict --clean
 
