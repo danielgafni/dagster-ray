@@ -73,8 +73,10 @@ class RayClusterEndpoints(TypedDict):  # these are ports
 
 
 class RayClusterHead(TypedDict):
-    podIP: str
-    serviceIP: str
+    podIP: NotRequired[str]
+    podName: NotRequired[str]
+    serviceIP: NotRequired[str]
+    serviceName: NotRequired[str]
 
 
 class RayClusterStatus(TypedDict):
@@ -168,12 +170,15 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
 
             if (
                 state == "ready"
-                and status.get("head")
                 and status.get("endpoints", {}).get("dashboard")
-                and status.get("head", {}).get("serviceIP")
+                and (head := status.get("head"))
+                and head.get("serviceIP")
+                and head.get("serviceName")
             ):
+                # TODO: this should return serviceName instead
+                # to support multi-cluster networking
                 logger.debug(f"RayCluster {namespace}/{name} is ready!")
-                return status["head"]["serviceIP"], status["endpoints"]  # pyright: ignore[reportTypedDictNotRequiredAccess]
+                return head["serviceIP"], status["endpoints"]  # pyright: ignore[reportTypedDictNotRequiredAccess]
 
             time.sleep(poll_interval)
         else:
