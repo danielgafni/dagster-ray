@@ -126,25 +126,22 @@ ray_cluster = KubeRayInteractiveJob(
 
 ### KubeRayCluster Alternative
 
-While [`KubeRayInteractiveJob`](../api/kuberay.md#dagster_ray.kuberay.KubeRayInteractiveJob) is recommended for most use cases, you can also use [`KubeRayCluster`](../api/kuberay.md#dagster_ray.kuberay.KubeRayCluster) for more persistent clusters:
+While [`KubeRayInteractiveJob`](../api/kuberay.md#dagster_ray.kuberay.KubeRayInteractiveJob) is recommended for most use cases, you can also use [`KubeRayCluster`](../api/kuberay.md#dagster_ray.kuberay.KubeRayCluster):
 
 ```python
 from dagster_ray.kuberay import KubeRayCluster
 from dagster_ray.kuberay.configs import RayClusterConfig
 
-# KubeRayCluster creates a persistent RayCluster CR
-ray_cluster = KubeRayCluster(
-    ray_cluster=RayClusterConfig(
-        # Cluster configuration
-        metadata={"name": "my-persistent-cluster"},
-    )
+definitions = dg.Definitions(
+    assets=[compute_sum_of_squares],
+    resources={"ray_cluster": KubeRayCluster(ray_cluster=RayClusterConfig(...))},
 )
 ```
 
 !!! note
     `KubeRayCluster` is generally a weaker alternative to `KubeRayInteractiveJob` because:
 
-    - It creates persistent clusters that may not get cleaned up properly, for example if something happens to the Dagster pod
+    - It creates persistent clusters that may not get cleaned up properly, for example if something happens to the Dagster pod (responsible for the cleanup)
     - It lacks `RayJob`'s features such as timeouts and existing cluster selection
 
 ## PipesKubeRayJobClient
