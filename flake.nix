@@ -32,10 +32,9 @@
           pkgs.glib
           pkgs.python310
         ];
-        UV_PYTHON = "${python}/bin/python";
+        # UV_PYTHON = "${python}/bin/python";
         shellHook = ''
-          uv venv --allow-existing
-          uv sync --frozen --all-extras --all-groups
+          uv python pin 3.10
         '';
       };
     };

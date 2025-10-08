@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import os
 from collections.abc import Mapping
 from typing import Any, Literal
@@ -289,3 +287,44 @@ class RayJobConfig(dg.Config):
                 env_vars=env_vars,
             ),
         }
+
+
+class MatchDagsterLabels(dg.Config):
+    cluster_sharing: bool = Field(default=True, description="Whether to match on `dagster/cluster-sharing=true` label.")
+    code_location: bool = Field(
+        default=True,
+        description="Whether to match on `dagster/code-location` label. The value will be taken from the current Dagster code location.",
+    )
+    resource_key: bool = Field(
+        default=True,
+        description="Whether to match on `dagster/resource-key` label. The value will be taken from the current Dagster resource key.",
+    )
+    commit_sha: bool = Field(
+        default=True,
+        description="Whether to match on `dagster/commit-sha` label. The value will be taken from `DAGSTER_CLOUD_GIT_SHA` environment variable.",
+    )  # TODO: we really should have common env vars for this, not just Dagster Plus specific
+    run_id: bool = Field(
+        default=False,
+        description="Whether to match on `dagster/run-id` label. The value will be taken from the current Dagster run ID.",
+    )
+
+
+DEFAULT_CLUSTER_SHARING_TTL_SECONDS = 60 * 60.0
+
+
+class ClusterSharing(dg.Config):
+    """Defines the strategy for sharing `RayCluster` resources with other Dagster steps.
+
+    By default, the cluster is expected to be created by Dagster during one of the previously executed steps."""
+
+    enabled: bool = Field(default=False, description="Whether to enable sharing of RayClusters.")
+    match_dagster_labels: MatchDagsterLabels = Field(
+        default_factory=MatchDagsterLabels, description="Configuration for matching on Dagster-generated labels."
+    )
+    match_labels: dict[str, str] | None = Field(
+        default=None, description="Additional user-provided labels to match on."
+    )
+    ttl_seconds: float = Field(
+        default=DEFAULT_CLUSTER_SHARING_TTL_SECONDS,
+        description="Time to live for the lock placed on the `RayCluster` resource, marking it as in use by the current Dagster step.",
+    )

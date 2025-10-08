@@ -13,6 +13,7 @@ def get_dagster_tags(
     Returns a dictionary with common Dagster tags.
     """
     assert context.dagster_run is not None
+    assert context.dagster_run.step_keys_to_execute is not None
 
     labels: dict[str, str] = {
         "dagster/deployment": DEFAULT_DEPLOYMENT_NAME,  # TODO: this should come from extra_tags,
@@ -33,5 +34,9 @@ def get_dagster_tags(
         labels.update(
             **context.run.dagster_execution_info,
         )
+
+    step_keys = context.dagster_run.step_keys_to_execute
+    if step_keys is not None and len(step_keys) == 1:
+        labels["dagster/step-key"] = step_keys[0]
 
     return labels

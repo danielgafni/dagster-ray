@@ -1,6 +1,6 @@
-from dagster_ray.kuberay.configs import RayClusterConfig, RayClusterSpec, RayJobConfig, RayJobSpec
-from dagster_ray.kuberay.jobs import cleanup_kuberay_clusters, delete_kuberay_clusters
-from dagster_ray.kuberay.ops import cleanup_kuberay_clusters_op, delete_kuberay_clusters_op
+from dagster_ray.kuberay.configs import ClusterSharing, RayClusterConfig, RayClusterSpec, RayJobConfig, RayJobSpec
+from dagster_ray.kuberay.jobs import delete_kuberay_clusters
+from dagster_ray.kuberay.ops import delete_kuberay_clusters_op
 from dagster_ray.kuberay.pipes import PipesKubeRayJobClient
 from dagster_ray.kuberay.resources import (
     KubeRayCluster,
@@ -8,21 +8,20 @@ from dagster_ray.kuberay.resources import (
     KubeRayInteractiveJob,
     KubeRayJobClientResource,
 )
-from dagster_ray.kuberay.schedules import cleanup_kuberay_clusters_daily
+from dagster_ray.kuberay.sensors import cleanup_expired_kuberay_clusters
 
 __all__ = [
     "KubeRayCluster",
     "RayClusterConfig",
     "KubeRayClusterClientResource",
     "PipesKubeRayJobClient",
-    "cleanup_kuberay_clusters",
     "delete_kuberay_clusters",
-    "cleanup_kuberay_clusters_op",
     "delete_kuberay_clusters_op",
-    "cleanup_kuberay_clusters_daily",
+    "cleanup_expired_kuberay_clusters",
     "RayClusterSpec",
     "RayJobConfig",
     "RayJobSpec",
     "KubeRayInteractiveJob",
     "KubeRayJobClientResource",
+    "ClusterSharing",
 ]
