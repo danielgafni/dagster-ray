@@ -120,9 +120,9 @@ class KubeRayCluster(BaseKubeRayResourceConfig, RayResource):
             matching_clusters = self.client.list(
                 label_selector=label_selector,
                 namespace=self.namespace,
-            )
-            if matching_clusters and (clusters := matching_clusters.get("items", [])):
-                cluster_name = clusters[0]["metadata"]["name"]
+            ).get("items", [])
+            if matching_clusters:
+                cluster_name = matching_clusters[0]["metadata"]["name"]
                 context.log.info(
                     f"Found {len(matching_clusters)} clusters matching the label selector. Using the first one: {cluster_name}"
                 )
