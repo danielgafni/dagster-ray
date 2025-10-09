@@ -101,6 +101,7 @@ path = "src/dagster_ray/_version.py"
 addopts = "-vvv --capture=no --log-disable=faker"
 log_cli = true
 log_level = "INFO"
+pythonpath = ["."]  # adds current directory to PYTHONPATH so `tests` can be imported
 
 [tool.ruff]
 target-version = "py310"

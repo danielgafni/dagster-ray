@@ -7,6 +7,7 @@ import dagster as dg
 from pydantic import Field
 
 USER_DEFINED_RAY_KEY = "dagster-ray/config"
+DAGSTER_RAY_NAMESPACES_ENV_VAR = "DAGSTER_RAY_NAMESPACES"
 
 
 class Lifecycle(dg.Config):

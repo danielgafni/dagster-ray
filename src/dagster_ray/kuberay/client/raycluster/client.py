@@ -19,7 +19,7 @@ import urllib3
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 from typing_extensions import NotRequired
 
-from dagster_ray.kuberay.client.base import BaseKubeRayClient
+from dagster_ray.kuberay.client.base import BaseKubeRayClient, load_kubeconfig
 
 logger = logging.getLogger(__name__)
 
@@ -106,8 +106,11 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
 
         # these are only used because of kubectl port-forward CLI command
         # TODO: remove kubectl usage and remove these attributes
-        self.config_file = kube_config
-        self.context = kube_context
+        self.kube_config = kube_config
+        self.kube_context = kube_context
+
+    def load_kubeconfig(self):
+        load_kubeconfig(context=self.kube_context, config_file=self.kube_config)
 
     def wait_until_ready(
         self,
@@ -222,11 +225,11 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
             f"{local_gcs_port}:10001",
         ]
 
-        if self.context:
-            cmd.extend(["--context", self.context])
+        if self.kube_context:
+            cmd.extend(["--context", self.kube_context])
 
-        if self.config_file:
-            cmd.extend(["--kubeconfig", self.config_file])
+        if self.kube_config:
+            cmd.extend(["--kubeconfig", self.kube_config])
 
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 

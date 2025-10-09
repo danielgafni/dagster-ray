@@ -48,10 +48,13 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
         # this call must happen BEFORE creating K8s apis
         load_kubeconfig(config_file=kube_config, context=kube_context)
 
-        self.config_file = kube_config
-        self.context = kube_context
+        self.kube_config = kube_config
+        self.kube_context = kube_context
 
         super().__init__(group=GROUP, version=VERSION, kind=KIND, plural=PLURAL, api_client=api_client)
+
+    def load_kubeconfig(self):
+        load_kubeconfig(context=self.kube_context, config_file=self.kube_config)
 
     def get_ray_cluster_name(self, name: str, namespace: str, timeout: float, poll_interval: float = 1.0) -> str:
         return self.get_status(name, namespace, timeout=timeout, poll_interval=poll_interval)["rayClusterName"]
@@ -64,7 +67,7 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
 
     @property
     def ray_cluster_client(self) -> RayClusterClient:
-        return RayClusterClient(kube_config=self.config_file, kube_context=self.context)
+        return RayClusterClient(kube_config=self.kube_config, kube_context=self.kube_context)
 
     def wait_until_ready(
         self,

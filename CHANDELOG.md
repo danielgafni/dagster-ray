@@ -5,10 +5,35 @@ All notable user-facing changes to `dagster-ray` will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+This release introduces a new feature that is very useful in dev and staging environments: cluster sharing. Cluster sharing allows reusing existing `RayCluster` resources created by previous Dagster steps. This feature enables faster iteration speed and reduces costs. It's recommended for use in dev/staging environments. It's available with `KubeRayCluster`, which is now recommended over `KubeRayInteractiveJob` for non-production environments due to increased iteration speed. By default it selects existing Ray clusters based on the following labels:
+
+- `dagster/code-location`
+- `dagster/git-sha`
+- `dagster/resource-key`
+
+This feature is opt-in and can be enabled with:
+
+
+```py
+from dagster_ray.kuberay import KubeRayCluster, ClusterSharing
+
+ray_cluster = KubeRayCluster(cluster_sharing=ClusterSharing(enabled=True))
+```
+
+### Added
+- `KubeRayCluster.cluster_sharing` parameter that controls cluster sharing behavior.
+- `dagster_ray.kuberay.sensors.cleanup_expired_shared_clusters` sensor that cleans up expired clusters. A cluster is considered expired if it doesn't hold any alive locks placed by `dagster-ray`. The lock `ttl` defaults to 1 hour and can be configured in `KubeRayCluster.cluster_sharing`
+- system `dagster/step-key` tag/label is now placed on resources
+
+### Changed
+- [:bomb: breaking] - removed `cleanup_kuberay_clusters_op` and other associated definitions in favor of `dagster_ray.kuberay.sensors.cleanup_expired_kuberay_clusters` sensor that is more flexible
+
 ## 0.3.1
 
 ### Added
-- A new `failure_tolerance_timeout` configuration parameter for `KubeRayInteractiveJob` and `KubeRayCluster`. It can be set to a positive value to give the cluster some time to transition out of `failed` state (which can be transient in some scenarios) before raising an error.
+- `failure_tolerance_timeout` configuration parameter for `KubeRayInteractiveJob` and `KubeRayCluster`. It can be set to a positive value to give the cluster some time to transition out of `failed` state (which can be transient in some scenarios) before raising an error.
 
 ### Fixes
 - ensure both `.head.serviceIP` and `.head.serviceName` are set on the `RayCluster` while waiting for cluster readiness
@@ -37,8 +62,8 @@ This release includes massive docs improvements and drops support for Python 3.9
 - [:bomb: breaking] `RayJob` and `RayCluster` clients and resources Kubernetes init parameters have been renamed to `kube_config` and `kube_context`.
 
 ### Added
-- new `enable_legacy_debugger` configuration parameter to subclasses of `RayResource`
-- new `on_exception` option for `lifecycle.cleanup` policy. It's triggered during resource setup/cleanup (including `KeyboardInterrupt`), but not by user `@op`/`@asset` code.
+- `enable_legacy_debugger` configuration parameter to subclasses of `RayResource`
+- `on_exception` option for `lifecycle.cleanup` policy. It's triggered during resource setup/cleanup (including `KeyboardInterrupt`), but not by user `@op`/`@asset` code.
 - `KubeRayInteractiveJob` now respects `lifecycle.cleanup`. It defaults to `on_exception`. Users are advised to rely on built-in `RayJob` cleanup mechanisms, such as `ttlSecondsAfterFinished` and `deletionStrategy`.
 
 ### Fixes
@@ -53,5 +78,5 @@ This release includes massive docs improvements and drops support for Python 3.9
 - `dagster-ray` now populates Kubernetes labels with more values (including some useful Dagster Cloud values such as `git-sha`)
 
 ### Added
-- `KubeRayInteractiveJob` -- a new resource that utililizes the new `InteractiveMode` for `RayJob`. It can be used to connect to Ray in Client mode -- like `KubeRayCluster` -- but gives access to `RayJob` features, such as automatic cleanup (`ttlSecondsAfterFinished`), retries (`backoffLimit`) and timeouts (`activeDeadlineSeconds`).
+- `KubeRayInteractiveJob` -- a resource that utililizes the new `InteractiveMode` for `RayJob`. It can be used to connect to Ray in Client mode -- like `KubeRayCluster` -- but gives access to `RayJob` features, such as automatic cleanup (`ttlSecondsAfterFinished`), retries (`backoffLimit`) and timeouts (`activeDeadlineSeconds`).
 - `RayResource` setup lifecycle has been overhauled: resources now has an `actions` parameter with 3 configuration options: `create`, `wait` and `connect`. The user can disable them and run `.create()`, `.wait()` and `.connect()` manually if needed.

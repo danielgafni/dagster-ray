@@ -1,9 +1,15 @@
 import logging
+import os
+import sys
 from collections.abc import Iterator
 
 import dagster as dg
 import pytest
 from _pytest.tmpdir import TempPathFactory
+from dagster._core.types.loadable_target_origin import LoadableTargetOrigin
+
+# this import only works under `pytest` because of pytest.ini_options.pythonpath setting
+from tests.utils import InProcessCodeLocationOrigin  # pyright:ignore[reportAttributeAccessIssue]
 
 logging.getLogger("alembic").setLevel(logging.WARNING)
 
@@ -24,3 +30,16 @@ def local_ray_address() -> Iterator[str]:
     yield "auto"
 
     context.disconnect()
+
+
+@pytest.fixture
+def code_location_origin() -> InProcessCodeLocationOrigin:
+    return InProcessCodeLocationOrigin(
+        loadable_target_origin=LoadableTargetOrigin(
+            executable_path=sys.executable,
+            module_name=("dagster_ray.tests.kuberay.conftest"),
+            working_directory=os.getcwd(),
+            attribute="lmao",
+        ),
+        location_name="test_location",
+    )

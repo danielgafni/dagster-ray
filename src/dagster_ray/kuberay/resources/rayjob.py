@@ -7,7 +7,6 @@ from typing_extensions import override
 from dagster_ray._base.resources import RayResource
 from dagster_ray.configs import Lifecycle
 from dagster_ray.kuberay.client import RayJobClient
-from dagster_ray.kuberay.client.base import load_kubeconfig
 from dagster_ray.kuberay.configs import RayJobConfig, RayJobSpec
 from dagster_ray.kuberay.resources.base import BaseKubeRayResourceConfig
 from dagster_ray.kuberay.utils import normalize_k8s_label_values
@@ -21,14 +20,15 @@ if TYPE_CHECKING:
 
 
 class KubeRayJobClientResource(dg.ConfigurableResource[RayJobClient]):
-    """This configurable resource provides a `dagster_ray.kuberay.client.RayJobClient`."""
+    """This configurable resource provides a [dagster_ray.kuberay.client.RayJobClient][]."""
 
     kube_context: str | None = None
     kube_config: str | None = None
 
     def create_resource(self, context: dg.InitResourceContext):
-        load_kubeconfig(context=self.kube_context, config_file=self.kube_config)
-        return RayJobClient(kube_context=self.kube_context, kube_config=self.kube_config)
+        client = RayJobClient(kube_context=self.kube_context, kube_config=self.kube_config)
+        client.load_kubeconfig()
+        return client
 
 
 class InteractiveRayJobSpec(RayJobSpec):
