@@ -24,7 +24,6 @@ class KubeRayClusterClientResource(dg.ConfigurableResource[RayClusterClient]):
 
     def create_resource(self, context: dg.InitResourceContext) -> RayClusterClient:
         client = RayClusterClient(kube_context=self.kube_context, kube_config=self.kube_config)
-        client.load_kubeconfig()
         return client
 
 
