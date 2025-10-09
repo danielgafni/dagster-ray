@@ -102,15 +102,14 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
         kube_context: str | None = None,
         api_client: ApiClient | None = None,
     ) -> None:
-        super().__init__(group=GROUP, version=VERSION, kind=KIND, plural=PLURAL, api_client=api_client)
-
-        # these are only used because of kubectl port-forward CLI command
-        # TODO: remove kubectl usage and remove these attributes
         self.kube_config = kube_config
         self.kube_context = kube_context
 
-    def load_kubeconfig(self):
-        load_kubeconfig(context=self.kube_context, config_file=self.kube_config)
+        # note: this call must happen BEFORE creating the api clients
+        if api_client is None:
+            load_kubeconfig(context=self.kube_context, config_file=self.kube_config)
+
+        super().__init__(group=GROUP, version=VERSION, kind=KIND, plural=PLURAL, api_client=api_client)
 
     def wait_until_ready(
         self,
