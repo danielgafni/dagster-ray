@@ -45,6 +45,7 @@ jobs:
             - .pre-commit-config.yaml
             - Dockerfile
             - .dockerignore
+            - scripts/generate_test_matrix.py
           docs:
             - .github/workflows/CI.yml
             - 'docs/**'
@@ -53,32 +54,35 @@ jobs:
             - pyproject.toml
             - uv.lock
 
+  generate-matrix:
+    name: Generate Test Matrix
+    runs-on: ubuntu-latest
+    needs: changes
+    if: ${{ needs.changes.outputs.src == 'true' }}
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: 0.8.12
+          enable-cache: true
+      - name: Generate matrix
+        id: set-matrix
+        run: |
+          uv run scripts/generate_test_matrix.py --dry-run
+          MATRIX=$(uv run scripts/generate_test_matrix.py)
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+
   test:
     name: Test Python ${{ matrix.py }} - Ray ${{ matrix.ray }} - Dagster ${{ matrix.dagster }} - KubeRay ${{ matrix.kuberay }}
     runs-on: ${{ matrix.os }}-latest
-    needs: changes
+    needs: [changes, generate-matrix]
     if: ${{ needs.changes.outputs.src == 'true' }}
     strategy:
       fail-fast: false
-      matrix:
-        os:
-          - Ubuntu
-        py:
-          - "3.12"
-          - "3.11"
-          - "3.10"
-        ray:
-          - "2.49.2"
-          - "2.46.0"
-        dagster:
-          - "1.11.13"
-          - "1.11.6"
-          - "1.11.1"
-          - "1.10.21"
-        kuberay:
-          - "1.4.0"
-          - "1.3.0"
-          - "1.2.2"
+      matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
       - uses: azure/setup-helm@v4.3.0
@@ -97,16 +101,13 @@ jobs:
       - name: Set up Python ${{ matrix.py }}
         run: uv python install ${{ matrix.py }} && uv python pin ${{ matrix.py }} && uv venv --python ${{ matrix.py }}
       - name: Override ray==${{ matrix.ray }} dagster==${{ matrix.dagster }}
-        id: override
-        run: (python scripts/check_deps.py --python ${{ matrix.py }} --dagster ${{ matrix.dagster }} --ray ${{ matrix.ray }} && uv add --no-sync "ray[all]==${{ matrix.ray }}" "dagster==${{ matrix.dagster }}") || echo SKIP=1 >> $GITHUB_OUTPUT
+        run: uv add --no-sync "ray[all]==${{ matrix.ray }}" "dagster==${{ matrix.dagster }}"
       - name: Install dependencies
         run: uv sync --all-extras --dev
-        if: ${{ steps.override.outputs.SKIP != '1' }}
       - name: Run tests
         env:
           PYTEST_KUBERAY_VERSIONS: "${{ matrix.kuberay }}"
         run: uv run pytest -v .
-        if: ${{ steps.override.outputs.SKIP != '1' }}
 
   lint:
     name: Lint ${{ matrix.py }}

@@ -173,7 +173,8 @@ reportOverlappingOverload = true
 
 include = [
     "src",
-    "tests"
+    "tests",
+    "scripts",
 ]
 exclude = [
     ".bzr",
