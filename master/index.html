@@ -1040,6 +1040,7 @@
 <li><strong>📡 Dagster Pipes Integration</strong>: Submit external scripts as Ray jobs, stream back logs and rich Dagster metadata</li>
 <li><strong>☸️ KubeRay Support</strong>: Utilize <code>RayJob</code> and <code>RayCluster</code> custom resources in client or job submission mode (<a href="tutorial/kuberay/">tutorial</a>)</li>
 <li><strong>🏭 Production Ready</strong>: Tested against a matrix of core dependencies, integrated with Dagster+</li>
+<li><strong>⚡ Instant Startup</strong>: Leverage <code>RayCluster</code> with cluster sharing for lightning-fast development cycles with zero cold start times</li>
 </ul>
 <h2 id="quick-start">⚡ Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
 <h3 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h3>
@@ -1209,7 +1210,8 @@
 <p><strong>You want <code>dagster-ray</code> to handle cluster lifecycle</strong></p>
 <p><code>dagster-ray</code> supports running Ray on Kubernetes with <a href="https://docs.ray.io/en/latest/cluster/kubernetes/index.html">KubeRay</a>.</p>
 <ul>
-<li>Use <a href="api/kuberay/#dagster_ray.kuberay.KubeRayInteractiveJob"><code>KubeRayInteractiveJob</code></a> to create a <code>RayJob</code> and connect in client mode</li>
+<li>Use <a href="api/kuberay/#dagster_ray.kuberay.KubeRayInteractiveJob"><code>KubeRayInteractiveJob</code></a> to create a <code>RayJob</code> and connect in client mode (recommended for production)</li>
+<li>Use <a href="api/kuberay/#dagster_ray.kuberay.KubeRayCluster"><code>KubeRayCluster</code></a> with cluster sharing enabled to create a new <code>RayCluster</code> or immediately connect to an existing one (recommended for dev environments)</li>
 <li>Use <a href="api/kuberay/#dagster_ray.kuberay.PipesKubeRayJobClient"><code>PipesKubeRayJobClient</code></a> to submit external scripts as <code>RayJob</code></li>
 </ul>
 <div class="admonition tip">

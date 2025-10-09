@@ -1167,17 +1167,8 @@
 <p>The format is based on <a href="https://keepachangelog.com/en/1.1.0/">Keep a Changelog</a>,
 and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 <h2 id="unreleased">Unreleased<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
-<p>This release introduces a new feature that is very useful in dev and staging environments: cluster sharing. Cluster sharing allows reusing existing <code>RayCluster</code> resources created by previous Dagster steps. This feature enables faster iteration speed and reduces costs. It's recommended for use in dev/staging environments. It's available with <code>KubeRayCluster</code>, which is now recommended over <code>KubeRayInteractiveJob</code> for non-production environments due to increased iteration speed. By default it selects existing Ray clusters based on the following labels:</p>
-<ul>
-<li><code>dagster/code-location</code></li>
-<li><code>dagster/git-sha</code></li>
-<li><code>dagster/resource-key</code></li>
-</ul>
-<p>This feature is opt-in and can be enabled with:</p>
-<div class="language-py highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dagster_ray.kuberay</span><span class="w"> </span><span class="kn">import</span> <span class="n">KubeRayCluster</span><span class="p">,</span> <span class="n">ClusterSharing</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">ray_cluster</span> <span class="o">=</span> <span class="n">KubeRayCluster</span><span class="p">(</span><span class="n">cluster_sharing</span><span class="o">=</span><span class="n">ClusterSharing</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
-</span></code></pre></div>
+<p>This release introduces a new feature that is very useful in dev environments: <strong>Cluster Sharing</strong>. Cluster sharing allows reusing existing <code>RayCluster</code> resources created by previous Dagster steps. It's implemented for <code>KubeRayCluster</code> Dagster resource. This feature enables faster iteration speed and reduced infrastructure costs (at the expense of job isolation). Therefore <code>KubeRayCluster</code> is now recommended over <code>KubeRayInteractiveJob</code> for use in <strong>dev</strong> environments.</p>
+<p>Learn more in <a href="../tutorial/kuberay/#cluster-sharing">Cluster Sharing docs</a>.</p>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>KubeRayCluster.cluster_sharing</code> parameter that controls cluster sharing behavior.</li>
