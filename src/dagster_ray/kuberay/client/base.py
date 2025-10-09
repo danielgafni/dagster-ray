@@ -161,6 +161,18 @@ class BaseKubeRayClient(Generic[T_Status]):
             namespace=namespace,
         )
 
+    def update_json_patch(self, name: str, namespace: str, body: Any) -> Any:
+        data, status_code, headers = self._api.api_client.call_api(  # pyright: ignore[reportGeneralTypeIssues]
+            f"/apis/{self.group}/{self.version}/namespaces/{namespace}/{self.plural}/{name}",
+            "PATCH",
+            header_params={"Content-Type": "application/json-patch+json"},
+            body=body,
+            response_type="object",
+            _preload_content=True,
+            async_req=False,
+        )
+        return data
+
     def wait_until_exists(self, name: str, namespace: str, timeout: float = 60.0, poll_interval: float = 1.0) -> None:
         from kubernetes.client import ApiException
 

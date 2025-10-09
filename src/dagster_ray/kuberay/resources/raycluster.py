@@ -130,10 +130,16 @@ class KubeRayCluster(BaseKubeRayResourceConfig, RayResource):
 
                 # place a lock on the cluster
 
-                self.client.update(
+                self.client.update_json_patch(
                     name=cluster_name,
                     namespace=self.namespace,
-                    body={"metadata": {"annotations": self.get_sharing_lock_annotations(context)}},
+                    body=[
+                        {
+                            "op": "add",
+                            "path": "/metadata/annotations",
+                            "value": self.get_sharing_lock_annotations(context),
+                        }
+                    ],
                 )
 
                 return

@@ -179,10 +179,10 @@ class KubeRayInteractiveJob(RayResource, BaseKubeRayResourceConfig):
         ray_context = super().connect(context)
 
         # now point the RayJob at our ray job
-        self.client.update(
+        self.client.update_json_patch(
             name=self.name,
             namespace=self.namespace,
-            body={"spec": {"jobId": self.runtime_job_id}},
+            body=[{"op": "replace", "path": "/spec/jobId", "value": self.runtime_job_id}],
         )
 
         return ray_context
