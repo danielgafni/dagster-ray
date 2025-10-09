@@ -26,6 +26,7 @@
 - **📡 Dagster Pipes Integration**: Submit external scripts as Ray jobs, stream back logs and rich Dagster metadata
 - **☸️ KubeRay Support**: Utilize `RayJob` and `RayCluster` custom resources in client or job submission mode ([tutorial](tutorial/kuberay.md))
 - **🏭 Production Ready**: Tested against a matrix of core dependencies, integrated with Dagster+
+- **⚡ Instant Startup**: Leverage `RayCluster` with cluster sharing for lightning-fast development cycles with zero cold start times
 
 ## ⚡ Quick Start
 
@@ -142,7 +143,8 @@ Learn more by reading the [tutorials](tutorial/index.md).
 
     `dagster-ray` supports running Ray on Kubernetes with [KubeRay](https://docs.ray.io/en/latest/cluster/kubernetes/index.html).
 
-    - Use [`KubeRayInteractiveJob`](api/kuberay.md#dagster_ray.kuberay.KubeRayInteractiveJob) to create a `RayJob` and connect in client mode
+    - Use [`KubeRayInteractiveJob`](api/kuberay.md#dagster_ray.kuberay.KubeRayInteractiveJob) to create a `RayJob` and connect in client mode (recommended for production)
+    - Use [`KubeRayCluster`](api/kuberay.md#dagster_ray.kuberay.KubeRayCluster) with cluster sharing enabled to create a new `RayCluster` or immediately connect to an existing one (recommended for dev environments)
     - Use [`PipesKubeRayJobClient`](api/kuberay.md#dagster_ray.kuberay.PipesKubeRayJobClient) to submit external scripts as `RayJob`
 
     !!! tip

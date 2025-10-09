@@ -23,6 +23,7 @@ These resources initialize Ray client connection with a remote cluster.
     options:
       members:
         - "__init__"
+        - "cluster_sharing"
         - "lifecycle"
         - "ray_cluster"
         - "client"
@@ -90,6 +91,16 @@ These resources initialize Ray client connection with a remote cluster.
       inherited_members: true
       members: true
 
+::: dagster_ray.kuberay.configs.MatchDagsterLabels
+    options:
+      inherited_members: true
+      members: true
+
+::: dagster_ray.kuberay.configs.ClusterSharing
+    options:
+      inherited_members: true
+      members: true
+
 --
 
 ::: dagster_ray.kuberay.resources.base.BaseKubeRayResourceConfig
@@ -112,6 +123,20 @@ These resources initialize Ray client connection with a remote cluster.
     options:
       members:
         - "__init__"
+
+---
+
+## Sensors
+
+::: dagster_ray.kuberay.sensors.cleanup_expired_kuberay_clusters
+
+A Dagster sensor that monitors shared `RayCluster` resources created by the current code location and submits jobs to delete clusters that have expired.
+
+Selects clusters based on the following labels:
+    - `dagster/cluster-sharing=true`
+    - `dagster/code-location=<current-code-location>`
+
+By default it monitors the `ray` namespace. This can be configured by setting `DAGSTER_RAY_NAMESPACES` (accepts a comma-separated list of namespaces).
 
 ---
 

@@ -124,25 +124,54 @@ ray_cluster = KubeRayInteractiveJob(
 )
 ```
 
-### KubeRayCluster Alternative
+## KubeRayCluster
 
-While [`KubeRayInteractiveJob`](../api/kuberay.md#dagster_ray.kuberay.KubeRayInteractiveJob) is recommended for most use cases, you can also use [`KubeRayCluster`](../api/kuberay.md#dagster_ray.kuberay.KubeRayCluster):
+While [`KubeRayInteractiveJob`](../api/kuberay.md#dagster_ray.kuberay.KubeRayInteractiveJob) is recommended for production environments, [`KubeRayCluster`](../api/kuberay.md#dagster_ray.kuberay.KubeRayCluster) might be better alternative for dev environments.
+
+Unlike `KubeRayInteractiveJob`, which can outsource garbage collection to the KubeRay controller, `KubeRayCluster` is entirely responsible for cluster management. This is bad for production environments (may result in dangling `RayCluster` instances if the Dagster step pod fails unexpectedly), but good for dev environments, because it allows `dagster-ray` to implement **cluster sharing**.
+
+### Cluster Sharing
+
+With cluster sharing, `dagster-ray` can reuse existing `RayCluster` instances left from previous Dagster steps, making `KubeRayCluster` startup immediate.
+
+Therefore, `KubeRayCluster` is a good choice for dev environments as it can speed up iteration cycles and reduce infrastructure costs at the cost of lower job isolation/stability.
+
+Cluster sharing has to be enabled explicitly.
 
 ```python
 from dagster_ray.kuberay import KubeRayCluster
-from dagster_ray.kuberay.configs import RayClusterConfig
+from dagster_ray.kuberay.configs import RayClusterConfig, ClusterSharing
 
-definitions = dg.Definitions(
-    assets=[compute_sum_of_squares],
-    resources={"ray_cluster": KubeRayCluster(ray_cluster=RayClusterConfig(...))},
+ray_cluster = KubeRayCluster(
+    ray_cluster=RayClusterConfig(
+        cluster_sharing=ClusterSharing(enabled=True, ttl_seconds=3600)
+    )
 )
 ```
 
-!!! note
-    `KubeRayCluster` is generally a weaker alternative to `KubeRayInteractiveJob` because:
+When enabled, `dagster-ray` will use configured user-provided and dagster-generated labels to select appropriate clusters from all the existing ones. By default `dagster-ray` will match on the following labels:
 
-    - It creates persistent clusters that may not get cleaned up properly, for example if something happens to the Dagster pod (responsible for the cleanup)
-    - It lacks `RayJob`'s features such as timeouts and existing cluster selection
+- `dagster/cluster-sharing`
+- `dagster/code-location`
+- `dagster/git-sha`
+- `dagster/resource-key`
+
+Configuration options for cluster sharing can be found [here](../api/kuberay.md#dagster_ray.kuberay.KubeRayCluster.cluster_sharing).
+
+### Shared Clusters Garbage Collection
+
+If a `RayCluster` has active locks from other Dagster steps, the `KubeRayCluster` resource that manages it won't clean it up, so such clusters will remain after the Dagster step completes. `dagster-ray` provides a sensor to perform garbage collection on these clusters once the locks on them finally expire:
+
+```py
+import dagster as dg
+from dagster_ray.kuberay import cleanup_expired_rayclusters
+
+defs = dg.Definitions(
+    sensors=[cleanup_expired_rayclusters],
+)
+```
+
+The sensor monitors clusters with `dagster/cluster-sharing=true` and matching `dagster/code-location` labels. It's recommended to use this sensor when enabling cluster sharing.
 
 ## PipesKubeRayJobClient
 
