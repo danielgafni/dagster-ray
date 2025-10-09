@@ -732,6 +732,39 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#unreleased" class="md-nav__link">
+    <span class="md-ellipsis">
+      Unreleased
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Unreleased">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added" class="md-nav__link">
+    <span class="md-ellipsis">
+      Added
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      Changed
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#031" class="md-nav__link">
     <span class="md-ellipsis">
       0.3.1
@@ -742,7 +775,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#added" class="md-nav__link">
+  <a href="#added_1" class="md-nav__link">
     <span class="md-ellipsis">
       Added
     </span>
@@ -823,7 +856,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#changed" class="md-nav__link">
+  <a href="#changed_1" class="md-nav__link">
     <span class="md-ellipsis">
       Changed
     </span>
@@ -832,7 +865,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#added_1" class="md-nav__link">
+  <a href="#added_2" class="md-nav__link">
     <span class="md-ellipsis">
       Added
     </span>
@@ -865,7 +898,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#changed_1" class="md-nav__link">
+  <a href="#changed_2" class="md-nav__link">
     <span class="md-ellipsis">
       Changed
     </span>
@@ -874,7 +907,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#added_2" class="md-nav__link">
+  <a href="#added_3" class="md-nav__link">
     <span class="md-ellipsis">
       Added
     </span>
@@ -922,6 +955,39 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#unreleased" class="md-nav__link">
+    <span class="md-ellipsis">
+      Unreleased
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Unreleased">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added" class="md-nav__link">
+    <span class="md-ellipsis">
+      Added
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      Changed
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#031" class="md-nav__link">
     <span class="md-ellipsis">
       0.3.1
@@ -932,7 +998,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#added" class="md-nav__link">
+  <a href="#added_1" class="md-nav__link">
     <span class="md-ellipsis">
       Added
     </span>
@@ -1013,7 +1079,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#changed" class="md-nav__link">
+  <a href="#changed_1" class="md-nav__link">
     <span class="md-ellipsis">
       Changed
     </span>
@@ -1022,7 +1088,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#added_1" class="md-nav__link">
+  <a href="#added_2" class="md-nav__link">
     <span class="md-ellipsis">
       Added
     </span>
@@ -1055,7 +1121,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#changed_1" class="md-nav__link">
+  <a href="#changed_2" class="md-nav__link">
     <span class="md-ellipsis">
       Changed
     </span>
@@ -1064,7 +1130,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#added_2" class="md-nav__link">
+  <a href="#added_3" class="md-nav__link">
     <span class="md-ellipsis">
       Added
     </span>
@@ -1100,10 +1166,32 @@
 <p>All notable user-facing changes to <code>dagster-ray</code> will be documented in this file.</p>
 <p>The format is based on <a href="https://keepachangelog.com/en/1.1.0/">Keep a Changelog</a>,
 and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
-<h2 id="031">0.3.1<a class="headerlink" href="#031" title="Permanent link">&para;</a></h2>
+<h2 id="unreleased">Unreleased<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
+<p>This release introduces a new feature that is very useful in dev and staging environments: cluster sharing. Cluster sharing allows reusing existing <code>RayCluster</code> resources created by previous Dagster steps. This feature enables faster iteration speed and reduces costs. It's recommended for use in dev/staging environments. It's available with <code>KubeRayCluster</code>, which is now recommended over <code>KubeRayInteractiveJob</code> for non-production environments due to increased iteration speed. By default it selects existing Ray clusters based on the following labels:</p>
+<ul>
+<li><code>dagster/code-location</code></li>
+<li><code>dagster/git-sha</code></li>
+<li><code>dagster/resource-key</code></li>
+</ul>
+<p>This feature is opt-in and can be enabled with:</p>
+<div class="language-py highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dagster_ray.kuberay</span><span class="w"> </span><span class="kn">import</span> <span class="n">KubeRayCluster</span><span class="p">,</span> <span class="n">ClusterSharing</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">ray_cluster</span> <span class="o">=</span> <span class="n">KubeRayCluster</span><span class="p">(</span><span class="n">cluster_sharing</span><span class="o">=</span><span class="n">ClusterSharing</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+</span></code></pre></div>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
-<li>A new <code>failure_tolerance_timeout</code> configuration parameter for <code>KubeRayInteractiveJob</code> and <code>KubeRayCluster</code>. It can be set to a positive value to give the cluster some time to transition out of <code>failed</code> state (which can be transient in some scenarios) before raising an error.</li>
+<li><code>KubeRayCluster.cluster_sharing</code> parameter that controls cluster sharing behavior.</li>
+<li><code>dagster_ray.kuberay.sensors.cleanup_expired_shared_clusters</code> sensor that cleans up expired clusters. A cluster is considered expired if it doesn't hold any alive locks placed by <code>dagster-ray</code>. The lock <code>ttl</code> defaults to 1 hour and can be configured in <code>KubeRayCluster.cluster_sharing</code></li>
+<li>system <code>dagster/step-key</code> tag/label is now placed on resources</li>
+</ul>
+<h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[<img alt="💣" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f4a3.svg" title=":bomb:" /> breaking] - removed <code>cleanup_kuberay_clusters_op</code> and other associated definitions in favor of <code>dagster_ray.kuberay.sensors.cleanup_expired_kuberay_clusters</code> sensor that is more flexible</li>
+</ul>
+<h2 id="031">0.3.1<a class="headerlink" href="#031" title="Permanent link">&para;</a></h2>
+<h3 id="added_1">Added<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>failure_tolerance_timeout</code> configuration parameter for <code>KubeRayInteractiveJob</code> and <code>KubeRayCluster</code>. It can be set to a positive value to give the cluster some time to transition out of <code>failed</code> state (which can be transient in some scenarios) before raising an error.</li>
 </ul>
 <h3 id="fixes">Fixes<a class="headerlink" href="#fixes" title="Permanent link">&para;</a></h3>
 <ul>
@@ -1122,17 +1210,17 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <li>Fixed broken wheel on PyPI</li>
 </ul>
 <h2 id="020">0.2.0<a class="headerlink" href="#020" title="Permanent link">&para;</a></h2>
-<h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
+<h3 id="changed_1">Changed<a class="headerlink" href="#changed_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>KubeRayInteractiveJob.deletion_strategy</code> now defaults to <code>DeleteCluster</code> for both successful and failed executions. This is a reasonable default for the use case.</li>
 <li><code>KubeRayInteractiveJob.ttl_seconds_after_finished</code> now defaults to <code>600</code> seconds.</li>
 <li><code>KubeRayCluster.lifecycle.cleanup</code> now defaults to <code>always</code></li>
 <li>[<img alt="💣" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f4a3.svg" title=":bomb:" /> breaking] <code>RayJob</code> and <code>RayCluster</code> clients and resources Kubernetes init parameters have been renamed to <code>kube_config</code> and <code>kube_context</code>.</li>
 </ul>
-<h3 id="added_1">Added<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h3>
+<h3 id="added_2">Added<a class="headerlink" href="#added_2" title="Permanent link">&para;</a></h3>
 <ul>
-<li>new <code>enable_legacy_debugger</code> configuration parameter to subclasses of <code>RayResource</code></li>
-<li>new <code>on_exception</code> option for <code>lifecycle.cleanup</code> policy. It's triggered during resource setup/cleanup (including <code>KeyboardInterrupt</code>), but not by user <code>@op</code>/<code>@asset</code> code.</li>
+<li><code>enable_legacy_debugger</code> configuration parameter to subclasses of <code>RayResource</code></li>
+<li><code>on_exception</code> option for <code>lifecycle.cleanup</code> policy. It's triggered during resource setup/cleanup (including <code>KeyboardInterrupt</code>), but not by user <code>@op</code>/<code>@asset</code> code.</li>
 <li><code>KubeRayInteractiveJob</code> now respects <code>lifecycle.cleanup</code>. It defaults to <code>on_exception</code>. Users are advised to rely on built-in <code>RayJob</code> cleanup mechanisms, such as <code>ttlSecondsAfterFinished</code> and <code>deletionStrategy</code>.</li>
 </ul>
 <h3 id="fixes_2">Fixes<a class="headerlink" href="#fixes_2" title="Permanent link">&para;</a></h3>
@@ -1140,16 +1228,16 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <li>removed <code>ignore_reinit_error</code> from <code>RayResource</code> init options: it's potentially dangerous, for example in case the user has accidentally connected to another Ray cluster (including local ray) before initializing the resource.</li>
 </ul>
 <h2 id="010">0.1.0<a class="headerlink" href="#010" title="Permanent link">&para;</a></h2>
-<h3 id="changed_1">Changed<a class="headerlink" href="#changed_1" title="Permanent link">&para;</a></h3>
+<h3 id="changed_2">Changed<a class="headerlink" href="#changed_2" title="Permanent link">&para;</a></h3>
 <ul>
 <li>[<img alt="💣" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f4a3.svg" title=":bomb:" /> breaking] <code>RayResource</code>: top-level <code>skip_init</code> and <code>skip_setup</code> configuration parameters have been removed. The <code>lifecycle</code> field is the new way of configuring steps performed during resource initialization. <code>KubeRayCluster</code>'s <code>skip_cleanup</code> has been moved to <code>lifecycle</code> as well.</li>
 <li>[<img alt="💣" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f4a3.svg" title=":bomb:" /> breaking] injected <code>dagster.io/run_id</code> Kubernetes label has been renamed to <code>dagster/run-id</code>. Keys starting with <code>dagster.io/</code> have been converted to <code>dagster/</code> to match how <code>dagster-k8s</code> does it.</li>
 <li>[<img alt="💣" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f4a3.svg" title=":bomb:" /> breaking] <code>dagster_ray.kuberay</code> Configurations have been unified with KubeRay APIs.</li>
 <li><code>dagster-ray</code> now populates Kubernetes labels with more values (including some useful Dagster Cloud values such as <code>git-sha</code>)</li>
 </ul>
-<h3 id="added_2">Added<a class="headerlink" href="#added_2" title="Permanent link">&para;</a></h3>
+<h3 id="added_3">Added<a class="headerlink" href="#added_3" title="Permanent link">&para;</a></h3>
 <ul>
-<li><code>KubeRayInteractiveJob</code> -- a new resource that utililizes the new <code>InteractiveMode</code> for <code>RayJob</code>. It can be used to connect to Ray in Client mode -- like <code>KubeRayCluster</code> -- but gives access to <code>RayJob</code> features, such as automatic cleanup (<code>ttlSecondsAfterFinished</code>), retries (<code>backoffLimit</code>) and timeouts (<code>activeDeadlineSeconds</code>).</li>
+<li><code>KubeRayInteractiveJob</code> -- a resource that utililizes the new <code>InteractiveMode</code> for <code>RayJob</code>. It can be used to connect to Ray in Client mode -- like <code>KubeRayCluster</code> -- but gives access to <code>RayJob</code> features, such as automatic cleanup (<code>ttlSecondsAfterFinished</code>), retries (<code>backoffLimit</code>) and timeouts (<code>activeDeadlineSeconds</code>).</li>
 <li><code>RayResource</code> setup lifecycle has been overhauled: resources now has an <code>actions</code> parameter with 3 configuration options: <code>create</code>, <code>wait</code> and <code>connect</code>. The user can disable them and run <code>.create()</code>, <code>.wait()</code> and <code>.connect()</code> manually if needed.</li>
 </ul>
 
