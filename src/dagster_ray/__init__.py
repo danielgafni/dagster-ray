@@ -10,6 +10,7 @@ from dagster_ray.core.resources import LocalRay
 from dagster_ray.core.run_launcher import RayRunLauncher
 
 DagsterLibraryRegistry.register("dagster-ray", __version__, is_dagster_package=False)
+
 __all__ = [
     "Lifecycle",
     "RayResource",
