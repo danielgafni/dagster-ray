@@ -27,6 +27,20 @@ class VersionConfig(NamedTuple):
     dagster: str
     kuberay: str
 
+    def is_valid(self) -> bool:
+        """
+        Check if this configuration is valid based on dependency constraints.
+
+        Returns True if valid, False if the combination is incompatible.
+        """
+        # Python 3.12+ requires Ray >= 2.37.0
+        if Version(self.py) >= Version("3.12") and Version(self.ray) < Version("2.37.0"):
+            return False
+
+        # Add more validation rules here as needed
+
+        return True
+
     def with_os(self, os: str) -> "TestConfig":
         """Create a TestConfig by adding an OS to this VersionConfig."""
         return TestConfig(os=os, **self._asdict())
@@ -84,26 +98,33 @@ def generate_matrix() -> list[TestConfig]:
     latest_versions = {name: latest for name, (latest, _) in extremes.items()}
     oldest_versions = {name: oldest for name, (_, oldest) in extremes.items()}
 
-    # Generate base configurations (without OS)
+    # Generate base configurations (without OS), validating each before adding
     base_configs: set[VersionConfig] = set()
 
-    # 1. Latest everything
-    base_configs.add(VersionConfig(**latest_versions))
+    # 1. Latest everything (if valid)
+    latest_config = VersionConfig(**latest_versions)
+    if latest_config.is_valid():
+        base_configs.add(latest_config)
 
     # Track which versions have been used
     used_versions: dict[str, set[str]] = {name: {latest_versions[name]} for name in version_components}
 
-    # 2. Each non-latest version with latest of everything else
+    # 2. Each non-latest version with latest of everything else (if valid)
     for component_name, component_versions in version_components.items():
         for version in component_versions:
             if version not in used_versions[component_name]:
                 config_dict = latest_versions.copy()
                 config_dict[component_name] = version
-                base_configs.add(VersionConfig(**config_dict))
-                used_versions[component_name].add(version)
+                # Validate before adding
+                config = VersionConfig(**config_dict)
+                if config.is_valid():
+                    base_configs.add(config)
+                    used_versions[component_name].add(version)
 
-    # 3. Oldest combination (edge case)
-    base_configs.add(VersionConfig(**oldest_versions))
+    # 3. Oldest combination (if valid)
+    oldest_config = VersionConfig(**oldest_versions)
+    if oldest_config.is_valid():
+        base_configs.add(oldest_config)
 
     # Apply each base configuration to all OSes
     configs: set[TestConfig] = {version_config.with_os(os) for os in OS_VERSIONS for version_config in base_configs}

@@ -46,7 +46,6 @@ jobs:
             - Dockerfile
             - .dockerignore
             - scripts/generate_test_matrix.py
-            - scripts/check_deps.py
           docs:
             - .github/workflows/CI.yml
             - 'docs/**'
@@ -102,16 +101,13 @@ jobs:
       - name: Set up Python ${{ matrix.py }}
         run: uv python install ${{ matrix.py }} && uv python pin ${{ matrix.py }} && uv venv --python ${{ matrix.py }}
       - name: Override ray==${{ matrix.ray }} dagster==${{ matrix.dagster }}
-        id: override
-        run: (python scripts/check_deps.py --python ${{ matrix.py }} --dagster ${{ matrix.dagster }} --ray ${{ matrix.ray }} && uv add --no-sync "ray[all]==${{ matrix.ray }}" "dagster==${{ matrix.dagster }}") || echo SKIP=1 >> $GITHUB_OUTPUT
+        run: uv add --no-sync "ray[all]==${{ matrix.ray }}" "dagster==${{ matrix.dagster }}"
       - name: Install dependencies
         run: uv sync --all-extras --dev
-        if: ${{ steps.override.outputs.SKIP != '1' }}
       - name: Run tests
         env:
           PYTEST_KUBERAY_VERSIONS: "${{ matrix.kuberay }}"
         run: uv run pytest -v .
-        if: ${{ steps.override.outputs.SKIP != '1' }}
 
   lint:
     name: Lint ${{ matrix.py }}
