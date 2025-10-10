@@ -168,6 +168,7 @@ class BaseKubeRayClient(Generic[T_Status]):
             header_params={"Content-Type": "application/json-patch+json"},
             body=body,
             response_type="object",
+            auth_settings=["BearerToken"],
             _preload_content=True,
             async_req=False,
         )
