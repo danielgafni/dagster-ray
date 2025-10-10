@@ -1977,7 +1977,7 @@
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.ConfigurableResource&lt;/code&gt;" href="https://docs.dagster.io/sections/api/apidocs/dagster/resources/#dagster.ConfigurableResource">ConfigurableResource</a></code>, <code><a class="autorefs autorefs-external" title="&lt;code&gt;abc.ABC&lt;/code&gt;" href="https://docs.python.org/3/library/abc.html#abc.ABC">ABC</a></code></p>
+              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.ConfigurableResource&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/resources/#dagster.ConfigurableResource">ConfigurableResource</a></code>, <code><a class="autorefs autorefs-external" title="&lt;code&gt;abc.ABC&lt;/code&gt;" href="https://docs.python.org/3/library/abc.html#abc.ABC">ABC</a></code></p>
 
         <p>Base class for Ray Resources providing a common interface for Ray cluster management.</p>
 <p>This abstract base class defines the interface that all Ray resources must implement,
@@ -2926,7 +2926,7 @@ implementations like LocalRay or KubeRayCluster instead.</p>
 
 
 <a href="#dagster_ray.RayResource.yield_for_execution" class="headerlink" title="Permanent link">&para;</a></h5>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">yield_for_execution</span><span class="p">(</span><span class="n">context</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.InitResourceContext&lt;/code&gt;" href="https://docs.dagster.io/sections/api/apidocs/dagster/resources/#dagster.InitResourceContext">InitResourceContext</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;collections.abc.Generator&lt;/code&gt;" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Generator">Generator</a></span><span class="p">[</span><span class="n"><span title="typing_extensions.Self">Self</span></span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">yield_for_execution</span><span class="p">(</span><span class="n">context</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.InitResourceContext&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/resources/#dagster.InitResourceContext">InitResourceContext</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;collections.abc.Generator&lt;/code&gt;" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Generator">Generator</a></span><span class="p">[</span><span class="n"><span title="typing_extensions.Self">Self</span></span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -3873,13 +3873,13 @@ Provides the same interface as actual Resources.</p>
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">num_gpus</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">memory</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">resources</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">inst_data</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;dagster._serdes.ConfigurableClassData&lt;/code&gt;" href="https://docs.dagster.io/sections/api/apidocs/dagster/internals/#dagster._serdes.ConfigurableClassData">ConfigurableClassData</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">inst_data</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;dagster._serdes.ConfigurableClassData&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/internals/#dagster._serdes.ConfigurableClassData">ConfigurableClassData</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="p">)</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.launcher.RunLauncher&lt;/code&gt;" href="https://docs.dagster.io/sections/api/apidocs/dagster/internals/#dagster._core.launcher.RunLauncher">RunLauncher</a></code>, <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster._serdes.ConfigurableClass&lt;/code&gt;" href="https://docs.dagster.io/sections/api/apidocs/dagster/internals/#dagster._serdes.ConfigurableClass">ConfigurableClass</a></code></p>
+              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.launcher.RunLauncher&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/internals/#dagster._core.launcher.RunLauncher">RunLauncher</a></code>, <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster._serdes.ConfigurableClass&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/internals/#dagster._serdes.ConfigurableClass">ConfigurableClass</a></code></p>
 
 
         <p>RunLauncher that submits Dagster runs as isolated Ray jobs to a Ray cluster.</p>
@@ -4016,7 +4016,7 @@ settings using the <code>dagster-ray/config</code> tag.</p>
 
 
 <a href="#dagster_ray.core.executor.ray_executor" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">ray_executor</span><span class="p">(</span><span class="n">init_context</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.executor.init.InitExecutorContext&lt;/code&gt;" href="https://docs.dagster.io/sections/api/apidocs/dagster/internals/#dagster.InitExecutorContext">InitExecutorContext</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.executor.base.Executor&lt;/code&gt;" href="https://docs.dagster.io/sections/api/apidocs/dagster/internals/#dagster.Executor">Executor</a></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">ray_executor</span><span class="p">(</span><span class="n">init_context</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.executor.init.InitExecutorContext&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/internals/#dagster.InitExecutorContext">InitExecutorContext</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.executor.base.Executor&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/internals/#dagster.Executor">Executor</a></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents first">
@@ -4206,8 +4206,8 @@ This behavior can be disabled by setting <code>inherit_job_submission_client_fro
 <a href="#dagster_ray.core.pipes.PipesRayJobClient" class="headerlink" title="Permanent link">&para;</a></h3>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">PipesRayJobClient</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">client</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;ray.job_submission.JobSubmissionClient&lt;/code&gt;" href="https://docs.ray.io/en/latest/cluster/running-applications/job-submission/doc/ray.job_submission.JobSubmissionClient.html#ray.job_submission.JobSubmissionClient">JobSubmissionClient</a></span><span class="p">,</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">context_injector</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.pipes.client.PipesContextInjector&lt;/code&gt;" href="https://docs.dagster.io/sections/api/apidocs/dagster/pipes/#dagster.PipesContextInjector">PipesContextInjector</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">message_reader</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.pipes.client.PipesMessageReader&lt;/code&gt;" href="https://docs.dagster.io/sections/api/apidocs/dagster/pipes/#dagster.PipesMessageReader">PipesMessageReader</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">context_injector</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.pipes.client.PipesContextInjector&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/pipes/#dagster.PipesContextInjector">PipesContextInjector</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">message_reader</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.pipes.client.PipesMessageReader&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/pipes/#dagster.PipesMessageReader">PipesMessageReader</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">forward_termination</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">timeout</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span> <span class="o">=</span> <span class="mi">600</span><span class="p">,</span>
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">poll_interval</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
@@ -4216,7 +4216,7 @@ This behavior can be disabled by setting <code>inherit_job_submission_client_fro
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.PipesClient&lt;/code&gt;" href="https://docs.dagster.io/sections/api/apidocs/dagster/pipes/#dagster.PipesClient">PipesClient</a></code>, <code><span title="dagster._core.definitions.resource_annotation.TreatAsResourceParam">TreatAsResourceParam</span></code></p>
+              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.PipesClient&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/pipes/#dagster.PipesClient">PipesClient</a></code>, <code><span title="dagster._core.definitions.resource_annotation.TreatAsResourceParam">TreatAsResourceParam</span></code></p>
 
 
         <p>A <a href="https://docs.dagster.io/guides/build/external-pipelines">Pipes</a> client for running Ray jobs on remote clusters.</p>
@@ -4235,18 +4235,18 @@ This behavior can be disabled by setting <code>inherit_job_submission_client_fro
         </li>
         <li class="doc-section-item field-body">
             <b><code>context_injector</code></b>
-              (<code><span title="Optional">Optional</span>[<a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.pipes.client.PipesContextInjector&lt;/code&gt;" href="https://docs.dagster.io/sections/api/apidocs/dagster/pipes/#dagster.PipesContextInjector">PipesContextInjector</a>]</code>, default:
+              (<code><span title="Optional">Optional</span>[<a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.pipes.client.PipesContextInjector&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/pipes/#dagster.PipesContextInjector">PipesContextInjector</a>]</code>, default:
                   <code>None</code>
 )
           –
           <div class="doc-md-description">
             <p>A context injector to use to inject
-context into the Ray job. Defaults to <a class="autorefs autorefs-external" href="https://docs.dagster.io/sections/api/apidocs/dagster/pipes/#dagster.PipesEnvContextInjector"><code>PipesEnvContextInjector</code></a>.</p>
+context into the Ray job. Defaults to <a class="autorefs autorefs-external" href="https://docs.dagster.io/api/dagster/pipes/#dagster.PipesEnvContextInjector"><code>PipesEnvContextInjector</code></a>.</p>
           </div>
         </li>
         <li class="doc-section-item field-body">
             <b><code>message_reader</code></b>
-              (<code><span title="Optional">Optional</span>[<a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.pipes.client.PipesMessageReader&lt;/code&gt;" href="https://docs.dagster.io/sections/api/apidocs/dagster/pipes/#dagster.PipesMessageReader">PipesMessageReader</a>]</code>, default:
+              (<code><span title="Optional">Optional</span>[<a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.pipes.client.PipesMessageReader&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/pipes/#dagster.PipesMessageReader">PipesMessageReader</a>]</code>, default:
                   <code>None</code>
 )
           –
@@ -4503,7 +4503,7 @@ Is useful when running in a local environment.</p>
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.pipes.client.PipesMessageReader&lt;/code&gt;" href="https://docs.dagster.io/sections/api/apidocs/dagster/pipes/#dagster.PipesMessageReader">PipesMessageReader</a></code></p>
+              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.pipes.client.PipesMessageReader&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/pipes/#dagster.PipesMessageReader">PipesMessageReader</a></code></p>
 
 
 
@@ -4572,7 +4572,7 @@ Is useful when running in a local environment.</p>
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.ConfigurableIOManager&lt;/code&gt;" href="https://docs.dagster.io/sections/api/apidocs/dagster/io-managers/#dagster.ConfigurableIOManager">ConfigurableIOManager</a></code></p>
+              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.ConfigurableIOManager&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/io-managers/#dagster.ConfigurableIOManager">ConfigurableIOManager</a></code></p>
 
 
         <p>IO Manager that stores intermediate values in Ray's object store.</p>
