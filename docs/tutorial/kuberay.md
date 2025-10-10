@@ -1,6 +1,6 @@
 # Dagster + KubeRay
 
-This tutorial shows how to use dagster-ray with KubeRay to automatically manage Ray clusters on Kubernetes. KubeRay integration allows you to create and manage Ray clusters directly from your Dagster pipelines without manual cluster management.
+This tutorial explains how to use `dagster-ray` with KubeRay to automatically create and manage Ray clusters for Dagster steps.
 
 ## Prerequisites
 
@@ -149,7 +149,7 @@ ray_cluster = KubeRayCluster(
 )
 ```
 
-When enabled, `dagster-ray` will use configured user-provided and dagster-generated labels to select appropriate clusters from all the existing ones. By default `dagster-ray` will match on the following labels:
+When enabled, `dagster-ray` will use configured user-provided and dagster-generated labels to select appropriate clusters from the available ones. By default `dagster-ray` will match on the following labels:
 
 - `dagster/cluster-sharing`
 - `dagster/code-location`
