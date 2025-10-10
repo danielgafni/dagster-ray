@@ -1172,7 +1172,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>KubeRayCluster.cluster_sharing</code> parameter that controls cluster sharing behavior.</li>
-<li><code>dagster_ray.kuberay.sensors.cleanup_expired_shared_clusters</code> sensor that cleans up expired clusters. A cluster is considered expired if it doesn't hold any alive locks placed by <code>dagster-ray</code>. The lock <code>ttl</code> defaults to 1 hour and can be configured in <code>KubeRayCluster.cluster_sharing</code></li>
+<li><code>dagster_ray.kuberay.sensors.cleanup_expired_kuberay_clusters</code> sensor that cleans up expired clusters (both shared and non-shared). Learn mode in <a href="../api/kuberay/#dagster_ray.kuberay.sensors.cleanup_expired_kuberay_clusters">docs</a></li>
 <li>system <code>dagster/step-key</code> tag/label is now placed on resources</li>
 <li><code>dagster-ray</code> entry now appears in the Dagster libraries list in the web UI</li>
 </ul>
