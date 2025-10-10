@@ -7,9 +7,11 @@ import dagster as dg
 import pytest
 import ray  # noqa: TID253
 from pytest_kubernetes.providers import AClusterManager
+from tempenv import TemporaryEnvironment
 
 from dagster_ray import Lifecycle, RayResource
 from dagster_ray._base.cluster_sharing_lock import ClusterSharingLock
+from dagster_ray.configs import DAGSTER_RAY_CLUSTER_EXPIRATION_SECONDS_ENV_VAR
 from dagster_ray.kuberay import (
     KubeRayCluster,
     KubeRayClusterClientResource,
@@ -23,6 +25,8 @@ from dagster_ray.kuberay.ops import DeleteKubeRayClustersConfig, RayClusterRef
 from tests.kuberay.conftest import KUBERNETES_CONTEXT
 from tests.kuberay.utils import NAMESPACE, get_random_free_port
 from tests.utils import CodeLocationOrigin  # pyright: ignore[reportAttributeAccessIssue]
+
+TESTING_LABELS = {"dagster/code-location": "test_location"}
 
 
 def delete_shared_rayclusters(raycluster_client: RayClusterClient | KubeRayClusterClientResource):
@@ -75,7 +79,7 @@ def ray_cluster_resource(
         lifecycle=Lifecycle(connect=False),
         client=raycluster_client_resource,
         ray_cluster=RayClusterConfig(
-            metadata={"namespace": NAMESPACE},
+            metadata={"namespace": NAMESPACE, "labels": TESTING_LABELS},
             spec=RayClusterSpec(head_group_spec=head_group_spec, worker_group_specs=worker_group_specs),
         ),
         redis_port=redis_port,
@@ -90,8 +94,6 @@ def ray_cluster_resource_skip_cleanup(
     worker_group_specs: list[dict[str, Any]],
     raycluster_client_resource: KubeRayClusterClientResource,
 ) -> KubeRayCluster:
-    redis_port = get_random_free_port()
-
     return KubeRayCluster(
         image=dagster_ray_image,
         # have have to first run port-forwarding with minikube
@@ -102,10 +104,10 @@ def ray_cluster_resource_skip_cleanup(
         ),
         client=raycluster_client_resource,
         ray_cluster=RayClusterConfig(
-            metadata={"namespace": NAMESPACE},
+            metadata={"namespace": NAMESPACE, "labels": TESTING_LABELS},
             spec=RayClusterSpec(head_group_spec=head_group_spec, worker_group_specs=worker_group_specs),
         ),
-        redis_port=redis_port,
+        redis_port=get_random_free_port(),
     )
 
 
@@ -117,8 +119,6 @@ def ray_cluster_resource_skip_create(
     worker_group_specs: list[dict[str, Any]],
     raycluster_client_resource: KubeRayClusterClientResource,
 ) -> KubeRayCluster:
-    redis_port = get_random_free_port()
-
     return KubeRayCluster(
         image=dagster_ray_image,
         # have have to first run port-forwarding with minikube
@@ -126,10 +126,10 @@ def ray_cluster_resource_skip_create(
         lifecycle=Lifecycle(create=False),
         client=raycluster_client_resource,
         ray_cluster=RayClusterConfig(
-            metadata={"namespace": NAMESPACE},
+            metadata={"namespace": NAMESPACE, "labels": TESTING_LABELS},
             spec=RayClusterSpec(head_group_spec=head_group_spec, worker_group_specs=worker_group_specs),
         ),
-        redis_port=redis_port,
+        redis_port=get_random_free_port(),
     )
 
 
@@ -141,8 +141,6 @@ def ray_cluster_resource_skip_wait(
     worker_group_specs: list[dict[str, Any]],
     raycluster_client_resource: KubeRayClusterClientResource,
 ) -> KubeRayCluster:
-    redis_port = get_random_free_port()
-
     return KubeRayCluster(
         image=dagster_ray_image,
         # have have to first run port-forwarding with minikube
@@ -150,10 +148,10 @@ def ray_cluster_resource_skip_wait(
         lifecycle=Lifecycle(wait=False),
         client=raycluster_client_resource,
         ray_cluster=RayClusterConfig(
-            metadata={"namespace": NAMESPACE},
+            metadata={"namespace": NAMESPACE, "labels": TESTING_LABELS},
             spec=RayClusterSpec(head_group_spec=head_group_spec, worker_group_specs=worker_group_specs),
         ),
-        redis_port=redis_port,
+        redis_port=get_random_free_port(),
     )
 
 
@@ -318,7 +316,11 @@ def test_cleanup_expired_kuberay_clusters_sensor_skip(
         assert isinstance(item, dg.SkipReason)
 
 
-def test_cleanup_expired_kuberay_clusters_sensor_request(
+# TODO: investigate whether this could be reduced without risking on flakiness
+TESTING_CLUSTER_EXPIRATION_SECONDS = 10
+
+
+def test_cleanup_expired_kuberay_clusters_sensor_cluster_sharing_request(
     k8s_with_kuberay: AClusterManager,
     dagster_ray_image: str,
     code_location_origin: CodeLocationOrigin,
@@ -345,11 +347,11 @@ def test_cleanup_expired_kuberay_clusters_sensor_request(
         client=raycluster_client_resource,
         ray_cluster=RayClusterConfig(
             # dagster/code-location should be added manually since there is no (normal) way to set the code location name for `dg.materialize`
-            metadata={"namespace": NAMESPACE, "labels": {"dagster/code-location": "test_location"}},
+            metadata={"namespace": NAMESPACE, "labels": TESTING_LABELS},
             spec=RayClusterSpec(head_group_spec=head_group_spec, worker_group_specs=worker_group_specs),
         ),
         redis_port=get_random_free_port(),
-        cluster_sharing=ClusterSharing(enabled=True, ttl_seconds=10),
+        cluster_sharing=ClusterSharing(enabled=True, ttl_seconds=TESTING_CLUSTER_EXPIRATION_SECONDS),
     )
 
     @dg.asset
@@ -372,7 +374,7 @@ def test_cleanup_expired_kuberay_clusters_sensor_request(
     locks = ClusterSharingLock.parse_all_locks(cluster["metadata"]["annotations"])
     assert len(locks) == 1
     lock = locks[0]
-    assert lock.ttl_seconds == 10.0
+    assert lock.ttl_seconds == TESTING_CLUSTER_EXPIRATION_SECONDS
     assert not lock.is_expired
 
     # wait until the lock expires
@@ -393,6 +395,72 @@ def test_cleanup_expired_kuberay_clusters_sensor_request(
         )
 
 
+def test_cleanup_expired_kuberay_clusters_sensor_no_cluster_sharing_request(
+    code_location_origin: CodeLocationOrigin,
+    dagster_instance: dg.DagsterInstance,
+    raycluster_client: RayClusterClient,
+    head_group_spec: dict[str, Any],
+    worker_group_specs: list[dict[str, Any]],
+    dagster_ray_image: str,
+    raycluster_client_resource: KubeRayClusterClientResource,
+):
+    ray_cluster = KubeRayCluster(
+        image=dagster_ray_image,
+        lifecycle=Lifecycle(wait=False, cleanup="never"),
+        client=raycluster_client_resource,
+        ray_cluster=RayClusterConfig(
+            metadata={"namespace": NAMESPACE, "labels": TESTING_LABELS},
+            spec=RayClusterSpec(head_group_spec=head_group_spec, worker_group_specs=worker_group_specs),
+        ),
+        redis_port=get_random_free_port(),
+    )
+
+    with TemporaryEnvironment(
+        {DAGSTER_RAY_CLUSTER_EXPIRATION_SECONDS_ENV_VAR: str(int(TESTING_CLUSTER_EXPIRATION_SECONDS))}
+    ):
+        # run the sensor - it shouldn't request any runs
+        context = dg.build_sensor_context(instance=dagster_instance)
+        context._code_location_origin = code_location_origin
+        for item in cleanup_expired_kuberay_clusters(  # pyright: ignore[reportGeneralTypeIssues,reportOptionalIterable]
+            context, raycluster_client=raycluster_client
+        ):
+            assert isinstance(item, dg.SkipReason)
+
+        @dg.asset
+        def my_asset(context: dg.AssetExecutionContext, ray_cluster: RayResource):
+            return "Hello, World!"
+
+        res = dg.materialize(assets=[my_asset], resources={"ray_cluster": ray_cluster})
+        clusters = raycluster_client.list(
+            namespace=ray_cluster.namespace,
+            label_selector=f"dagster/run-id={res.run_id}",
+        )["items"]
+        assert len(clusters) == 1
+        cluster = clusters[0]
+
+        # run the sensor - it shouldn't request any runs yet
+        context = dg.build_sensor_context(instance=dagster_instance)
+        context._code_location_origin = code_location_origin
+        for item in cleanup_expired_kuberay_clusters(  # pyright: ignore[reportGeneralTypeIssues,reportOptionalIterable]
+            context, raycluster_client=raycluster_client
+        ):
+            assert isinstance(item, dg.SkipReason)
+
+        time.sleep(TESTING_CLUSTER_EXPIRATION_SECONDS)
+
+        # run the sensor - it should request a run
+        context = dg.build_sensor_context(instance=dagster_instance)
+        context._code_location_origin = code_location_origin
+        for item in cleanup_expired_kuberay_clusters(  # pyright: ignore[reportGeneralTypeIssues,reportOptionalIterable]
+            context, raycluster_client=raycluster_client
+        ):
+            assert isinstance(item, dg.RunRequest)
+            assert (
+                item.run_config["ops"]["delete_kuberay_clusters"]["config"]["clusters"][0]["name"]
+                == cluster["metadata"]["name"]
+            )
+
+
 def test_cluster_sharing(
     k8s_with_kuberay: AClusterManager,
     dagster_ray_image: str,
@@ -411,7 +479,7 @@ def test_cluster_sharing(
         lifecycle=Lifecycle(wait=False),
         client=raycluster_client_resource,
         ray_cluster=RayClusterConfig(
-            metadata={"namespace": NAMESPACE},
+            metadata={"namespace": NAMESPACE, "labels": TESTING_LABELS},
             spec=RayClusterSpec(head_group_spec=head_group_spec, worker_group_specs=worker_group_specs),
         ),
         redis_port=get_random_free_port(),
@@ -494,7 +562,7 @@ def test_cluster_sharing_cleanup_expired(
         lifecycle=Lifecycle(wait=False),
         client=raycluster_client_resource,
         ray_cluster=RayClusterConfig(
-            metadata={"namespace": NAMESPACE},
+            metadata={"namespace": NAMESPACE, "labels": TESTING_LABELS},
             spec=RayClusterSpec(head_group_spec=head_group_spec, worker_group_specs=worker_group_specs),
         ),
         redis_port=get_random_free_port(),

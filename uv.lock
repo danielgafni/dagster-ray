@@ -602,6 +602,7 @@ dev = [
     { name = "ray", extra = ["data", "default"] },
     { name = "ruff" },
     { name = "syrupy" },
+    { name = "tempenv" },
 ]
 docs = [
     { name = "griffe" },
@@ -650,6 +651,7 @@ dev = [
     { name = "ray", extras = ["default", "data"], specifier = ">=2.7.0" },
     { name = "ruff", specifier = ">=0.3.0,<1.0.0" },
     { name = "syrupy", specifier = ">=4.9.1" },
+    { name = "tempenv", specifier = ">=2.1.0" },
 ]
 docs = [
     { name = "griffe", specifier = ">=1.14.0" },
@@ -2918,6 +2920,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/ec/fe/802052aecb21e3797b8f7902564ab6ea0d60ff8ca23952079064155d1ae1/tabulate-0.9.0.tar.gz", hash = "sha256:0095b12bf5966de529c0feb1fa08671671b3368eec77d7ef7ab114be2c068b3c", size = 81090 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/40/44/4a5f08c96eb108af5cb50b41f76142f0afa346dfa99d5296fe7202a11854/tabulate-0.9.0-py3-none-any.whl", hash = "sha256:024ca478df22e9340661486f85298cff5f6dcdba14f3813e8830015b9ed1948f", size = 35252 },
+]
+
+[[package]]
+name = "tempenv"
+version = "2.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/7a/af/ac55e665dafa99311d1397b1a28c0ce289c987e3afbbd24b7a18a3084bbc/tempenv-2.1.0.tar.gz", hash = "sha256:45439419d9ff63a338af323f01d69fa20627bab94f37605ef7f47b7bc7f17b96", size = 10394 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d0/81/41ae0ee580b5436f9e9c39c537aed7cf37fc47f5fd07fe574af254235259/tempenv-2.1.0-py3-none-any.whl", hash = "sha256:eb19bec4f516e551cd0ce33b1d69993261986cfd503d09a4f2201560f9c31a4e", size = 9518 },
 ]
 
 [[package]]
