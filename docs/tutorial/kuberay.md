@@ -126,7 +126,7 @@ ray_cluster = KubeRayInteractiveJob(
 
 ## KubeRayCluster
 
-While [`KubeRayInteractiveJob`](../api/kuberay.md#dagster_ray.kuberay.KubeRayInteractiveJob) is recommended for production environments, [`KubeRayCluster`](../api/kuberay.md#dagster_ray.kuberay.KubeRayCluster) might be better alternative for dev environments.
+While [`KubeRayInteractiveJob`](../api/kuberay.md#dagster_ray.kuberay.KubeRayInteractiveJob) is recommended for production environments, [`KubeRayCluster`](../api/kuberay.md#dagster_ray.kuberay.KubeRayCluster) might be a better alternative for dev environments.
 
 Unlike `KubeRayInteractiveJob`, which can outsource garbage collection to the KubeRay controller, `KubeRayCluster` is entirely responsible for cluster management. This is bad for production environments (may result in dangling `RayCluster` instances if the Dagster step pod fails unexpectedly), but good for dev environments, because it allows `dagster-ray` to implement **cluster sharing**.
 
