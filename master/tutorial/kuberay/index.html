@@ -1098,7 +1098,7 @@
 </span><span id="__span-2-53"><a id="__codelineno-2-53" name="__codelineno-2-53" href="#__codelineno-2-53"></a><span class="p">)</span>
 </span></code></pre></div>
 <h2 id="kuberaycluster">KubeRayCluster<a class="headerlink" href="#kuberaycluster" title="Permanent link">&para;</a></h2>
-<p>While <a href="../../api/kuberay/#dagster_ray.kuberay.KubeRayInteractiveJob"><code>KubeRayInteractiveJob</code></a> is recommended for production environments, <a href="../../api/kuberay/#dagster_ray.kuberay.KubeRayCluster"><code>KubeRayCluster</code></a> might be better alternative for dev environments.</p>
+<p>While <a href="../../api/kuberay/#dagster_ray.kuberay.KubeRayInteractiveJob"><code>KubeRayInteractiveJob</code></a> is recommended for production environments, <a href="../../api/kuberay/#dagster_ray.kuberay.KubeRayCluster"><code>KubeRayCluster</code></a> might be a better alternative for dev environments.</p>
 <p>Unlike <code>KubeRayInteractiveJob</code>, which can outsource garbage collection to the KubeRay controller, <code>KubeRayCluster</code> is entirely responsible for cluster management. This is bad for production environments (may result in dangling <code>RayCluster</code> instances if the Dagster step pod fails unexpectedly), but good for dev environments, because it allows <code>dagster-ray</code> to implement <strong>cluster sharing</strong>.</p>
 <h3 id="cluster-sharing">Cluster Sharing<a class="headerlink" href="#cluster-sharing" title="Permanent link">&para;</a></h3>
 <p>With cluster sharing, <code>dagster-ray</code> can reuse existing <code>RayCluster</code> instances left from previous Dagster steps, making <code>KubeRayCluster</code> startup immediate.</p>

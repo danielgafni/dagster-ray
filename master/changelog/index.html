@@ -1172,12 +1172,12 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>KubeRayCluster.cluster_sharing</code> parameter that controls cluster sharing behavior.</li>
-<li><code>dagster_ray.kuberay.sensors.cleanup_expired_kuberay_clusters</code> sensor that cleans up expired clusters (both shared and non-shared). Learn mode in <a href="../api/kuberay/#dagster_ray.kuberay.sensors.cleanup_expired_kuberay_clusters">docs</a></li>
-<li><code>dagster-ray</code> entry now appears in the Dagster libraries list in the web UI</li>
+<li><code>dagster_ray.kuberay.sensors.cleanup_expired_kuberay_clusters</code> sensor that cleans up expired clusters (both shared and non-shared). Learn more in <a href="../api/kuberay/#dagster_ray.kuberay.sensors.cleanup_expired_kuberay_clusters">docs</a>.</li>
+<li><code>dagster-ray</code> entry now appears in the Dagster libraries list in the web UI.</li>
 </ul>
 <h3 id="changed">Changed<a class="headerlink" href="#changed" title="Permanent link">&para;</a></h3>
 <ul>
-<li>[<img alt="💣" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f4a3.svg" title=":bomb:" /> breaking] - removed <code>cleanup_kuberay_clusters_op</code> and other associated definitions in favor of <code>dagster_ray.kuberay.sensors.cleanup_expired_kuberay_clusters</code> sensor that is more flexible</li>
+<li>[<img alt="💣" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f4a3.svg" title=":bomb:" /> breaking] - removed <code>cleanup_kuberay_clusters_op</code> and other associated definitions in favor of <code>dagster_ray.kuberay.sensors.cleanup_expired_kuberay_clusters</code> sensor that is more flexible.</li>
 </ul>
 <h2 id="031">0.3.1<a class="headerlink" href="#031" title="Permanent link">&para;</a></h2>
 <h3 id="added_1">Added<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h3>
@@ -1186,26 +1186,26 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 </ul>
 <h3 id="fixes">Fixes<a class="headerlink" href="#fixes" title="Permanent link">&para;</a></h3>
 <ul>
-<li>ensure both <code>.head.serviceIP</code> and <code>.head.serviceName</code> are set on the <code>RayCluster</code> while waiting for cluster readiness</li>
+<li>ensure both <code>.head.serviceIP</code> and <code>.head.serviceName</code> are set on the <code>RayCluster</code> while waiting for cluster readiness.</li>
 </ul>
 <h2 id="030">0.3.0<a class="headerlink" href="#030" title="Permanent link">&para;</a></h2>
-<p>This release includes massive docs improvements and drops support for Python 3.9</p>
+<p>This release includes massive docs improvements and drops support for Python 3.9.</p>
 <h3 id="changes">Changes<a class="headerlink" href="#changes" title="Permanent link">&para;</a></h3>
 <ul>
-<li>[<img alt="💣" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f4a3.svg" title=":bomb:" /> breaking] dropped Python 3.9 support (EOL October 2025)</li>
-<li>[internal] most of the general, backend-agnostic code has been moved to <code>dagster_ray.core</code> (top-level imports still work)</li>
+<li>[<img alt="💣" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f4a3.svg" title=":bomb:" /> breaking] dropped Python 3.9 support (EOL October 2025).</li>
+<li>[internal] most of the general, backend-agnostic code has been moved to <code>dagster_ray.core</code> (top-level imports still work).</li>
 </ul>
 <h2 id="021">0.2.1<a class="headerlink" href="#021" title="Permanent link">&para;</a></h2>
 <h3 id="fixes_1">Fixes<a class="headerlink" href="#fixes_1" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Fixed broken wheel on PyPI</li>
+<li>Fixed broken wheel on PyPI.</li>
 </ul>
 <h2 id="020">0.2.0<a class="headerlink" href="#020" title="Permanent link">&para;</a></h2>
 <h3 id="changed_1">Changed<a class="headerlink" href="#changed_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>KubeRayInteractiveJob.deletion_strategy</code> now defaults to <code>DeleteCluster</code> for both successful and failed executions. This is a reasonable default for the use case.</li>
 <li><code>KubeRayInteractiveJob.ttl_seconds_after_finished</code> now defaults to <code>600</code> seconds.</li>
-<li><code>KubeRayCluster.lifecycle.cleanup</code> now defaults to <code>always</code></li>
+<li><code>KubeRayCluster.lifecycle.cleanup</code> now defaults to <code>always</code>.</li>
 <li>[<img alt="💣" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f4a3.svg" title=":bomb:" /> breaking] <code>RayJob</code> and <code>RayCluster</code> clients and resources Kubernetes init parameters have been renamed to <code>kube_config</code> and <code>kube_context</code>.</li>
 </ul>
 <h3 id="added_2">Added<a class="headerlink" href="#added_2" title="Permanent link">&para;</a></h3>
@@ -1224,11 +1224,11 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <li>[<img alt="💣" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f4a3.svg" title=":bomb:" /> breaking] <code>RayResource</code>: top-level <code>skip_init</code> and <code>skip_setup</code> configuration parameters have been removed. The <code>lifecycle</code> field is the new way of configuring steps performed during resource initialization. <code>KubeRayCluster</code>'s <code>skip_cleanup</code> has been moved to <code>lifecycle</code> as well.</li>
 <li>[<img alt="💣" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f4a3.svg" title=":bomb:" /> breaking] injected <code>dagster.io/run_id</code> Kubernetes label has been renamed to <code>dagster/run-id</code>. Keys starting with <code>dagster.io/</code> have been converted to <code>dagster/</code> to match how <code>dagster-k8s</code> does it.</li>
 <li>[<img alt="💣" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f4a3.svg" title=":bomb:" /> breaking] <code>dagster_ray.kuberay</code> Configurations have been unified with KubeRay APIs.</li>
-<li><code>dagster-ray</code> now populates Kubernetes labels with more values (including some useful Dagster Cloud values such as <code>git-sha</code>)</li>
+<li><code>dagster-ray</code> now populates Kubernetes labels with more values (including some useful Dagster Cloud values such as <code>git-sha</code>).</li>
 </ul>
 <h3 id="added_3">Added<a class="headerlink" href="#added_3" title="Permanent link">&para;</a></h3>
 <ul>
-<li><code>KubeRayInteractiveJob</code> -- a resource that utililizes the new <code>InteractiveMode</code> for <code>RayJob</code>. It can be used to connect to Ray in Client mode -- like <code>KubeRayCluster</code> -- but gives access to <code>RayJob</code> features, such as automatic cleanup (<code>ttlSecondsAfterFinished</code>), retries (<code>backoffLimit</code>) and timeouts (<code>activeDeadlineSeconds</code>).</li>
+<li><code>KubeRayInteractiveJob</code> -- a resource that utilizes the new <code>InteractiveMode</code> for <code>RayJob</code>. It can be used to connect to Ray in Client mode -- like <code>KubeRayCluster</code> -- but gives access to <code>RayJob</code> features, such as automatic cleanup (<code>ttlSecondsAfterFinished</code>), retries (<code>backoffLimit</code>) and timeouts (<code>activeDeadlineSeconds</code>).</li>
 <li><code>RayResource</code> setup lifecycle has been overhauled: resources now has an <code>actions</code> parameter with 3 configuration options: <code>create</code>, <code>wait</code> and <code>connect</code>. The user can disable them and run <code>.create()</code>, <code>.wait()</code> and <code>.connect()</code> manually if needed.</li>
 </ul>
 
