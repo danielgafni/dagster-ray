@@ -988,7 +988,7 @@
 
 
 <h1 id="dagster-kuberay">Dagster + KubeRay<a class="headerlink" href="#dagster-kuberay" title="Permanent link">&para;</a></h1>
-<p>This tutorial shows how to use dagster-ray with KubeRay to automatically manage Ray clusters on Kubernetes. KubeRay integration allows you to create and manage Ray clusters directly from your Dagster pipelines without manual cluster management.</p>
+<p>This tutorial explains how to use <code>dagster-ray</code> with KubeRay to automatically create and manage Ray clusters for Dagster steps.</p>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
 <p>Before getting started, you'll need:</p>
 <ul>
@@ -1113,7 +1113,7 @@
 </span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    <span class="p">)</span>
 </span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="p">)</span>
 </span></code></pre></div>
-<p>When enabled, <code>dagster-ray</code> will use configured user-provided and dagster-generated labels to select appropriate clusters from all the existing ones. By default <code>dagster-ray</code> will match on the following labels:</p>
+<p>When enabled, <code>dagster-ray</code> will use configured user-provided and dagster-generated labels to select appropriate clusters from the available ones. By default <code>dagster-ray</code> will match on the following labels:</p>
 <ul>
 <li><code>dagster/cluster-sharing</code></li>
 <li><code>dagster/code-location</code></li>
