@@ -103,7 +103,7 @@ These resources initialize Ray client connection with a remote cluster.
 
 --
 
-::: dagster_ray.kuberay.resources.base.BaseKubeRayResourceConfig
+::: dagster_ray.kuberay.resources.base.BaseKubeRayResource
     options:
       members:
         - "image"

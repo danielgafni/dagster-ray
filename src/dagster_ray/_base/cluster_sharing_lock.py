@@ -10,13 +10,13 @@ logger = logging.getLogger(__name__)
 
 class ClusterSharingLock(BaseModel):
     run_id: str = Field(description="The ID of the Dagster run that placed the lock.")
-    step_key: str = Field(description="The key of the Dagster step that placed the lock.")
+    key: str = Field(description="The key of the Dagster step that placed the lock, any unique identifier.")
     created_at: datetime = Field(description="The time at which the lock was created.")
     ttl_seconds: float = Field(description="Time to live for the lock after which it's considered expired.")
 
     @property
     def identifier(self) -> str:
-        return f"{self.run_id}-{self.step_key}"
+        return f"{self.run_id}-{self.key}"
 
     @property
     def tag(self) -> str:

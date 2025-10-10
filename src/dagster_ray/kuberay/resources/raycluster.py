@@ -7,13 +7,13 @@ from pydantic import Field, PrivateAttr
 from typing_extensions import override
 
 from dagster_ray._base.cluster_sharing_lock import ClusterSharingLock
-from dagster_ray._base.resources import RayResource
 from dagster_ray.configs import Lifecycle
 from dagster_ray.kuberay.client import RayClusterClient
 from dagster_ray.kuberay.configs import ClusterSharing, RayClusterConfig
-from dagster_ray.kuberay.resources.base import BaseKubeRayResourceConfig
+from dagster_ray.kuberay.resources.base import BaseKubeRayResource
 from dagster_ray.kuberay.utils import normalize_k8s_label_values
 from dagster_ray.types import AnyDagsterContext
+from dagster_ray.utils import get_dagster_run
 
 
 class KubeRayClusterClientResource(dg.ConfigurableResource[RayClusterClient]):
@@ -27,7 +27,7 @@ class KubeRayClusterClientResource(dg.ConfigurableResource[RayClusterClient]):
         return client
 
 
-class KubeRayCluster(BaseKubeRayResourceConfig, RayResource):
+class KubeRayCluster(BaseKubeRayResource):
     """
     Provides a Ray Cluster for Dagster steps.
 
@@ -254,20 +254,14 @@ class KubeRayCluster(BaseKubeRayResourceConfig, RayResource):
         return ",".join([f"{key}={value}" for key, value in combined_match_labels.items()])
 
     def get_sharing_lock_annotations(self, context: AnyDagsterContext) -> dict[str, str]:
-        assert context.run_id is not None
-        assert context.dagster_run is not None
-
-        annotations = {}
-        if context.dagster_run.step_keys_to_execute:
-            for step_key in context.dagster_run.step_keys_to_execute:
-                lock = ClusterSharingLock(
-                    run_id=context.run_id,
-                    step_key=step_key,
-                    ttl_seconds=self.cluster_sharing.ttl_seconds,
-                    created_at=datetime.now(),
-                )
-                annotations[lock.tag] = lock.model_dump_json()
-        return annotations
+        run = get_dagster_run(context)
+        lock = ClusterSharingLock(
+            run_id=run.run_id,
+            key=self.resource_uid,
+            ttl_seconds=self.cluster_sharing.ttl_seconds,
+            created_at=datetime.now(),
+        )
+        return {lock.tag: lock.model_dump_json()}
 
     def get_cluster_sharing_alive_locks(self, context: AnyDagsterContext) -> Sequence[ClusterSharingLock]:
         locks = ClusterSharingLock.parse_all_locks(

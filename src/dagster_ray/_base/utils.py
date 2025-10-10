@@ -35,8 +35,4 @@ def get_dagster_tags(
             **context.run.dagster_execution_info,
         )
 
-    step_keys = context.dagster_run.step_keys_to_execute
-    if step_keys is not None and len(step_keys) == 1:
-        labels["dagster/step-key"] = step_keys[0]
-
     return labels

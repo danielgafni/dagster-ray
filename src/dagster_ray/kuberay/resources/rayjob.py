@@ -4,11 +4,10 @@ import dagster as dg
 from pydantic import Field, PrivateAttr
 from typing_extensions import override
 
-from dagster_ray._base.resources import RayResource
 from dagster_ray.configs import Lifecycle
 from dagster_ray.kuberay.client import RayJobClient
 from dagster_ray.kuberay.configs import RayJobConfig, RayJobSpec
-from dagster_ray.kuberay.resources.base import BaseKubeRayResourceConfig
+from dagster_ray.kuberay.resources.base import BaseKubeRayResource
 from dagster_ray.kuberay.utils import normalize_k8s_label_values
 from dagster_ray.types import AnyDagsterContext
 
@@ -42,7 +41,7 @@ class InteractiveRayJobConfig(RayJobConfig):
     spec: InteractiveRayJobSpec = Field(default_factory=InteractiveRayJobSpec)  # pyright: ignore[reportIncompatibleVariableOverride]
 
 
-class KubeRayInteractiveJob(RayResource, BaseKubeRayResourceConfig):
+class KubeRayInteractiveJob(BaseKubeRayResource):
     """
     Provides a Ray Job for Dagster steps.
 

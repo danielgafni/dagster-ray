@@ -2,17 +2,17 @@ from __future__ import annotations
 
 import re
 from abc import abstractmethod
-from uuid import uuid4
 
-import dagster as dg
 from pydantic import Field, PrivateAttr
+from pytest_kubernetes.providers.base import ABC
 
 from dagster_ray._base.constants import DEFAULT_DEPLOYMENT_NAME
+from dagster_ray._base.resources import RayResource
 from dagster_ray.kuberay.utils import get_k8s_object_name
 from dagster_ray.types import AnyDagsterContext
 
 
-class BaseKubeRayResourceConfig(dg.Config):
+class BaseKubeRayResource(RayResource, ABC):
     image: str | None = Field(
         default=None,
         description="Image to inject into the `RayCluster` spec. Defaults to `dagster/image` run tag. Images already provided in the `RayCluster` spec won't be overridden.",
@@ -45,11 +45,9 @@ class BaseKubeRayResourceConfig(dg.Config):
         if dagster_user_email is not None:
             cluster_name_prefix += f"-{dagster_user_email.replace('.', '').replace('-', '').split('@')[0][:6]}"
 
-        step_key = str(uuid4())
-
         name_key = get_k8s_object_name(
             context.run_id,
-            step_key,
+            self.resource_uid,
         )
 
         step_name = f"{cluster_name_prefix}-{name_key}".lower()
