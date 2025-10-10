@@ -101,6 +101,8 @@ class RayResource(dg.ConfigurableResource, ABC):
 
     _context: RayBaseContext | None = PrivateAttr()
 
+    _creation_verb: str = PrivateAttr(default="Created")
+
     @cached_property
     def resource_uid(self) -> str:
         return str(uuid4())[:8]
@@ -162,7 +164,7 @@ class RayResource(dg.ConfigurableResource, ABC):
         if not self.created:
             try:
                 self.create(context)
-                context.log.info(f"Created {self.display_name}.")
+                context.log.info(f"{self._creation_verb} {self.display_name}.")
             except BaseException:
                 context.log.exception(f"Failed to create {self.display_name}")
                 raise
