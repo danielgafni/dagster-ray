@@ -19,6 +19,10 @@ class ClusterSharingLock(BaseModel):
         return f"{self.run_id}-{self.step_key}"
 
     @property
+    def tag(self) -> str:
+        return f"dagster/lock-{self.identifier}"[:63]  # 63 is the limit for k8s
+
+    @property
     def expired_at(self) -> datetime:
         return self.created_at + timedelta(seconds=self.ttl_seconds)
 
