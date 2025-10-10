@@ -130,11 +130,9 @@ These resources initialize Ray client connection with a remote cluster.
 
 ::: dagster_ray.kuberay.sensors.cleanup_expired_kuberay_clusters
 
-A Dagster sensor that monitors shared `RayCluster` resources created by the current code location and submits jobs to delete clusters that have expired.
-
-Selects clusters based on the following labels:
-    - `dagster/cluster-sharing=true`
-    - `dagster/code-location=<current-code-location>`
+A Dagster sensor that monitors shared `RayCluster` resources created by the current Dagster [code location](https://docs.dagster.io/deployment/code-locations/managing-code-locations-with-definitions) (with a `dagster/code-location=<current-code-location>` label selector) and submits jobs to delete clusters either:
+- use [Cluster Sharing](../tutorial/kuberay.md#cluster-sharing) (`dagster/cluster-sharing=true`) and have expired
+- are older than `DAGSTER_RAY_CLUSTER_EXPIRATION_SECONDS` (defaults to 24 hours)
 
 By default it monitors the `ray` namespace. This can be configured by setting `DAGSTER_RAY_NAMESPACES` (accepts a comma-separated list of namespaces).
 

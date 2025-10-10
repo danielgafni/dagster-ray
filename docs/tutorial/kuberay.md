@@ -156,11 +156,17 @@ When enabled, `dagster-ray` will use configured user-provided and dagster-genera
 - `dagster/git-sha`
 - `dagster/resource-key`
 
+Each time a cluster is chosen for a step, `dagster-ray` will apply an annotation to the selected cluster to indicate that it's being used by the current step. This annotation effectively extends the cluster sharing TTL by the configured `ttl_seconds` amount. Note that the countdown for the TTL starts from the time the annotation is applied, not from the time when the Ray job starts.
+
 Configuration options for cluster sharing can be found [here](../api/kuberay.md#dagster_ray.kuberay.KubeRayCluster.cluster_sharing).
 
-### Shared Clusters Garbage Collection
+### `RayCluster` Garbage Collection
 
-If a `RayCluster` has active locks from other Dagster steps, the `KubeRayCluster` resource that manages it won't clean it up, so such clusters will remain after the Dagster step completes. `dagster-ray` provides a sensor to perform garbage collection on these clusters once the locks on them finally expire:
+A `RayCluster` created by `dagster-ray` may become dangling for two reasons:
+- the Dagster step process exits unexpectedly (e.g. OOM), missing the change to run cleanup
+- if [Cluster Sharing](#cluster-sharing) is used **and** the cluster did not expire at the time of the Dagster step completion
+
+Since `RayCluster` doesn't support native garbage collection yet (see [TTL](https://github.com/ray-project/kuberay/issues/4033) and [idle termination](https://github.com/ray-project/kuberay/issues/2998) feature requests), `dagster-ray` provides a custom garbage collection Dagster sensor.
 
 ```py
 import dagster as dg
@@ -171,7 +177,7 @@ defs = dg.Definitions(
 )
 ```
 
-The sensor monitors clusters with `dagster/cluster-sharing=true` and matching `dagster/code-location` labels. It's recommended to use this sensor when enabling cluster sharing.
+It's not recommended for production environments as it will interrupt active long-running jobs and is not safe by any means. It's intended to be used with short-running development environments where job interruption is acceptable.
 
 ## PipesKubeRayJobClient
 

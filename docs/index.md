@@ -26,7 +26,7 @@
 - **📡 Dagster Pipes Integration**: Submit external scripts as Ray jobs, stream back logs and rich Dagster metadata
 - **☸️ KubeRay Support**: Utilize `RayJob` and `RayCluster` custom resources in client or job submission mode ([tutorial](tutorial/kuberay.md))
 - **🏭 Production Ready**: Tested against a matrix of core dependencies, integrated with Dagster+
-- **⚡ Instant Startup**: Leverage `RayCluster` with cluster sharing for lightning-fast development cycles with zero cold start times
+- **⚡ Instant Startup**: Leverage `RayCluster` with [Cluster Sharing](tutorial/kuberay.md#cluster-sharing) for lightning-fast development cycles with zero cold start times (intended for development environments)
 
 ## ⚡ Quick Start
 
