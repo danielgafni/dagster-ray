@@ -1,1 +1,1 @@
-../CHANDELOG.md
+../CHANGELOG.md
