@@ -309,7 +309,7 @@ class MatchDagsterLabels(dg.Config):
     )
 
 
-DEFAULT_CLUSTER_SHARING_TTL_SECONDS = 60 * 60.0
+DEFAULT_CLUSTER_SHARING_TTL_SECONDS = 30 * 60.0
 
 
 class ClusterSharing(dg.Config):

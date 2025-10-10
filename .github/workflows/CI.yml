@@ -39,7 +39,7 @@ jobs:
             - .github/workflows/CI.yml
             - 'src/dagster_ray/**'
             - 'tests/**'
-            - 'examples/**'
+            - 'examples/**/*.py'
             - pyproject.toml
             - uv.lock
             - .pre-commit-config.yaml
