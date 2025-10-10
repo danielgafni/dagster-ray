@@ -127,6 +127,7 @@ class KubeRayCluster(BaseKubeRayResource):
                     f"Found {len(matching_clusters)} clusters matching the label selector. Using the first one: {cluster_name}"
                 )
                 self._name = cluster_name
+                self._creation_verb = "Using"
 
                 # place a lock on the cluster
                 # Create individual patch operations for each annotation to avoid replacing existing ones
