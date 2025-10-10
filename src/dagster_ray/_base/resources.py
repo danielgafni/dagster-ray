@@ -3,7 +3,9 @@ from __future__ import annotations
 import contextlib
 from abc import ABC, abstractmethod
 from collections.abc import Generator
+from functools import cached_property
 from typing import TYPE_CHECKING, Any, cast
+from uuid import uuid4
 
 import dagster as dg
 from pydantic import Field, PrivateAttr
@@ -98,6 +100,10 @@ class RayResource(dg.ConfigurableResource, ABC):
     )
 
     _context: RayBaseContext | None = PrivateAttr()
+
+    @cached_property
+    def resource_uid(self) -> str:
+        return str(uuid4())[:8]
 
     @property
     def context(self) -> RayBaseContext:

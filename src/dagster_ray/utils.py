@@ -7,6 +7,8 @@ from typing import Any
 import dagster as dg
 from dagster._config.field_utils import IntEnvVar
 
+from dagster_ray.types import AnyDagsterContext
+
 # yes, `python-client` is actually the KubeRay package name
 # https://github.com/ray-project/kuberay/issues/2078
 
@@ -51,3 +53,11 @@ def get_current_job_id() -> str:
     import ray
 
     return ray.get_runtime_context().get_job_id()
+
+
+def get_dagster_run(context: AnyDagsterContext) -> dg.DagsterRun:
+    if isinstance(context, dg.InitResourceContext):
+        assert context.dagster_run is not None
+        return context.dagster_run
+    else:
+        return context.run
