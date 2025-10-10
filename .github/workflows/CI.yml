@@ -47,6 +47,7 @@ jobs:
             - .dockerignore
             - scripts/generate_test_matrix.py
           docs:
+            - '**/*.md'
             - .github/workflows/CI.yml
             - 'docs/**'
             - mkdocs.yml
