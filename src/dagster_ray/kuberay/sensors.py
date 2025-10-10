@@ -70,7 +70,7 @@ def cleanup_expired_kuberay_clusters(
             yield dg.RunRequest(
                 run_config=dg.RunConfig(
                     ops={
-                        "delete_kuberay_clusters": DeleteKubeRayClustersConfig(
+                        "delete_kuberay_clusters_op": DeleteKubeRayClustersConfig(
                             namespace=namespace,
                             clusters=[RayClusterRef(name=name) for name in cluster_names],
                         )
