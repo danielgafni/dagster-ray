@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import re
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
 from pydantic import Field, PrivateAttr
-from pytest_kubernetes.providers.base import ABC
 
 from dagster_ray._base.constants import DEFAULT_DEPLOYMENT_NAME
 from dagster_ray._base.resources import RayResource
