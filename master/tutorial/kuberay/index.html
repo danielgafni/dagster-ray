@@ -601,9 +601,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#shared-clusters-garbage-collection" class="md-nav__link">
+  <a href="#raycluster-garbage-collection" class="md-nav__link">
     <span class="md-ellipsis">
-      Shared Clusters Garbage Collection
+      RayCluster Garbage Collection
     </span>
   </a>
   
@@ -931,9 +931,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#shared-clusters-garbage-collection" class="md-nav__link">
+  <a href="#raycluster-garbage-collection" class="md-nav__link">
     <span class="md-ellipsis">
-      Shared Clusters Garbage Collection
+      RayCluster Garbage Collection
     </span>
   </a>
   
@@ -1120,9 +1120,13 @@
 <li><code>dagster/git-sha</code></li>
 <li><code>dagster/resource-key</code></li>
 </ul>
+<p>Each time a cluster is chosen for a step, <code>dagster-ray</code> will apply an annotation to the selected cluster to indicate that it's being used by the current step. This annotation effectively extends the cluster sharing TTL by the configured <code>ttl_seconds</code> amount. Note that the countdown for the TTL starts from the time the annotation is applied, not from the time when the Ray job starts.</p>
 <p>Configuration options for cluster sharing can be found <a href="../../api/kuberay/#dagster_ray.kuberay.KubeRayCluster.cluster_sharing">here</a>.</p>
-<h3 id="shared-clusters-garbage-collection">Shared Clusters Garbage Collection<a class="headerlink" href="#shared-clusters-garbage-collection" title="Permanent link">&para;</a></h3>
-<p>If a <code>RayCluster</code> has active locks from other Dagster steps, the <code>KubeRayCluster</code> resource that manages it won't clean it up, so such clusters will remain after the Dagster step completes. <code>dagster-ray</code> provides a sensor to perform garbage collection on these clusters once the locks on them finally expire:</p>
+<h3 id="raycluster-garbage-collection"><code>RayCluster</code> Garbage Collection<a class="headerlink" href="#raycluster-garbage-collection" title="Permanent link">&para;</a></h3>
+<p>A <code>RayCluster</code> created by <code>dagster-ray</code> may become dangling for two reasons:
+- the Dagster step process exits unexpectedly (e.g. OOM), missing the change to run cleanup
+- if <a href="#cluster-sharing">Cluster Sharing</a> is used <strong>and</strong> the cluster did not expire at the time of the Dagster step completion</p>
+<p>Since <code>RayCluster</code> doesn't support native garbage collection yet (see <a href="https://github.com/ray-project/kuberay/issues/4033">TTL</a> and <a href="https://github.com/ray-project/kuberay/issues/2998">idle termination</a> feature requests), <code>dagster-ray</code> provides a custom garbage collection Dagster sensor.</p>
 <div class="language-py highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">dagster</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dg</span>
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dagster_ray.kuberay</span><span class="w"> </span><span class="kn">import</span> <span class="n">cleanup_expired_rayclusters</span>
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
@@ -1130,7 +1134,7 @@
 </span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="n">sensors</span><span class="o">=</span><span class="p">[</span><span class="n">cleanup_expired_rayclusters</span><span class="p">],</span>
 </span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="p">)</span>
 </span></code></pre></div>
-<p>The sensor monitors clusters with <code>dagster/cluster-sharing=true</code> and matching <code>dagster/code-location</code> labels. It's recommended to use this sensor when enabling cluster sharing.</p>
+<p>It's not recommended for production environments as it will interrupt active long-running jobs and is not safe by any means. It's intended to be used with short-running development environments where job interruption is acceptable.</p>
 <h2 id="pipeskuberayjobclient">PipesKubeRayJobClient<a class="headerlink" href="#pipeskuberayjobclient" title="Permanent link">&para;</a></h2>
 <p><a href="../../api/kuberay/#dagster_ray.kuberay.PipesKubeRayJobClient"><code>PipesKubeRayJobClient</code></a> allows you to submit external Python scripts as Ray jobs with automatic cluster management. This is ideal when you want to decouple your Ray workload from your Dagster orchestration code or Python environment.</p>
 <h3 id="basic-pipes-example">Basic Pipes Example<a class="headerlink" href="#basic-pipes-example" title="Permanent link">&para;</a></h3>

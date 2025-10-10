@@ -10048,10 +10048,9 @@ Is useful when running in a local environment.</p>
             </details>
     </div>
 
-</div><p>A Dagster sensor that monitors shared <code>RayCluster</code> resources created by the current code location and submits jobs to delete clusters that have expired.</p>
-<p>Selects clusters based on the following labels:
-    - <code>dagster/cluster-sharing=true</code>
-    - <code>dagster/code-location=&lt;current-code-location&gt;</code></p>
+</div><p>A Dagster sensor that monitors shared <code>RayCluster</code> resources created by the current Dagster <a href="https://docs.dagster.io/deployment/code-locations/managing-code-locations-with-definitions">code location</a> (with a <code>dagster/code-location=&lt;current-code-location&gt;</code> label selector) and submits jobs to delete clusters either:
+- use <a href="../../tutorial/kuberay/#cluster-sharing">Cluster Sharing</a> (<code>dagster/cluster-sharing=true</code>) and have expired
+- are older than <code>DAGSTER_RAY_CLUSTER_EXPIRATION_SECONDS</code> (defaults to 24 hours)</p>
 <p>By default it monitors the <code>ray</code> namespace. This can be configured by setting <code>DAGSTER_RAY_NAMESPACES</code> (accepts a comma-separated list of namespaces).</p>
 <hr />
 <h2 id="kubernetes-api-clients">Kubernetes API Clients<a class="headerlink" href="#kubernetes-api-clients" title="Permanent link">&para;</a></h2>
