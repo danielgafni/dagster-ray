@@ -21,7 +21,7 @@ class DeleteKubeRayClustersConfig(dg.Config):
     )
 
 
-@dg.op(description="Deletes RayCluster resources", name="delete_kuberay_clusters")
+@dg.op(description="Deletes RayCluster resources")
 def delete_kuberay_clusters_op(
     context: dg.OpExecutionContext,
     config: DeleteKubeRayClustersConfig,

@@ -388,7 +388,7 @@ def test_cleanup_expired_kuberay_clusters_sensor_request(
     ):
         assert isinstance(item, dg.RunRequest)
         assert (
-            item.run_config["ops"]["delete_kuberay_clusters"]["config"]["clusters"][0]["name"]
+            item.run_config["ops"]["delete_kuberay_clusters_op"]["config"]["clusters"][0]["name"]
             == cluster["metadata"]["name"]
         )
 
@@ -545,7 +545,7 @@ def test_delete_kuberay_clusters_job(
         },
         run_config=dg.RunConfig(
             ops={
-                "delete_kuberay_clusters": DeleteKubeRayClustersConfig(
+                "delete_kuberay_clusters_op": DeleteKubeRayClustersConfig(
                     namespace=ray_cluster_resource_skip_cleanup.namespace,
                     clusters=[
                         RayClusterRef(
