@@ -11,7 +11,7 @@ from dagster_ray.kuberay.jobs import delete_kuberay_clusters
 from dagster_ray.kuberay.ops import DeleteKubeRayClustersConfig, RayClusterRef
 
 
-@dg.sensor(job=delete_kuberay_clusters, default_status=dg.DefaultSensorStatus.RUNNING, minimum_interval_seconds=60)
+@dg.sensor(job=delete_kuberay_clusters, minimum_interval_seconds=60)
 def cleanup_expired_kuberay_clusters(
     context: dg.SensorEvaluationContext,
     raycluster_client: dg.ResourceParam[RayClusterClient],
