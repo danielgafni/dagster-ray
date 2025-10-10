@@ -266,7 +266,7 @@ class KubeRayCluster(BaseKubeRayResourceConfig, RayResource):
                     ttl_seconds=self.cluster_sharing.ttl_seconds,
                     created_at=datetime.now(),
                 )
-                annotations[f"dagster/lock-{lock.identifier}"] = lock.model_dump_json()
+                annotations[lock.tag] = lock.model_dump_json()
         return annotations
 
     def get_cluster_sharing_alive_locks(self, context: AnyDagsterContext) -> Sequence[ClusterSharingLock]:

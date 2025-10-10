@@ -21,7 +21,7 @@ def normalize_k8s_label_values(labels: dict[str, str]) -> dict[str, str]:
     - Max 63 characters
     - Empty string is valid
 
-    Additionally, key starting with `dagster/` are replaced with `dagster.io/`
+    Additionally, key starting with `dagster.io/` are replaced with `dagster/`
     """
     normalized = {}
 
