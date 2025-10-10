@@ -102,11 +102,20 @@ jobs:
         run: uv python install ${{ matrix.py }} && uv python pin ${{ matrix.py }} && uv venv --python ${{ matrix.py }}
       - name: Override ray==${{ matrix.ray }} dagster==${{ matrix.dagster }}
         run: uv add --no-sync "ray[all]==${{ matrix.ray }}" "dagster==${{ matrix.dagster }}"
-      - name: Install dependencies
+      - name: Install Default Dependencies
+        run: uv sync
+        env:
+          UV_LOCKED: "1"
+      - name: Check Import With Only Default Dependencies
+        run: uv run python -c "import dagster_ray"
+        env:
+          UV_LOCKED: "1"
+      - name: Install All Dependencies
         run: uv sync --all-extras --dev
       - name: Run tests
         env:
           PYTEST_KUBERAY_VERSIONS: "${{ matrix.kuberay }}"
+          UV_LOCKED: "1"
         run: uv run pytest -v .
 
   lint:
