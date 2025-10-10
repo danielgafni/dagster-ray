@@ -299,9 +299,9 @@ class MatchDagsterLabels(dg.Config):
         default=True,
         description="Whether to match on `dagster/resource-key` label. The value will be taken from the current Dagster resource key.",
     )
-    commit_sha: bool = Field(
+    git_sha: bool = Field(
         default=True,
-        description="Whether to match on `dagster/commit-sha` label. The value will be taken from `DAGSTER_CLOUD_GIT_SHA` environment variable.",
+        description="Whether to match on `dagster/git-sha` label. The value will be taken from `DAGSTER_CLOUD_GIT_SHA` environment variable.",
     )  # TODO: we really should have common env vars for this, not just Dagster Plus specific
     run_id: bool = Field(
         default=False,

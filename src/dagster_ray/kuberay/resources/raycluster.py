@@ -241,10 +241,8 @@ class KubeRayCluster(BaseKubeRayResource):
                 dagster_match_labels["dagster/resource-key"] = labels["dagster/resource-key"]
             if self.cluster_sharing.match_dagster_labels.run_id:
                 dagster_match_labels["dagster/run-id"] = labels["dagster/run-id"]
-            if self.cluster_sharing.match_dagster_labels.commit_sha and (
-                commit_sha := labels.get("dagster/commit-sha")
-            ):
-                dagster_match_labels["dagster/commit-sha"] = commit_sha
+            if self.cluster_sharing.match_dagster_labels.git_sha and (git_sha := labels.get("dagster/git-sha")):
+                dagster_match_labels["dagster/git-sha"] = git_sha
 
         combined_match_labels = {
             **dagster_match_labels,
