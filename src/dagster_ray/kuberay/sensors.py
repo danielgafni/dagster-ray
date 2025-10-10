@@ -23,7 +23,7 @@ def cleanup_expired_kuberay_clusters(
 ) -> Generator[dg.RunRequest | dg.SkipReason, None, None]:
     f"""A Dagster sensor that monitors shared `RayCluster` resources created by the current code location and submits jobs to delete clusters that either:
         - use [Cluster Sharing](../tutorial/#cluster-sharing) (`dagster/cluster-sharing=true`) and have expired
-        - are older than `DAGSTER_RAY_CLUSTER_EXPIRATION_SECONDS` (defaults to 24 hours)
+        - are older than `DAGSTER_RAY_CLUSTER_EXPIRATION_SECONDS` (defaults to 4 hours)
 
     By default it monitors the `ray` namespace. This can be configured by setting `{DAGSTER_RAY_NAMESPACES_ENV_VAR}` (accepts a comma-separated list of namespaces)."""
     assert context.code_location_origin is not None
