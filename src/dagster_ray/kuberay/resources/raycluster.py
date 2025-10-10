@@ -45,7 +45,7 @@ class KubeRayCluster(BaseKubeRayResource):
     )
 
     cluster_sharing: ClusterSharing = Field(
-        default_factory=ClusterSharing,
+        default_factory=lambda: ClusterSharing(enabled=False, ttl_seconds=15 * 60),
         description="Configuration for sharing the `RayCluster` across Dagster steps. Existing clusters matching this configuration will be reused without recreating them. A `dagster/sharing=true` label will be applied to the `RayCluster`, and a `dagster/lock-<run-id>-<step-id>=<lock>` annotation will be placed on the `RayCluster` to mark it as being used by this step. Cleanup will only proceed if the `RayCluster` is not being used by any other steps, therefore cluster sharing should be used in conjunction with [dagster_ray.kuberay.sensors.cleanup_expired_kuberay_clusters][] sensor.",
     )
 

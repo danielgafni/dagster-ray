@@ -309,9 +309,6 @@ class MatchDagsterLabels(dg.Config):
     )
 
 
-DEFAULT_CLUSTER_SHARING_TTL_SECONDS = 60 * 60.0
-
-
 class ClusterSharing(dg.Config):
     """Defines the strategy for sharing `RayCluster` resources with other Dagster steps.
 
@@ -325,6 +322,5 @@ class ClusterSharing(dg.Config):
         default=None, description="Additional user-provided labels to match on."
     )
     ttl_seconds: float = Field(
-        default=DEFAULT_CLUSTER_SHARING_TTL_SECONDS,
         description="Time to live for the lock placed on the `RayCluster` resource, marking it as in use by the current Dagster step.",
     )

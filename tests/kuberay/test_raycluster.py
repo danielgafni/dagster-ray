@@ -483,7 +483,7 @@ def test_cluster_sharing(
             spec=RayClusterSpec(head_group_spec=head_group_spec, worker_group_specs=worker_group_specs),
         ),
         redis_port=get_random_free_port(),
-        cluster_sharing=ClusterSharing(enabled=True),
+        cluster_sharing=ClusterSharing(enabled=True, ttl_seconds=10 * 60),
     )
 
     @dg.asset

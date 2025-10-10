@@ -144,7 +144,7 @@ from dagster_ray.kuberay.configs import RayClusterConfig, ClusterSharing
 
 ray_cluster = KubeRayCluster(
     ray_cluster=RayClusterConfig(
-        cluster_sharing=ClusterSharing(enabled=True, ttl_seconds=3600)
+        cluster_sharing=ClusterSharing(enabled=True, ttl_seconds=30 * 60)
     )
 )
 ```
