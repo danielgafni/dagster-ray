@@ -13,7 +13,7 @@ Learn more in [Cluster Sharing docs](tutorial/kuberay.md/#cluster-sharing).
 
 ### Added
 - `KubeRayCluster.cluster_sharing` parameter that controls cluster sharing behavior.
-- `dagster_ray.kuberay.sensors.cleanup_expired_shared_clusters` sensor that cleans up expired clusters. A cluster is considered expired if it doesn't hold any alive locks placed by `dagster-ray`. The lock `ttl` defaults to 1 hour and can be configured in `KubeRayCluster.cluster_sharing`
+- `dagster_ray.kuberay.sensors.cleanup_expired_kuberay_clusters` sensor that cleans up expired clusters (both shared and non-shared). Learn mode in [docs](api/kuberay.md#dagster_ray.kuberay.sensors.cleanup_expired_kuberay_clusters)
 - system `dagster/step-key` tag/label is now placed on resources
 - `dagster-ray` entry now appears in the Dagster libraries list in the web UI
 
