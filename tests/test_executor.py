@@ -1,4 +1,9 @@
+import signal
+import subprocess
+import sys
+import time
 from collections.abc import Iterator
+from pathlib import Path
 
 import dagster as dg
 import pytest
@@ -176,3 +181,79 @@ def test_ray_executor_local_user_provided_runtime_env(local_ray_address: str, da
         },
     )
     assert result.success, result.get_step_failure_events()[0].event_specific_data
+
+
+@pytest.mark.parametrize("sig", [signal.SIGTERM, signal.SIGINT])
+def test_ray_executor_termination(local_ray_address: str, tmp_path, sig):
+    """Test that Ray executor properly terminates jobs when the parent process is interrupted."""
+    from ray.job_submission import JobStatus, JobSubmissionClient
+
+    # Path to the test script
+    script_path = str(Path(__file__).parent / "scripts/launch_dagster_run_with_ray_executor.py")
+
+    assert Path(script_path).exists(), f"Test script not found at {script_path}"
+
+    # Create a temp directory for the DagsterInstance
+    temp_dir = tmp_path / "dagster_home"
+    temp_dir.mkdir()
+
+    # Create signal file path
+    signal_file = tmp_path / "job_started.signal"
+
+    # Build command line arguments
+    cmd_args = [
+        sys.executable,
+        script_path,
+        "--ray-address",
+        local_ray_address,
+        "--temp-dir",
+        str(temp_dir),
+        "--signal-file",
+        str(signal_file),
+    ]
+
+    # Start the subprocess with stdout capture
+    process = subprocess.Popen(cmd_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+    # Wait for the signal file to appear (indicating job has started), with timeout
+    max_wait = 10  # seconds
+    start_time = time.time()
+    while not signal_file.exists() and time.time() - start_time < max_wait:
+        time.sleep(0.1)
+
+    assert signal_file.exists(), f"Signal file {signal_file} was not created within {max_wait} seconds"
+
+    # Interrupt the process with the specified signal
+    process.send_signal(sig)
+
+    # Wait for process to terminate and capture output
+    try:
+        stdout, stderr = process.communicate(timeout=30)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        stdout, stderr = process.communicate()
+
+    sys.stdout.write(stdout)
+    sys.stderr.write(stderr)
+
+    # Connect to Ray and verify all jobs were stopped
+    client = JobSubmissionClient(local_ray_address)
+
+    # Get all jobs and verify none are still running
+    jobs = client.list_jobs()
+
+    # Filter to jobs with dagster metadata (our jobs)
+    dagster_jobs = [
+        job_details
+        for job_details in jobs
+        if job_details.metadata and job_details.metadata.get("dagster/job") == "long_running_job"
+    ]
+
+    # Verify all dagster jobs are stopped
+    sig_name = "SIGTERM" if sig == signal.SIGTERM else "SIGINT"
+    for job_details in dagster_jobs:
+        status = client.get_job_status(job_details.submission_id)  # pyright: ignore[reportArgumentType]
+        assert status not in (JobStatus.RUNNING, JobStatus.PENDING), (
+            f"Ray job {job_details.submission_id} should have been stopped after {sig_name}, "
+            f"but status is {status}. This indicates terminate_step() either wasn't called or didn't work properly."
+        )
