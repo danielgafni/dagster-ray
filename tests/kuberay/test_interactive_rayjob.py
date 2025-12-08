@@ -19,15 +19,15 @@ from dagster_ray.kuberay import (
 from dagster_ray.kuberay.client.rayjob.client import RayJobClient
 from dagster_ray.kuberay.configs import RayClusterSpec
 from dagster_ray.kuberay.resources.rayjob import InteractiveRayJobConfig, InteractiveRayJobSpec
-from tests.kuberay.conftest import KUBERNETES_CONTEXT, RAYJOB_TIMEOUT
+from tests.kuberay.conftest import RAYJOB_TIMEOUT
 from tests.kuberay.utils import NAMESPACE, get_random_free_port
 
 MIN_KUBERAY_VERSION = "1.3.0"
 
 
 @pytest.fixture(scope="session")
-def rayjob_client(k8s_with_kuberay: AClusterManager) -> RayJobClient:
-    return RayJobClient(kube_config=str(k8s_with_kuberay.kubeconfig), kube_context=KUBERNETES_CONTEXT)
+def rayjob_client(k8s_with_kuberay: AClusterManager, kubernetes_context: str) -> RayJobClient:
+    return RayJobClient(kube_config=str(k8s_with_kuberay.kubeconfig), kube_context=kubernetes_context)
 
 
 def test_instantiate_defaults():
@@ -128,6 +128,7 @@ def test_cleanup_on_interrupt(
     head_group_spec: dict[str, Any],
     worker_group_specs: list[dict[str, Any]],
     k8s_with_kuberay: AClusterManager,
+    kubernetes_context: str,
     kuberay_version: str,
     dagster_instance: dg.DagsterInstance,
     rayjob_client: RayJobClient,
@@ -152,7 +153,7 @@ def test_cleanup_on_interrupt(
         "--config-file",
         str(k8s_with_kuberay.kubeconfig),
         "--context",
-        KUBERNETES_CONTEXT,
+        kubernetes_context,
         "--image",
         "invalid-image:nonexistent",  # this will cause the RayJob to hang, we need it to test the interrupt cleanup functionality
         "--redis-port",

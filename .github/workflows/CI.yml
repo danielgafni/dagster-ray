@@ -78,7 +78,7 @@ jobs:
 
   test:
     name: Test Python ${{ matrix.py }} - Ray ${{ matrix.ray }} - Dagster ${{ matrix.dagster }} - KubeRay ${{ matrix.kuberay }}
-    runs-on: ${{ matrix.os }}-latest
+    runs-on: ${{ matrix.os }}
     needs: [changes, generate-matrix]
     if: ${{ needs.changes.outputs.src == 'true' }}
     strategy:
@@ -89,11 +89,10 @@ jobs:
       - uses: azure/setup-helm@v4.3.1
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      - name: Start minikube
-        uses: medyagh/setup-minikube@master
+      - name: Create k3d cluster
+        uses: AbsaOSS/k3d-action@v2
         with:
-          start: false
-          driver: docker
+          cluster-name: dagster-ray
       - name: Install uv
         uses: astral-sh/setup-uv@v6
         with:
@@ -117,7 +116,7 @@ jobs:
         env:
           PYTEST_KUBERAY_VERSIONS: "${{ matrix.kuberay }}"
           UV_LOCKED: "1"
-        run: uv run pytest -v .
+        run: uv run pytest -v . --k8s-kubeconfig ~/.kube/config
 
   lint:
     name: Lint ${{ matrix.py }}

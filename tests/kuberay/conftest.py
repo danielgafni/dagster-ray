@@ -2,7 +2,6 @@ import logging
 import os
 import subprocess
 import sys
-import tempfile
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
@@ -82,7 +81,7 @@ def dagster_ray_image():
 
 KUBERNETES_VERSION = os.getenv("PYTEST_KUBERNETES_VERSION", "1.31.0")
 KUBERAY_VERSIONS = os.getenv("PYTEST_KUBERAY_VERSIONS", "1.4.0").split(",")
-KUBERNETES_CONTEXT = "pytest-dagster-ray"
+CLUSTER_NAME = "dagster-ray"
 
 
 @pytest_cases.fixture(scope="session")  # type: ignore
@@ -91,25 +90,44 @@ def kuberay_version(kuberay_version_param: str):
     return kuberay_version_param
 
 
+@pytest.fixture(scope="session")
+def kubernetes_context(request) -> str:
+    """Return the kubernetes context to use for tests."""
+    external_kubeconfig = request.config.getoption("--k8s-kubeconfig")
+    if external_kubeconfig:
+        # CI mode: k3d creates context with k3d- prefix
+        return f"k3d-{CLUSTER_NAME}"
+    else:
+        # Local mode: pytest-kubernetes k3d manager uses k3d- prefix too
+        return f"k3d-{CLUSTER_NAME}"
+
+
 @pytest.fixture(scope="session")  # type: ignore
 def k8s_with_kuberay(
     request, kuberay_helm_repo, dagster_ray_image: str, kuberay_version: str
 ) -> Iterator[AClusterManager]:
-    k8s = select_provider_manager("minikube")(KUBERNETES_CONTEXT[7:])  # strip pytest-
-    k8s.create(ClusterOptions(api_version=KUBERNETES_VERSION), cluster_timeout=600)
-    # load images in advance to avoid possible timeouts later on
-    k8s.load_image(f"quay.io/kuberay/operator:v{kuberay_version}")
+    external_kubeconfig = request.config.getoption("--k8s-kubeconfig")
 
-    # warning: minikube fails to load the image directly because of
-    # https://github.com/kubernetes/minikube/issues/18021
-    # so we export it to .tar first
-    # TODO: load image without .tar export once the issue is resolved
-    with tempfile.TemporaryDirectory() as tmpdir:
-        image_tar = Path(tmpdir) / "dagster-ray.tar"
-        subprocess.run(["docker", "image", "save", "-o", str(image_tar), dagster_ray_image], check=True)
-        logger.info(f"Loading image {dagster_ray_image} into K8s...")
-        k8s.load_image(str(image_tar))
-        logger.info(f"Image {dagster_ray_image} loaded.")
+    if external_kubeconfig:
+        # CI mode: use external cluster created by GitHub Action (k3d)
+        logger.info(f"Using external K8s cluster from kubeconfig: {external_kubeconfig}")
+        k8s = select_provider_manager("external")(kubeconfig=Path(external_kubeconfig))
+        # Workaround: pytest-kubernetes external manager sets _cluster_options.kubeconfig_path
+        # but its kubeconfig property reads from _kubeconfig
+        k8s._kubeconfig = Path(external_kubeconfig)  # pyright: ignore[reportAttributeAccessIssue]
+        # External manager's load_image is a no-op, use k3d directly
+        # First pull the kuberay operator image, then import both images
+        kuberay_operator_image = f"quay.io/kuberay/operator:v{kuberay_version}"
+        subprocess.run(["docker", "pull", kuberay_operator_image], check=True)
+        subprocess.run(["k3d", "image", "import", kuberay_operator_image, "-c", CLUSTER_NAME], check=True)
+        subprocess.run(["k3d", "image", "import", dagster_ray_image, "-c", CLUSTER_NAME], check=True)
+    else:
+        # Local mode: create k3d cluster
+        k8s = select_provider_manager("k3d")(CLUSTER_NAME)
+        k8s.create(ClusterOptions(api_version=KUBERNETES_VERSION), cluster_timeout=600)
+        # load images in advance to avoid possible timeouts later on
+        k8s.load_image(f"quay.io/kuberay/operator:v{kuberay_version}")
+        k8s.load_image(dagster_ray_image)
 
     # init the cluster with a workload
 
@@ -154,7 +172,10 @@ def k8s_with_kuberay(
             raise
 
     yield k8s
-    k8s.delete()
+
+    # Only delete if we created the cluster locally
+    if not external_kubeconfig:
+        k8s.delete()
 
 
 @pytest.fixture(scope="session")
@@ -181,13 +202,14 @@ RAYJOB_TIMEOUT = 45
 @pytest.fixture(scope="session")
 def k8s_with_raycluster(
     k8s_with_kuberay: AClusterManager,
+    kubernetes_context: str,
     head_group_spec: dict[str, Any],
     worker_group_specs: list[dict[str, Any]],
 ) -> Iterator[tuple[dict[str, str], AClusterManager]]:
     # create a RayCluster
-    config.load_kube_config(str(k8s_with_kuberay.kubeconfig), context=KUBERNETES_CONTEXT)
+    config.load_kube_config(str(k8s_with_kuberay.kubeconfig), context=kubernetes_context)
 
-    client = RayClusterClient(kube_config=str(k8s_with_kuberay.kubeconfig), kube_context=KUBERNETES_CONTEXT)
+    client = RayClusterClient(kube_config=str(k8s_with_kuberay.kubeconfig), kube_context=kubernetes_context)
 
     client.create(
         body={

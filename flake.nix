@@ -22,7 +22,7 @@
           stdenv.cc
           uv
           python
-          minikube
+          k3d
           kubectl
         ];
         LD_LIBRARY_PATH = lib.makeLibraryPath [
@@ -32,7 +32,6 @@
           pkgs.glib
           pkgs.python310
         ];
-        # UV_PYTHON = "${python}/bin/python";
         shellHook = ''
           uv python pin 3.10
         '';

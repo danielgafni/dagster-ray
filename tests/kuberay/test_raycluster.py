@@ -22,7 +22,6 @@ from dagster_ray.kuberay.client import RayClusterClient
 from dagster_ray.kuberay.configs import ClusterSharing, RayClusterSpec
 from dagster_ray.kuberay.jobs import delete_kuberay_clusters
 from dagster_ray.kuberay.ops import DeleteKubeRayClustersConfig, RayClusterRef
-from tests.kuberay.conftest import KUBERNETES_CONTEXT
 from tests.kuberay.utils import NAMESPACE, get_random_free_port
 from tests.utils import CodeLocationOrigin  # pyright: ignore[reportAttributeAccessIssue]
 
@@ -42,13 +41,13 @@ def delete_shared_rayclusters(raycluster_client: RayClusterClient | KubeRayClust
 
 
 @pytest.fixture(scope="session")
-def raycluster_client_resource(k8s_with_kuberay: AClusterManager):
-    return KubeRayClusterClientResource(kube_config=str(k8s_with_kuberay.kubeconfig), kube_context=KUBERNETES_CONTEXT)
+def raycluster_client_resource(k8s_with_kuberay: AClusterManager, kubernetes_context: str):
+    return KubeRayClusterClientResource(kube_config=str(k8s_with_kuberay.kubeconfig), kube_context=kubernetes_context)
 
 
 @pytest.fixture(scope="session")
-def raycluster_client(k8s_with_kuberay: AClusterManager):
-    return RayClusterClient(kube_config=str(k8s_with_kuberay.kubeconfig), kube_context=KUBERNETES_CONTEXT)
+def raycluster_client(k8s_with_kuberay: AClusterManager, kubernetes_context: str):
+    return RayClusterClient(kube_config=str(k8s_with_kuberay.kubeconfig), kube_context=kubernetes_context)
 
 
 @pytest.fixture
@@ -74,8 +73,7 @@ def ray_cluster_resource(
 
     return KubeRayCluster(
         image=dagster_ray_image,
-        # have have to first run port-forwarding with minikube
-        # we can only init ray after that
+        # port-forwarding is required to connect to the cluster
         lifecycle=Lifecycle(connect=False),
         client=raycluster_client_resource,
         ray_cluster=RayClusterConfig(
@@ -96,8 +94,7 @@ def ray_cluster_resource_skip_cleanup(
 ) -> KubeRayCluster:
     return KubeRayCluster(
         image=dagster_ray_image,
-        # have have to first run port-forwarding with minikube
-        # we can only init ray after that
+        # port-forwarding is required to connect to the cluster
         lifecycle=Lifecycle(
             connect=False,
             cleanup="never",
@@ -121,8 +118,7 @@ def ray_cluster_resource_skip_create(
 ) -> KubeRayCluster:
     return KubeRayCluster(
         image=dagster_ray_image,
-        # have have to first run port-forwarding with minikube
-        # we can only init ray after that
+        # port-forwarding is required to connect to the cluster
         lifecycle=Lifecycle(create=False),
         client=raycluster_client_resource,
         ray_cluster=RayClusterConfig(
@@ -143,8 +139,7 @@ def ray_cluster_resource_skip_wait(
 ) -> KubeRayCluster:
     return KubeRayCluster(
         image=dagster_ray_image,
-        # have have to first run port-forwarding with minikube
-        # we can only init ray after that
+        # port-forwarding is required to connect to the cluster
         lifecycle=Lifecycle(wait=False),
         client=raycluster_client_resource,
         ray_cluster=RayClusterConfig(
@@ -341,8 +336,7 @@ def test_cleanup_expired_kuberay_clusters_sensor_cluster_sharing_request(
 
     ray_cluster = KubeRayCluster(
         image=dagster_ray_image,
-        # have have to first run port-forwarding with minikube
-        # we can only init ray after that
+        # port-forwarding is required to connect to the cluster
         lifecycle=Lifecycle(wait=False),
         client=raycluster_client_resource,
         ray_cluster=RayClusterConfig(
@@ -474,8 +468,7 @@ def test_cluster_sharing(
 ):
     ray_cluster = KubeRayCluster(
         image=dagster_ray_image,
-        # have have to first run port-forwarding with minikube
-        # we can only init ray after that
+        # port-forwarding is required to connect to the cluster
         lifecycle=Lifecycle(wait=False),
         client=raycluster_client_resource,
         ray_cluster=RayClusterConfig(
@@ -557,8 +550,7 @@ def test_cluster_sharing_cleanup_expired(
 ):
     ray_cluster = KubeRayCluster(
         image=dagster_ray_image,
-        # have have to first run port-forwarding with minikube
-        # we can only init ray after that
+        # port-forwarding is required to connect to the cluster
         lifecycle=Lifecycle(wait=False),
         client=raycluster_client_resource,
         ray_cluster=RayClusterConfig(

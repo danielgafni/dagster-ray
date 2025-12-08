@@ -60,7 +60,7 @@ Running KubeRay tests requires the following tools to be present:
 - `docker`
 - `kubectl`
 - `helm`
-- `minikube`
+- `k3d`
 
 ❄️ Nix users will find them provided in the dev shell:
 

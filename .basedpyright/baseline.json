@@ -14,14 +14,6 @@
             {
                 "code": "reportUnusedParameter",
                 "range": {
-                    "startColumn": 4,
-                    "endColumn": 11,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnusedParameter",
-                "range": {
                     "startColumn": 13,
                     "endColumn": 30,
                     "lineCount": 1
