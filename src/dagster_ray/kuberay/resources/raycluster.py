@@ -10,6 +10,7 @@ from dagster_ray._base.cluster_sharing_lock import ClusterSharingLock
 from dagster_ray.configs import Lifecycle
 from dagster_ray.kuberay.client import RayClusterClient
 from dagster_ray.kuberay.configs import ClusterSharing, RayClusterConfig
+from dagster_ray.kuberay.leader_election import LeaderElection
 from dagster_ray.kuberay.resources.base import BaseKubeRayResource
 from dagster_ray.kuberay.utils import normalize_k8s_label_values
 from dagster_ray.types import AnyDagsterContext
@@ -103,6 +104,52 @@ class KubeRayCluster(BaseKubeRayResource):
         assert context.dagster_run is not None
         return self.image or context.dagster_run.tags.get("dagster/image")
 
+    def _find_shared_cluster(self, label_selector: str) -> list[dict]:
+        """Find existing shared clusters matching the label selector."""
+        return self.client.list(
+            label_selector=label_selector,
+            namespace=self.namespace,
+        ).get("items", [])
+
+    def _use_existing_cluster(self, context: AnyDagsterContext, cluster_name: str) -> None:
+        """Mark an existing cluster as being used by this step."""
+        self._name = cluster_name
+        self._creation_verb = "Using"
+
+        # Place a lock on the cluster using JSON patch to avoid overwriting existing annotations
+        lock_annotations = self.get_sharing_lock_annotations(context)
+        patch_operations = [
+            {
+                "op": "add",
+                "path": f"/metadata/annotations/{key.replace('/', '~1')}",
+                "value": value,
+            }
+            for key, value in lock_annotations.items()
+        ]
+
+        self.client.update_json_patch(
+            name=cluster_name,
+            namespace=self.namespace,
+            body=patch_operations,
+        )
+
+    def _get_lease_name(self, context: AnyDagsterContext) -> str:
+        """Generate a deterministic lease name for cluster sharing coordination.
+
+        The lease name must be the same for all steps that should share a cluster,
+        so it's derived from the sharing label selector (which defines "same cluster" semantics).
+        The label selector is sorted to ensure deterministic ordering.
+        """
+        import hashlib
+
+        label_selector = self.get_sharing_label_selector(context)
+        # Sort the label selector components for deterministic ordering
+        # Label selector format is "key1=value1,key2=value2,..."
+        sorted_selector = ",".join(sorted(label_selector.split(",")))
+        # Create a short hash of the sorted label selector for the lease name
+        selector_hash = hashlib.sha256(sorted_selector.encode()).hexdigest()[:12]
+        return f"dagster-ray-{selector_hash}"
+
     @override
     def create(self, context: AnyDagsterContext):
         assert context.log is not None
@@ -116,47 +163,65 @@ class KubeRayCluster(BaseKubeRayResource):
             context.log.info(
                 f"RayCluster sharing is enabled. Looking for clusters matching label selector: {label_selector}"
             )
-            # check whether a cluster matching the sharing config already exists
-            matching_clusters = self.client.list(
-                label_selector=label_selector,
-                namespace=self.namespace,
-            ).get("items", [])
+
+            # Check if a shared cluster already exists
+            matching_clusters = self._find_shared_cluster(label_selector)
             if matching_clusters:
                 cluster_name = matching_clusters[0]["metadata"]["name"]
                 context.log.info(
-                    f"Found {len(matching_clusters)} clusters matching the label selector. Using the first one: {cluster_name}"
+                    f"Found {len(matching_clusters)} clusters matching the label selector. "
+                    f"Using the first one: {cluster_name}"
                 )
-                self._name = cluster_name
-                self._creation_verb = "Using"
-
-                # place a lock on the cluster
-                # Create individual patch operations for each annotation to avoid replacing existing ones
-                lock_annotations = self.get_sharing_lock_annotations(context)
-                patch_operations = [
-                    {
-                        "op": "add",
-                        "path": f"/metadata/annotations/{key.replace('/', '~1')}",
-                        "value": value,
-                    }
-                    for key, value in lock_annotations.items()
-                ]
-
-                self.client.update_json_patch(
-                    name=cluster_name,
-                    namespace=self.namespace,
-                    body=patch_operations,
-                )
-
+                self._use_existing_cluster(context, cluster_name)
                 return
-            else:
-                context.log.info("No matching clusters found. Creating a new one.")
 
-                # mark the cluster as being used by this step
-                annotations.update(self.get_sharing_lock_annotations(context))
+            # No cluster exists - use leader election to coordinate creation
+            context.log.info("No matching shared clusters found. Using leader election to coordinate cluster creation.")
+
+            lease_name = self._get_lease_name(context)
+            holder_identity = f"{context.run_id}-{self.resource_uid}"
+            leader_election = LeaderElection(
+                holder_identity=holder_identity,
+                api_client=self.client.api_client,
+                lease_duration_seconds=10,
+                retry_period_seconds=2.0,
+                acquire_timeout_seconds=60.0,
+            )
+
+            def cluster_exists() -> bool:
+                return bool(self._find_shared_cluster(label_selector))
+
+            result = leader_election.acquire_or_wait(
+                lease_name=lease_name,
+                namespace=self.namespace,
+                resource_exists_check=cluster_exists,
+            )
+
+            if not result.is_leader:
+                # Another step created the cluster while we were waiting
+                matching_clusters = self._find_shared_cluster(label_selector)
+                if matching_clusters:
+                    cluster_name = matching_clusters[0]["metadata"]["name"]
+                    context.log.info(f"Using cluster created by leader: {cluster_name}")
+                    self._use_existing_cluster(context, cluster_name)
+                    return
+                else:
+                    # Edge case: leader created then deleted? Fall through to create
+                    context.log.warning(
+                        "Leader election indicated not leader, but no cluster found. Proceeding to create cluster."
+                    )
+
+            context.log.info("Won leader election - this step will create the shared cluster.")
+
+            # Mark the cluster as being used by this step
+            annotations.update(self.get_sharing_lock_annotations(context))
+
+            # Release the lease after we're done creating (cluster existence is the coordination point now)
+            # We'll release after successful creation below
 
         self._name = self.ray_cluster.metadata.get("name") or self._get_step_name(context)
 
-        # just a safety measure, no need to recreate the cluster for step retries or smth
+        # Safety measure: don't recreate the cluster for step retries
         if not self.client.get(
             name=self.name,
             namespace=self.namespace,
@@ -174,6 +239,20 @@ class KubeRayCluster(BaseKubeRayResource):
             resource = self.client.create(body=k8s_manifest, namespace=self.namespace)
             if not resource:
                 raise RuntimeError(f"Couldn't create {self.display_name}")
+
+            # Release the lease now that the cluster is created
+            if self.cluster_sharing.enabled:
+                try:
+                    lease_name = self._get_lease_name(context)
+                    holder_identity = f"{context.run_id}-{self.resource_uid}"
+                    leader_election = LeaderElection(
+                        holder_identity=holder_identity,
+                        api_client=self.client.api_client,
+                    )
+                    leader_election.release(lease_name, self.namespace)
+                except Exception as e:
+                    # Non-fatal: lease will expire on its own
+                    context.log.debug(f"Failed to release leader election lease: {e}")
 
     @override
     def wait(self, context: AnyDagsterContext):
