@@ -40,11 +40,11 @@ class RayExecutionConfig(dg.Config):
     resources: dict[str, float] | None = Field(default=None, description="Custom resources to allocate.")
 
     @classmethod
-    def from_tags(cls, tags: Mapping[str, str]) -> RayExecutionConfig:
+    def from_tags(cls, address, tags: Mapping[str, str]) -> RayExecutionConfig:
         if USER_DEFINED_RAY_KEY in tags:
             return cls.model_validate_json(tags[USER_DEFINED_RAY_KEY])
         else:
-            return cls()
+            return cls(**{'address': address})
 
 
 class RayJobSubmissionClientConfig(dg.Config):
