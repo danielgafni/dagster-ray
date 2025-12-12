@@ -110,23 +110,19 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
 
     @functools.cached_property
     def client(self) -> JobSubmissionClient:
-        import ray
-        from ray.job_submission import JobSubmissionClient
+        '''
+        Cache the client to avoid creating multiple connections.
+        When using ray:// addresses, JobSubmissionClient internally calls ray.init()
+        which fails if already connected.
+        '''
+        
+        if self._client is None:
+            from ray.job_submission import JobSubmissionClient
 
-        address = self.address
-
-        # For ray:// addresses, JobSubmissionClient internally calls ray.init()
-        # without allow_multiple=True, which fails if Ray is already connected.
-        # We resolve the ray:// address to an HTTP dashboard URL ourselves.
-        if address.startswith("ray://"):
-            with ray.init(address=address, allow_multiple=True) as client_context:
-                dashboard_url = client_context.dashboard_url
-            if dashboard_url:
-                address = f"http://{dashboard_url}"
-
-        return JobSubmissionClient(
-            address, metadata=self.metadata, headers=self.headers, cookies=self.cookies
-        )
+            self._client = JobSubmissionClient(
+                self.address, metadata=self.metadata, headers=self.headers, cookies=self.cookies
+            )
+        return self._client
 
     @property
     def inst_data(self) -> ConfigurableClassData | None:
