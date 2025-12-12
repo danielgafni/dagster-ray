@@ -113,13 +113,19 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
         import ray
         from ray.job_submission import JobSubmissionClient
 
-        # For ray:// addresses, JobSubmissionClient internally calls ray.init().
-        # If Ray is already initialized elsewhere, we need allow_multiple=True.
-        if self.address.startswith("ray://"):
-            ray.init(address=self.address, allow_multiple=True, ignore_reinit_error=True)
+        address = self.address
+
+        # For ray:// addresses, JobSubmissionClient internally calls ray.init()
+        # without allow_multiple=True, which fails if Ray is already connected.
+        # We resolve the ray:// address to an HTTP dashboard URL ourselves.
+        if address.startswith("ray://"):
+            with ray.init(address=address, allow_multiple=True) as client_context:
+                dashboard_url = client_context.dashboard_url
+            if dashboard_url:
+                address = f"http://{dashboard_url}"
 
         return JobSubmissionClient(
-            self.address, metadata=self.metadata, headers=self.headers, cookies=self.cookies
+            address, metadata=self.metadata, headers=self.headers, cookies=self.cookies
         )
 
     @property
