@@ -116,13 +116,7 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
         which fails if already connected.
         '''
         
-        if self._client is None:
-            from ray.job_submission import JobSubmissionClient
-
-            self._client = JobSubmissionClient(
-                self.address, metadata=self.metadata, headers=self.headers, cookies=self.cookies
-            )
-        return self._client
+        return JobSubmissionClient(self.address, metadata=self.metadata, headers=self.headers, cookies=self.cookies)
 
     @property
     def inst_data(self) -> ConfigurableClassData | None:
