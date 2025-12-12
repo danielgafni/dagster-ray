@@ -105,13 +105,22 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
         self.memory = memory
         self.resources = resources
 
+        self._client: JobSubmissionClient | None = None
+
         super().__init__()
 
     @property
-    def client(self) -> JobSubmissionClient:  # note: this must be a property
-        from ray.job_submission import JobSubmissionClient
+    def client(self) -> JobSubmissionClient:
+        # Cache the client to avoid creating multiple connections.
+        # When using ray:// addresses, JobSubmissionClient internally calls ray.init()
+        # which fails if already connected.
+        if self._client is None:
+            from ray.job_submission import JobSubmissionClient
 
-        return JobSubmissionClient(self.address, metadata=self.metadata, headers=self.headers, cookies=self.cookies)
+            self._client = JobSubmissionClient(
+                self.address, metadata=self.metadata, headers=self.headers, cookies=self.cookies
+            )
+        return self._client
 
     @property
     def inst_data(self) -> ConfigurableClassData | None:
