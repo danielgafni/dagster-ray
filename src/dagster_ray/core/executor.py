@@ -189,7 +189,7 @@ class RayStepHandler(StepHandler):
         if remote_job_origin:
             labels["dagster/code-location"] = remote_job_origin.repository_origin.code_location_origin.location_name
 
-        user_provided_config = RayExecutionConfig.from_tags(tags={**step_handler_context.step_tags[step_key]})
+        user_provided_config = RayExecutionConfig.from_tags({**step_handler_context.step_tags[step_key]})
 
         # note! ray modifies the user-provided runtime_env, so we copy it
         runtime_env = (user_provided_config.runtime_env or self.runtime_env).copy()

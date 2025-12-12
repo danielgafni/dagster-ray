@@ -175,7 +175,7 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
         if remote_job_origin:
             labels["dagster/code-location"] = remote_job_origin.repository_origin.code_location_origin.location_name
 
-        cfg_from_tags = RayLauncherConfig.from_tags(tags=run.tags)
+        cfg_from_tags = RayLauncherConfig.from_tags(run.tags)
 
         env_vars = cfg_from_tags.env_vars or self.env_vars or []
         # note! ray modifies the user-provided runtime_env, so we copy it
