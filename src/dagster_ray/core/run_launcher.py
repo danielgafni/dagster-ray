@@ -115,7 +115,8 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
         When using ray:// addresses, JobSubmissionClient internally calls ray.init()
         which fails if already connected.
         '''
-        
+        from ray.job_submission import JobSubmissionClient
+
         return JobSubmissionClient(self.address, metadata=self.metadata, headers=self.headers, cookies=self.cookies)
 
     @property
