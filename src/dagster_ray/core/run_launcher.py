@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 import logging
 import sys
 from typing import TYPE_CHECKING, Any, cast
@@ -105,28 +106,21 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
         self.memory = memory
         self.resources = resources
 
-        self._client: JobSubmissionClient | None = None
-
         super().__init__()
 
-    @property
+    @functools.cached_property
     def client(self) -> JobSubmissionClient:
-        # Cache the client to avoid creating multiple connections.
-        # When using ray:// addresses, JobSubmissionClient internally calls ray.init()
-        # which fails if already connected.
-        if self._client is None:
-            import ray
-            from ray.job_submission import JobSubmissionClient
+        import ray
+        from ray.job_submission import JobSubmissionClient
 
-            # For ray:// addresses, JobSubmissionClient internally calls ray.init().
-            # If Ray is already initialized elsewhere, we need allow_multiple=True.
-            if self.address.startswith("ray://"):
-                ray.init(address=self.address, allow_multiple=True, ignore_reinit_error=True)
+        # For ray:// addresses, JobSubmissionClient internally calls ray.init().
+        # If Ray is already initialized elsewhere, we need allow_multiple=True.
+        if self.address.startswith("ray://"):
+            ray.init(address=self.address, allow_multiple=True, ignore_reinit_error=True)
 
-            self._client = JobSubmissionClient(
-                self.address, metadata=self.metadata, headers=self.headers, cookies=self.cookies
-            )
-        return self._client
+        return JobSubmissionClient(
+            self.address, metadata=self.metadata, headers=self.headers, cookies=self.cookies
+        )
 
     @property
     def inst_data(self) -> ConfigurableClassData | None:
