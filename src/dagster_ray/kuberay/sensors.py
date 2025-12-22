@@ -55,6 +55,10 @@ def cleanup_expired_kuberay_clusters(
             else:
                 # check if the cluster age since creation time exceeds expiration_seconds
 
+                # early exit for clusters with owners
+                if cluster.get("metadata", {}).get("ownerReferences"):
+                    continue
+
                 if cluster.get("metadata", {}).get("creationTimestamp"):
                     cluster_age = datetime.now(timezone.utc) - datetime.strptime(
                         cluster["metadata"]["creationTimestamp"], "%Y-%m-%dT%H:%M:%SZ"

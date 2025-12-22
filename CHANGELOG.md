@@ -5,11 +5,16 @@ All notable user-facing changes to `dagster-ray` will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## 0.4.1
 
 ### Added
 
 - `RayCluster`'s head pod logs are now displayed on startup timeout or failure
+
+### Fixes
+
+- Prevent the `RayCluster` cleanup sensor from targeting clusters with `.metadata.ownerReferences` set.
+- `address` config value can now be omitted for `ray_executor`, making it use Ray's default cluster address resolution. Thanks @cornettew!
 
 ## 0.4.0
 
