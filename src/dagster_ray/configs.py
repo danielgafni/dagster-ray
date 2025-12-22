@@ -48,7 +48,7 @@ class RayExecutionConfig(dg.Config):
 
 
 class RayJobSubmissionClientConfig(dg.Config):
-    address: str = Field(..., description="The address of the Ray cluster to connect to.")
+    address: str | None = Field(default=None, description="The address of the Ray cluster to connect to.")
     metadata: dict[str, str] | None = Field(
         default=None,
         description="""Arbitrary metadata to store along with all jobs. New metadata
