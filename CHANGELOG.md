@@ -5,6 +5,12 @@ All notable user-facing changes to `dagster-ray` will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- `RayCluster`'s head pod logs are now displayed on startup timeout or failure
+
 ## 0.4.0
 
 This release introduces a new feature that is very useful in dev environments: **Cluster Sharing**. Cluster sharing allows reusing existing `RayCluster` resources created by previous Dagster steps. It's implemented for `KubeRayCluster` Dagster resource. This feature enables faster iteration speed and reduced infrastructure costs (at the expense of job isolation). Therefore `KubeRayCluster` is now recommended over `KubeRayInteractiveJob` for use in **dev** environments.

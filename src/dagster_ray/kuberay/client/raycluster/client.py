@@ -9,11 +9,7 @@ from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from io import FileIO
 from queue import Queue
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    TypedDict,
-)
+from typing import TYPE_CHECKING, Any, TypedDict, cast
 
 import urllib3
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
@@ -166,9 +162,13 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
                     condition_index_to_log += 1
 
             if state == "failed" and (time.time() - start_time > failure_tolerance_timeout):
-                raise RuntimeError(
-                    f"RayCluster {namespace}/{name} status transitioned into `failed`. Consider increasing `failure_tolerance_timeout` ({failure_tolerance_timeout:.1f}s). Status:\n\n{status}\n\nMore details: `kubectl -n {namespace} describe RayCluster {name}`"
-                )
+                error_msg = f"RayCluster {namespace}/{name} status transitioned into `failed`. Check the logs for more info. Consider increasing `failure_tolerance_timeout` ({failure_tolerance_timeout:.1f}s). Status:\n\n{status}\n\nMore details: `kubectl -n {namespace} describe RayCluster {name}`"
+
+                logs = self._read_head_pod_logs(status=status, namespace=namespace, tail_lines=500)
+                if logs:
+                    logger.error(logs)
+
+                raise RuntimeError(error_msg)
 
             if (
                 state == "ready"
@@ -184,9 +184,14 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
 
             time.sleep(poll_interval)
         else:
-            raise TimeoutError(
-                f"Timed out ({timeout:.1f}s) waiting for RayCluster {namespace}/{name} to be ready. Status: {status}"
-            )
+            # Try to fetch head pod logs for better debugging
+            error_msg = f"Timed out ({timeout:.1f}s) waiting for RayCluster {namespace}/{name} to be ready. Check the logs for more info. Status: {status}"
+
+            logs = self._read_head_pod_logs(status=status, namespace=namespace, tail_lines=500)
+            if logs:
+                logger.error(logs)
+
+            raise TimeoutError(error_msg)
 
     @contextmanager
     def port_forward(
@@ -301,3 +306,46 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
                 _,
             ):
                 yield JobSubmissionClient(address=f"http://localhost:{local_dashboard_port}")
+
+    def _read_head_pod_logs(self, status: RayClusterStatus, namespace: str, tail_lines: int = 500) -> str | None:
+        if not ((head := status.get("head")) and (pod_name := head.get("podName"))):
+            return None
+
+        logs_output = []
+
+        try:
+            # First, get the pod to list all containers
+            pod = self._core_v1_api.read_namespaced_pod(name=pod_name, namespace=namespace)
+
+            if pod and pod.spec:  # pyright: ignore
+                # Fetch logs from all containers except autoscaler
+                for container in pod.spec.containers:  # pyright: ignore
+                    container_name = container.name
+
+                    # Skip autoscaler container - we only care about the main Ray head container
+                    if container_name == "autoscaler":
+                        continue
+
+                    try:
+                        container_logs = cast(
+                            str,
+                            self._core_v1_api.read_namespaced_pod_log(
+                                name=pod_name,
+                                namespace=namespace,
+                                container=container_name,
+                                tail_lines=tail_lines,
+                            ),
+                        )
+                        logs_output.append(f"=== Container: {container_name} (last {tail_lines} lines) ===")
+                        logs_output.append(container_logs)
+                        logs_output.append("")  # Empty line between containers
+                    except Exception:
+                        logger.exception(
+                            f"Failed to fetch logs for container {container_name} in pod {namespace}/{pod_name}"
+                        )
+
+            return "\n".join(logs_output) if logs_output else ""
+
+        except Exception:
+            logger.exception(f"Failed to fetch head pod {namespace}/{pod_name} metadata or logs")
+            return None
