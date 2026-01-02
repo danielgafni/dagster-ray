@@ -1,3 +1,4 @@
+import os
 import shutil
 import subprocess
 import sys
@@ -27,12 +28,15 @@ def test_ray_run_launcher(local_ray_address: str, example_dir: Path, tmp_path_fa
     # TODO: rewrite this test in Dagster's Python API instead of calling the CLI
     # the CLI command doesn't actually use the RunLauncher!
 
+    # Inherit parent environment (important for Nix) and override specific vars
+    env = os.environ.copy()
+    env["DAGSTER_HOME"] = str(dagster_home)
+    env["RAY_ADDRESS"] = local_ray_address
+
     subprocess.run(
         f"""cd {example_dir} && {sys.executable} -m dagster job execute -f {example_dir / "definitions.py"} -j my_job
         """,
         check=True,
         shell=True,
-        env={
-            "DAGSTER_HOME": str(dagster_home),
-        },
+        env=env,
     )

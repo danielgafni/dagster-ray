@@ -1,3 +1,4 @@
+import os
 from collections.abc import Iterator
 
 import dagster as dg
@@ -111,7 +112,6 @@ RUNTIME_ENV = {"pip": ["polars"], "env_vars": {"FOO": "bar"}}
 
 def runtime_env_checks():
     import polars  # noqa  # type: ignore
-    import os
 
     assert os.environ["FOO"] == "bar"
 

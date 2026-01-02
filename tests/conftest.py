@@ -19,12 +19,16 @@ def dagster_instance(tmp_path_factory: TempPathFactory) -> dg.DagsterInstance:
     return dg.DagsterInstance.ephemeral(tempdir=str(tmp_path_factory.mktemp("dagster_home")))
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def local_ray_address() -> Iterator[str]:
     import ray
 
+    # Force Ray to use 127.0.0.1 to avoid issues with Docker networks (k3d) interfering
+    # with Ray's IP auto-detection, which can cause GCS timeout errors
     context = ray.init(
-        ignore_reinit_error=True, runtime_env={"env_vars": {"RAY_ENABLE_RECORD_ACTOR_TASK_LOGGING": "1"}}
+        ignore_reinit_error=True,
+        runtime_env={"env_vars": {"RAY_ENABLE_RECORD_ACTOR_TASK_LOGGING": "1"}},
+        _node_ip_address="127.0.0.1",
     )
 
     yield "auto"

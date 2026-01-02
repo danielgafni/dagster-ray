@@ -32,6 +32,13 @@
           pkgs.glib
           pkgs.python310
         ];
+        NIX_LD_LIBRARY_PATH = lib.makeLibraryPath [
+          pkgs.stdenv.cc.cc.lib
+          pkgs.gcc-unwrapped.lib
+          pkgs.glibc
+          pkgs.glib
+        ];
+        NIX_LD = lib.fileContents "${pkgs.stdenv.cc}/nix-support/dynamic-linker";
         shellHook = ''
           uv python pin 3.10
         '';
