@@ -22,7 +22,7 @@ env:
 
 jobs:
   changes:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     permissions:
       pull-requests: read
     # Set job outputs to values from filter step
@@ -57,7 +57,7 @@ jobs:
 
   generate-matrix:
     name: Generate Test Matrix
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: changes
     if: ${{ needs.changes.outputs.src == 'true' }}
     outputs:
@@ -78,7 +78,7 @@ jobs:
 
   test:
     name: Test Python ${{ matrix.py }} - Ray ${{ matrix.ray }} - Dagster ${{ matrix.dagster }} - KubeRay ${{ matrix.kuberay }}
-    runs-on: ${{ matrix.os }}-latest
+    runs-on: ${{ matrix.os }}
     needs: [changes, generate-matrix]
     if: ${{ needs.changes.outputs.src == 'true' }}
     strategy:
@@ -121,7 +121,7 @@ jobs:
 
   lint:
     name: Lint ${{ matrix.py }}
-    runs-on: ${{ matrix.os }}-latest
+    runs-on: ${{ matrix.os }}
     needs: changes
     if: ${{ needs.changes.outputs.src == 'true' }}
     strategy:
@@ -143,7 +143,7 @@ jobs:
 
   typecheck:
     name: Typecheck ${{ matrix.py }}
-    runs-on: ${{ matrix.os }}-latest
+    runs-on: ${{ matrix.os }}
     needs: changes
     if: ${{ needs.changes.outputs.src == 'true' }}
     strategy:
@@ -169,7 +169,7 @@ jobs:
 
   build-docs:
     name: Build Docs
-    runs-on: Ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: changes
     if: ${{ needs.changes.outputs.docs == 'true' }}
     steps:
@@ -192,7 +192,7 @@ jobs:
     - lint
     - typecheck
     - build-docs
-    runs-on: Ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - name: Decide whether the needed jobs succeeded or failed
       uses: re-actors/alls-green@release/v1

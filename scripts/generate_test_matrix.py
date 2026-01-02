@@ -57,7 +57,7 @@ class TestConfig(NamedTuple):
 
 
 # Component versions
-OS_VERSIONS = ["Ubuntu"]
+OS_VERSIONS = ["ubuntu-22.04"]
 PYTHON_VERSIONS = ["3.12", "3.11", "3.10"]
 RAY_VERSIONS = ["2.49.2", "2.46.0"]
 DAGSTER_VERSIONS = ["1.11.13", "1.11.6", "1.11.1", "1.10.21"]
