@@ -23,12 +23,10 @@ def dagster_instance(tmp_path_factory: TempPathFactory) -> dg.DagsterInstance:
 def local_ray_address() -> Iterator[str]:
     import ray
 
-    # Force Ray to use 127.0.0.1 to avoid issues with Docker networks (k3d) interfering
-    # with Ray's IP auto-detection, which can cause GCS timeout errors
+    # RAY_ENABLE_WINDOWS_OR_OSX_CLUSTER=0 in pyproject.toml ensures Ray uses 127.0.0.1
     context = ray.init(
         ignore_reinit_error=True,
         runtime_env={"env_vars": {"RAY_ENABLE_RECORD_ACTOR_TASK_LOGGING": "1"}},
-        _node_ip_address="127.0.0.1",
     )
 
     yield "auto"

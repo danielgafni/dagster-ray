@@ -1,3 +1,6 @@
+# AI stuff
+.claude/**.local.md
+
 .venv
 .idea
 junit.xml
