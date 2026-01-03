@@ -19,11 +19,16 @@ def dagster_instance(tmp_path_factory: TempPathFactory) -> dg.DagsterInstance:
     return dg.DagsterInstance.ephemeral(tempdir=str(tmp_path_factory.mktemp("dagster_home")))
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def local_ray_address() -> Iterator[str]:
+    """Fixture that provides a local Ray address for testing.
+
+    Uses function scope so each test gets a fresh Ray context.
+    RAY_ENABLE_WINDOWS_OR_OSX_CLUSTER=0 in pyproject.toml ensures Ray uses 127.0.0.1
+    instead of auto-detecting an IP that might be from Docker networks (k3d).
+    """
     import ray
 
-    # RAY_ENABLE_WINDOWS_OR_OSX_CLUSTER=0 in pyproject.toml ensures Ray uses 127.0.0.1
     context = ray.init(
         ignore_reinit_error=True,
         runtime_env={"env_vars": {"RAY_ENABLE_RECORD_ACTOR_TASK_LOGGING": "1"}},
