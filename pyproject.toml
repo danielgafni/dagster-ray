@@ -203,8 +203,6 @@ exclude = [
 
 [tool.pytest_env]
 RAY_ENABLE_UV_RUN_RUNTIME_ENV = "0"
-# Force Ray to use 127.0.0.1 instead of auto-detecting IP, which can fail with Docker networks (k3d)
-RAY_ENABLE_WINDOWS_OR_OSX_CLUSTER = "0"
 
 [tool.uv.sources]
 griffe-pydantic = { git = "https://github.com/danielgafni/griffe-pydantic.git", branch = "feat/configurable-bases" }
