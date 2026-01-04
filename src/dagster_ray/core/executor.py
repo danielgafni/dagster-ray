@@ -108,6 +108,7 @@ def ray_executor(init_context: InitExecutorContext) -> Executor:
     return StepDelegatingExecutor(
         RayStepHandler(
             client=client,
+            address=ray_cfg.address,
             env_vars=ray_cfg.env_vars,
             runtime_env=ray_cfg.runtime_env,
             num_cpus=ray_cfg.num_cpus,
@@ -130,6 +131,7 @@ class RayStepHandler(StepHandler):
     def __init__(
         self,
         client: JobSubmissionClient,
+        address: str | None,
         env_vars: list[str] | None,
         runtime_env: dict[str, Any] | None,
         num_cpus: float | None,
@@ -140,6 +142,7 @@ class RayStepHandler(StepHandler):
         super().__init__()
 
         self.client = client
+        self.address = address
         self.env_vars = env_vars or []
         self.runtime_env = runtime_env or {}
         self.num_cpus = num_cpus
@@ -199,6 +202,10 @@ class RayStepHandler(StepHandler):
             "DAGSTER_RUN_STEP_KEY": step_key,
             **{env["name"]: env["value"] for env in step_handler_context.execute_step_args.get_command_env()},
         }
+
+        # Set RAY_ADDRESS so that ray.init() in the subprocess can connect to the cluster
+        if self.address:
+            dagster_env_vars["RAY_ADDRESS"] = self.address
 
         runtime_env["env_vars"] = {**dagster_env_vars, **runtime_env.get("env_vars", {})}  # type: ignore
 
