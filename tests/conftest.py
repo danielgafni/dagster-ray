@@ -19,29 +19,27 @@ def dagster_instance(tmp_path_factory: TempPathFactory) -> dg.DagsterInstance:
     return dg.DagsterInstance.ephemeral(tempdir=str(tmp_path_factory.mktemp("dagster_home")))
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def local_ray_address() -> Iterator[str]:
     """Fixture that provides a local Ray address for testing.
 
-    Uses function scope so each test gets a fresh Ray context.
-    RAY_ENABLE_WINDOWS_OR_OSX_CLUSTER=0 in pyproject.toml ensures Ray uses 127.0.0.1
-    instead of auto-detecting an IP that might be from Docker networks (k3d).
+    Uses session scope for efficiency across multiple tests.
+    The _node_ip_address forces Ray to use 127.0.0.1 to avoid issues with
+    Docker networks (k3d) interfering with Ray's IP auto-detection.
 
-    Yields the dashboard URL (http://127.0.0.1:8265) for JobSubmissionClient.
+    Yields "auto" for JobSubmissionClient - Ray will auto-detect the dashboard.
     """
     import ray
 
+    # Force Ray to use 127.0.0.1 to avoid issues with Docker networks (k3d) interfering
+    # with Ray's IP auto-detection, which can cause GCS timeout errors
     context = ray.init(
         ignore_reinit_error=True,
         runtime_env={"env_vars": {"RAY_ENABLE_RECORD_ACTOR_TASK_LOGGING": "1"}},
+        _node_ip_address="127.0.0.1",
     )
 
-    # Get the dashboard URL for JobSubmissionClient
-    dashboard_url = context.dashboard_url
-    if dashboard_url and not dashboard_url.startswith("http"):
-        dashboard_url = f"http://{dashboard_url}"
-
-    yield dashboard_url or "http://127.0.0.1:8265"
+    yield "auto"
 
     context.disconnect()
 
