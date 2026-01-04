@@ -26,6 +26,9 @@ def local_ray_address() -> Iterator[str]:
     Uses function scope so each test gets a fresh Ray context.
     RAY_ENABLE_WINDOWS_OR_OSX_CLUSTER=0 in pyproject.toml ensures Ray uses 127.0.0.1
     instead of auto-detecting an IP that might be from Docker networks (k3d).
+
+    Yields the dashboard URL (http://127.0.0.1:8265) instead of "auto" to avoid
+    GCS address resolution issues in CI environments with Docker networks.
     """
     import ray
 
@@ -34,7 +37,13 @@ def local_ray_address() -> Iterator[str]:
         runtime_env={"env_vars": {"RAY_ENABLE_RECORD_ACTOR_TASK_LOGGING": "1"}},
     )
 
-    yield "auto"
+    # Get the dashboard URL from the context - this is more reliable than "auto"
+    # because it doesn't require GCS address resolution which can fail in CI
+    dashboard_url = context.dashboard_url
+    if dashboard_url and not dashboard_url.startswith("http"):
+        dashboard_url = f"http://{dashboard_url}"
+
+    yield dashboard_url or "http://127.0.0.1:8265"
 
     context.disconnect()
 
