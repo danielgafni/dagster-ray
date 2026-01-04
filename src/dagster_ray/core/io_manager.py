@@ -110,8 +110,14 @@ class RayIOManager(dg.ConfigurableIOManager):
     def handle_output(self, context: dg.OutputContext, obj):
         import ray
 
-        if self.address:  # TODO: should this really be done here?
+        # Ensure Ray is initialized:
+        # - If address is explicitly provided, connect to that cluster
+        # - If address is None, ray.init() will either connect to an existing
+        #   cluster (via RAY_ADDRESS env var or auto-detection) or start a new local one
+        if self.address:
             ray.init(self.address, ignore_reinit_error=True)
+        else:
+            ray.init(ignore_reinit_error=True)
 
         object_map = RayObjectMap.get_or_create()
 
@@ -129,8 +135,14 @@ class RayIOManager(dg.ConfigurableIOManager):
     def load_input(self, context: dg.InputContext):
         import ray
 
-        if self.address:  # TODO: should this really be done here?
+        # Ensure Ray is initialized:
+        # - If address is explicitly provided, connect to that cluster
+        # - If address is None, ray.init() will either connect to an existing
+        #   cluster (via RAY_ADDRESS env var or auto-detection) or start a new local one
+        if self.address:
             ray.init(self.address, ignore_reinit_error=True)
+        else:
+            ray.init(ignore_reinit_error=True)
 
         object_map = RayObjectMap.get_or_create()
 
