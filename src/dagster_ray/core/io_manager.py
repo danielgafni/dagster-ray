@@ -110,13 +110,11 @@ class RayIOManager(dg.ConfigurableIOManager):
     def handle_output(self, context: dg.OutputContext, obj):
         import ray
 
-        # Ensure Ray is initialized:
-        # - If address is explicitly provided by the user, use it
-        # - Otherwise, call ray.init() with no arguments - Ray will auto-connect
-        #   using its internal mechanisms (RAY_ADDRESS env var, or local instance)
-        # Note: We don't pass RAY_ADDRESS directly because Ray sets it to the GCS
-        # address format (host:port) which ray.init() doesn't accept directly.
-        ray.init(self.address, ignore_reinit_error=True)
+        # Only call ray.init() if an explicit address is provided.
+        # When running inside a Ray job (via ray_executor), Ray is already
+        # connected and we shouldn't try to reinitialize.
+        if self.address:
+            ray.init(self.address, ignore_reinit_error=True)
 
         object_map = RayObjectMap.get_or_create()
 
@@ -134,13 +132,11 @@ class RayIOManager(dg.ConfigurableIOManager):
     def load_input(self, context: dg.InputContext):
         import ray
 
-        # Ensure Ray is initialized:
-        # - If address is explicitly provided by the user, use it
-        # - Otherwise, call ray.init() with no arguments - Ray will auto-connect
-        #   using its internal mechanisms (RAY_ADDRESS env var, or local instance)
-        # Note: We don't pass RAY_ADDRESS directly because Ray sets it to the GCS
-        # address format (host:port) which ray.init() doesn't accept directly.
-        ray.init(self.address, ignore_reinit_error=True)
+        # Only call ray.init() if an explicit address is provided.
+        # When running inside a Ray job (via ray_executor), Ray is already
+        # connected and we shouldn't try to reinitialize.
+        if self.address:
+            ray.init(self.address, ignore_reinit_error=True)
 
         object_map = RayObjectMap.get_or_create()
 
