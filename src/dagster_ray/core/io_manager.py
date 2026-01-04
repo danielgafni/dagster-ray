@@ -108,16 +108,15 @@ class RayIOManager(dg.ConfigurableIOManager):
     address: str | None = None
 
     def handle_output(self, context: dg.OutputContext, obj):
-        import os
-
         import ray
 
         # Ensure Ray is initialized:
-        # - If address is explicitly provided, use it
-        # - Otherwise, check RAY_ADDRESS env var (set by ray_executor)
-        # - If neither, ray.init() will try to auto-detect or start a local instance
-        address = self.address or os.environ.get("RAY_ADDRESS")
-        ray.init(address, ignore_reinit_error=True)
+        # - If address is explicitly provided by the user, use it
+        # - Otherwise, call ray.init() with no arguments - Ray will auto-connect
+        #   using its internal mechanisms (RAY_ADDRESS env var, or local instance)
+        # Note: We don't pass RAY_ADDRESS directly because Ray sets it to the GCS
+        # address format (host:port) which ray.init() doesn't accept directly.
+        ray.init(self.address, ignore_reinit_error=True)
 
         object_map = RayObjectMap.get_or_create()
 
@@ -133,16 +132,15 @@ class RayIOManager(dg.ConfigurableIOManager):
         context.log.debug(f"[RayIOManager] Stored object with key {storage_key} as {ref}")
 
     def load_input(self, context: dg.InputContext):
-        import os
-
         import ray
 
         # Ensure Ray is initialized:
-        # - If address is explicitly provided, use it
-        # - Otherwise, check RAY_ADDRESS env var (set by ray_executor)
-        # - If neither, ray.init() will try to auto-detect or start a local instance
-        address = self.address or os.environ.get("RAY_ADDRESS")
-        ray.init(address, ignore_reinit_error=True)
+        # - If address is explicitly provided by the user, use it
+        # - Otherwise, call ray.init() with no arguments - Ray will auto-connect
+        #   using its internal mechanisms (RAY_ADDRESS env var, or local instance)
+        # Note: We don't pass RAY_ADDRESS directly because Ray sets it to the GCS
+        # address format (host:port) which ray.init() doesn't accept directly.
+        ray.init(self.address, ignore_reinit_error=True)
 
         object_map = RayObjectMap.get_or_create()
 
