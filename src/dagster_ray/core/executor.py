@@ -203,11 +203,8 @@ class RayStepHandler(StepHandler):
             **{env["name"]: env["value"] for env in step_handler_context.execute_step_args.get_command_env()},
         }
 
-        # Set RAY_ADDRESS to "auto" so ray.init() in the subprocess can connect
-        # to the cluster it's running on. We don't pass the HTTP dashboard address
-        # because ray.init() doesn't accept HTTP URLs - it needs "auto", "ray://host:port",
-        # or no address.
-        dagster_env_vars["RAY_ADDRESS"] = "auto"
+        # Note: RAY_ADDRESS is automatically set by Ray's job submission system
+        # to the GCS address when a job runs. We don't override it here.
 
         runtime_env["env_vars"] = {**dagster_env_vars, **runtime_env.get("env_vars", {})}  # type: ignore
 
