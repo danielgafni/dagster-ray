@@ -180,7 +180,7 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
         runtime_env["env_vars"] = runtime_env.get("env_vars", {})
         runtime_env["env_vars"].update(env_vars)
 
-        ray_job["spec"]["runtimeEnvYAML"] = yaml.safe_dump(runtime_env)
+        ray_job["spec"]["runtimeEnvYAML"] = yaml.safe_dump(runtime_env, default_style='"')
 
         image_from_run_tag = context.run.tags.get("dagster/image")
 

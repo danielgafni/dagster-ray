@@ -3,6 +3,7 @@ import sys
 import dagster as dg
 import pytest
 import ray  # noqa: TID253
+import yaml
 from dagster._core.definitions.data_version import (
     DATA_VERSION_IS_USER_PROVIDED_TAG,
     DATA_VERSION_TAG,
@@ -26,6 +27,7 @@ RAY_JOB = {
     "spec": {
         "activeDeadlineSeconds": 10800,
         "entrypoint": ENTRYPOINT,
+        "runtimeEnvYAML": yaml.dump({"env_vars": {"FOO": "1E-5"}}, default_style='"'),
         "entrypointNumCpus": 0.1,
         "rayClusterSpec": {
             "autoscalerOptions": {
