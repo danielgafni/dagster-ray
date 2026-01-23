@@ -2,42 +2,42 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://danielgafni.github.io/dagster-ray/master/</loc>
-         <lastmod>2025-12-22</lastmod>
+         <lastmod>2026-01-23</lastmod>
     </url>
     <url>
          <loc>https://danielgafni.github.io/dagster-ray/master/api/</loc>
-         <lastmod>2025-12-22</lastmod>
+         <lastmod>2026-01-23</lastmod>
     </url>
     <url>
          <loc>https://danielgafni.github.io/dagster-ray/master/changelog/</loc>
-         <lastmod>2025-12-22</lastmod>
+         <lastmod>2026-01-23</lastmod>
     </url>
     <url>
          <loc>https://danielgafni.github.io/dagster-ray/master/api/configs/</loc>
-         <lastmod>2025-12-22</lastmod>
+         <lastmod>2026-01-23</lastmod>
     </url>
     <url>
          <loc>https://danielgafni.github.io/dagster-ray/master/api/core/</loc>
-         <lastmod>2025-12-22</lastmod>
+         <lastmod>2026-01-23</lastmod>
     </url>
     <url>
          <loc>https://danielgafni.github.io/dagster-ray/master/api/kuberay/</loc>
-         <lastmod>2025-12-22</lastmod>
+         <lastmod>2026-01-23</lastmod>
     </url>
     <url>
          <loc>https://danielgafni.github.io/dagster-ray/master/api/types/</loc>
-         <lastmod>2025-12-22</lastmod>
+         <lastmod>2026-01-23</lastmod>
     </url>
     <url>
          <loc>https://danielgafni.github.io/dagster-ray/master/tutorial/</loc>
-         <lastmod>2025-12-22</lastmod>
+         <lastmod>2026-01-23</lastmod>
     </url>
     <url>
          <loc>https://danielgafni.github.io/dagster-ray/master/tutorial/external/</loc>
-         <lastmod>2025-12-22</lastmod>
+         <lastmod>2026-01-23</lastmod>
     </url>
     <url>
          <loc>https://danielgafni.github.io/dagster-ray/master/tutorial/kuberay/</loc>
-         <lastmod>2025-12-22</lastmod>
+         <lastmod>2026-01-23</lastmod>
     </url>
 </urlset>

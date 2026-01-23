@@ -5464,8 +5464,8 @@
 <a href="#dagster_ray.kuberay.PipesKubeRayJobClient" class="headerlink" title="Permanent link">&para;</a></h3>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">PipesKubeRayJobClient</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">client</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;dagster_ray.kuberay.client.RayJobClient&lt;/span&gt;" href="#dagster_ray.kuberay.client.RayJobClient">RayJobClient</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">context_injector</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.pipes.client.PipesContextInjector&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/pipes/#dagster.PipesContextInjector">PipesContextInjector</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">message_reader</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.pipes.client.PipesMessageReader&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/pipes/#dagster.PipesMessageReader">PipesMessageReader</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">context_injector</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.pipes.client.PipesContextInjector&lt;/code&gt;" href="https://docs.dagster.io/sections/api/dagster/pipes/#dagster.PipesContextInjector">PipesContextInjector</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">message_reader</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.pipes.client.PipesMessageReader&lt;/code&gt;" href="https://docs.dagster.io/sections/api/dagster/pipes/#dagster.PipesMessageReader">PipesMessageReader</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">forward_termination</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">timeout</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span> <span class="o">=</span> <span class="mi">600</span><span class="p">,</span>
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">poll_interval</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
@@ -5475,7 +5475,7 @@
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.PipesClient&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/pipes/#dagster.PipesClient">PipesClient</a></code>, <code><span title="dagster._core.definitions.resource_annotation.TreatAsResourceParam">TreatAsResourceParam</span></code></p>
+              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.PipesClient&lt;/code&gt;" href="https://docs.dagster.io/sections/api/dagster/pipes/#dagster.PipesClient">PipesClient</a></code>, <code><span title="dagster._core.definitions.resource_annotation.TreatAsResourceParam">TreatAsResourceParam</span></code></p>
 
 
         <p>A pipes client for running <code>RayJob</code> on Kubernetes.</p>
@@ -5485,18 +5485,18 @@
     <ul>
         <li class="doc-section-item field-body">
             <b><code>context_injector</code></b>
-              (<code><span title="Optional">Optional</span>[<a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.pipes.client.PipesContextInjector&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/pipes/#dagster.PipesContextInjector">PipesContextInjector</a>]</code>, default:
+              (<code><span title="Optional">Optional</span>[<a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.pipes.client.PipesContextInjector&lt;/code&gt;" href="https://docs.dagster.io/sections/api/dagster/pipes/#dagster.PipesContextInjector">PipesContextInjector</a>]</code>, default:
                   <code>None</code>
 )
           –
           <div class="doc-md-description">
             <p>A context injector to use to inject
-context into the <code>RayJob</code>. Defaults to <a class="autorefs autorefs-external" href="https://docs.dagster.io/api/dagster/pipes/#dagster.PipesEnvContextInjector"><code>PipesEnvContextInjector</code></a>.</p>
+context into the <code>RayJob</code>. Defaults to <a class="autorefs autorefs-external" href="https://docs.dagster.io/sections/api/dagster/pipes/#dagster.PipesEnvContextInjector"><code>PipesEnvContextInjector</code></a>.</p>
           </div>
         </li>
         <li class="doc-section-item field-body">
             <b><code>message_reader</code></b>
-              (<code><span title="Optional">Optional</span>[<a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.pipes.client.PipesMessageReader&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/pipes/#dagster.PipesMessageReader">PipesMessageReader</a>]</code>, default:
+              (<code><span title="Optional">Optional</span>[<a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.pipes.client.PipesMessageReader&lt;/code&gt;" href="https://docs.dagster.io/sections/api/dagster/pipes/#dagster.PipesMessageReader">PipesMessageReader</a>]</code>, default:
                   <code>None</code>
 )
           –
@@ -5867,7 +5867,7 @@ Is useful when running in a local environment.</p>
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.Config&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/config/#dagster.Config">Config</a></code></p>
+              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.Config&lt;/code&gt;" href="https://docs.dagster.io/sections/api/dagster/config/#dagster.Config">Config</a></code></p>
 
       <details><summary>Show JSON schema:</summary>
         <div class="language-json highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
@@ -6484,7 +6484,7 @@ Is useful when running in a local environment.</p>
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.PermissiveConfig&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/config/#dagster.PermissiveConfig">PermissiveConfig</a></code></p>
+              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.PermissiveConfig&lt;/code&gt;" href="https://docs.dagster.io/sections/api/dagster/config/#dagster.PermissiveConfig">PermissiveConfig</a></code></p>
 
 
         <p><a href="https://ray-project.github.io/kuberay/reference/api/#rayjobspec">RayJob spec</a> configuration options. A few sensible defaults are provided for convenience.</p>
@@ -7929,7 +7929,7 @@ Is useful when running in a local environment.</p>
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.Config&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/config/#dagster.Config">Config</a></code></p>
+              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.Config&lt;/code&gt;" href="https://docs.dagster.io/sections/api/dagster/config/#dagster.Config">Config</a></code></p>
 
       <details><summary>Show JSON schema:</summary>
         <div class="language-json highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
@@ -8337,7 +8337,7 @@ Is useful when running in a local environment.</p>
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.PermissiveConfig&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/config/#dagster.PermissiveConfig">PermissiveConfig</a></code></p>
+              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.PermissiveConfig&lt;/code&gt;" href="https://docs.dagster.io/sections/api/dagster/config/#dagster.PermissiveConfig">PermissiveConfig</a></code></p>
 
 
         <p><a href="https://ray-project.github.io/kuberay/reference/api/#rayclusterspec">RayCluster spec</a> configuration options. A few sensible defaults are provided for convenience.</p>
@@ -8725,7 +8725,7 @@ Is useful when running in a local environment.</p>
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.Config&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/config/#dagster.Config">Config</a></code></p>
+              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.Config&lt;/code&gt;" href="https://docs.dagster.io/sections/api/dagster/config/#dagster.Config">Config</a></code></p>
 
       <details><summary>Show JSON schema:</summary>
         <div class="language-json highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
@@ -8976,7 +8976,7 @@ Is useful when running in a local environment.</p>
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.Config&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/config/#dagster.Config">Config</a></code></p>
+              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.Config&lt;/code&gt;" href="https://docs.dagster.io/sections/api/dagster/config/#dagster.Config">Config</a></code></p>
 
         <p>Defines the strategy for sharing <code>RayCluster</code> resources with other Dagster steps.</p>
 <p>By default, the cluster is expected to be created by Dagster during one of the previously executed steps.</p>
@@ -9759,7 +9759,7 @@ Is useful when running in a local environment.</p>
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.ConfigurableResource&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/resources/#dagster.ConfigurableResource">ConfigurableResource</a>[<a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;dagster_ray.kuberay.client.RayJobClient&lt;/span&gt;" href="#dagster_ray.kuberay.client.RayJobClient">RayJobClient</a>]</code></p>
+              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.ConfigurableResource&lt;/code&gt;" href="https://docs.dagster.io/sections/api/dagster/resources/#dagster.ConfigurableResource">ConfigurableResource</a>[<a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;dagster_ray.kuberay.client.RayJobClient&lt;/span&gt;" href="#dagster_ray.kuberay.client.RayJobClient">RayJobClient</a>]</code></p>
 
         <p>This configurable resource provides a <a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;dagster_ray.kuberay.client.RayJobClient&lt;/span&gt;" href="#dagster_ray.kuberay.client.RayJobClient">dagster_ray.kuberay.client.RayJobClient</a>.</p>
 
@@ -9850,7 +9850,7 @@ Is useful when running in a local environment.</p>
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.ConfigurableResource&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/resources/#dagster.ConfigurableResource">ConfigurableResource</a>[<a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;dagster_ray.kuberay.client.RayClusterClient&lt;/span&gt;" href="#dagster_ray.kuberay.client.RayClusterClient">RayClusterClient</a>]</code></p>
+              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.ConfigurableResource&lt;/code&gt;" href="https://docs.dagster.io/sections/api/dagster/resources/#dagster.ConfigurableResource">ConfigurableResource</a>[<a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;dagster_ray.kuberay.client.RayClusterClient&lt;/span&gt;" href="#dagster_ray.kuberay.client.RayClusterClient">RayClusterClient</a>]</code></p>
 
         <p>This configurable resource provides a <a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;dagster_ray.kuberay.client.RayClusterClient&lt;/span&gt;" href="#dagster_ray.kuberay.client.RayClusterClient">dagster_ray.kuberay.client.RayClusterClient</a>.</p>
 
@@ -9936,7 +9936,7 @@ Is useful when running in a local environment.</p>
 <a href="#dagster_ray.kuberay.sensors.cleanup_expired_kuberay_clusters" class="headerlink" title="Permanent link">&para;</a></h3>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">cleanup_expired_kuberay_clusters</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">context</span><span class="p">:</span> <span class="n"><span title="dagster.SensorEvaluationContext">SensorEvaluationContext</span></span><span class="p">,</span> <span class="n">raycluster_client</span><span class="p">:</span> <span class="n"><span title="dagster.ResourceParam">ResourceParam</span></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;dagster_ray.kuberay.client.RayClusterClient&lt;/span&gt; (&lt;code&gt;dagster_ray.kuberay.client.raycluster.client.RayClusterClient&lt;/code&gt;)" href="#dagster_ray.kuberay.client.RayClusterClient">RayClusterClient</a></span><span class="p">]</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;collections.abc.Generator&lt;/code&gt;" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Generator">Generator</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.RunRequest&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/schedules-sensors/#dagster.RunRequest">RunRequest</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.SkipReason&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/schedules-sensors/#dagster.SkipReason">SkipReason</a></span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;collections.abc.Generator&lt;/code&gt;" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Generator">Generator</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.RunRequest&lt;/code&gt;" href="https://docs.dagster.io/sections/api/dagster/schedules-sensors/#dagster.RunRequest">RunRequest</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.SkipReason&lt;/code&gt;" href="https://docs.dagster.io/sections/api/dagster/schedules-sensors/#dagster.SkipReason">SkipReason</a></span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents first">
