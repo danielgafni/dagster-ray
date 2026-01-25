@@ -1236,12 +1236,14 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>RayCluster</code>'s head pod logs are now displayed on startup timeout or failure</li>
-<li>Implemented Kubernetes Lease-based leader election for coordinating shared cluster creation. This replaces the previous flaky approach and guarantees that only one step creates the shared cluster when multiple parallel steps start simultaneously (within the same Dagster run).</li>
 </ul>
 <h3 id="fixes">Fixes<a class="headerlink" href="#fixes" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Prevent the <code>RayCluster</code> cleanup sensor from targeting clusters with <code>.metadata.ownerReferences</code> set.</li>
 <li><code>address</code> config value can now be omitted for <code>ray_executor</code>, making it use Ray's default cluster address resolution. Thanks <a class="magiclink magiclink-github magiclink-mention" href="https://github.com/cornettew" title="GitHub User: cornettew">@cornettew</a>!</li>
+<li>Fixed race condition with cluster sharing: previously multiple steps running in parallel could create different <code>RayCluster</code> instances at the same time (that were supposed to be shared). <code>dagster-ray</code> now uses Kubernetes <a href="https://kubernetes.io/docs/concepts/architecture/leases/">Lease</a>-based leader election to coordinate shared cluster creation, which guarantees that only one of the running steps creates the shared <code>RayCluster</code>.</li>
+<li><code>runtimeEnvYAML</code> now has all strings fully quoted which fixes passing values such as <code>1e-5</code> as <code>runtime_env</code> values. Thanks <a class="magiclink magiclink-github magiclink-mention" href="https://github.com/JosefNagelschmidt" title="GitHub User: JosefNagelschmidt">@JosefNagelschmidt</a>!</li>
+<li><code>ray_address</code> is now optional for <code>RunLauncherConfig</code>. Thanks <a class="magiclink magiclink-github magiclink-mention" href="https://github.com/cornettew" title="GitHub User: cornettew">@cornettew</a>!</li>
 </ul>
 <h2 id="040">0.4.0<a class="headerlink" href="#040" title="Permanent link">&para;</a></h2>
 <p>This release introduces a new feature that is very useful in dev environments: <strong>Cluster Sharing</strong>. Cluster sharing allows reusing existing <code>RayCluster</code> resources created by previous Dagster steps. It's implemented for <code>KubeRayCluster</code> Dagster resource. This feature enables faster iteration speed and reduced infrastructure costs (at the expense of job isolation). Therefore <code>KubeRayCluster</code> is now recommended over <code>KubeRayInteractiveJob</code> for use in <strong>dev</strong> environments.</p>
