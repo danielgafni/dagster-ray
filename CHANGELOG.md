@@ -10,12 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `RayCluster`'s head pod logs are now displayed on startup timeout or failure
-- Implemented Kubernetes Lease-based leader election for coordinating shared cluster creation. This replaces the previous flaky approach and guarantees that only one step creates the shared cluster when multiple parallel steps start simultaneously (within the same Dagster run).
 
 ### Fixes
 
 - Prevent the `RayCluster` cleanup sensor from targeting clusters with `.metadata.ownerReferences` set.
 - `address` config value can now be omitted for `ray_executor`, making it use Ray's default cluster address resolution. Thanks @cornettew!
+- Fixed race condition with cluster sharing: previously multiple steps running in parallel could create different `RayCluster` instances at the same time (that were supposed to be shared). `dagster-ray` now uses Kubernetes [Lease](https://kubernetes.io/docs/concepts/architecture/leases/)-based leader election to coordinate shared cluster creation, which guarantees that only one of the running steps creates the shared `RayCluster`.
+- `runtimeEnvYAML` now has all strings fully quoted which fixes passing values such as `1e-5` as `runtime_env` values. Thanks @JosefNagelschmidt!
+- `ray_address` is now optional for `RunLauncherConfig`. Thanks @cornettew!
 
 ## 0.4.0
 
