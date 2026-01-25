@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `RayCluster`'s head pod logs are now displayed on startup timeout or failure
+- Implemented Kubernetes Lease-based leader election for coordinating shared cluster creation. This replaces the previous flaky approach and guarantees that only one step creates the shared cluster when multiple parallel steps start simultaneously (within the same Dagster run).
 
 ### Fixes
 

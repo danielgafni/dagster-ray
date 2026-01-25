@@ -38,8 +38,8 @@ class BaseKubeRayClient(Generic[T_Status]):
         self.version = version
         self.kind = kind
         self.plural = plural
-        self.api_client = api_client
-        self._api = client.CustomObjectsApi(api_client=api_client)
+        self.api_client = api_client or client.ApiClient()
+        self._api = client.CustomObjectsApi(api_client=self.api_client)
         self._core_v1_api = client.CoreV1Api(api_client=api_client)
 
     def wait_for_service_endpoints(
