@@ -134,9 +134,19 @@ def k8s_with_kuberay(
         args.extend(
             [
                 "--set",
-                "featureGates\\[0\\].name=RayClusterStatusConditions",
+                "featureGates[0].name=RayClusterStatusConditions",
                 "--set",
-                "featureGates\\[0\\].enabled=true",
+                "featureGates[0].enabled=true",
+            ]
+        )
+
+    if Version(kuberay_version) >= Version("1.5.0"):
+        args.extend(
+            [
+                "--set",
+                "featureGates[1].name=RayJobDeletionPolicy",
+                "--set",
+                "featureGates[1].enabled=true",
             ]
         )
 
