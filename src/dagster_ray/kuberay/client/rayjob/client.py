@@ -26,9 +26,9 @@ class RayJobStatus(TypedDict):
     jobId: NotRequired[str]
     rayJobInfo: NotRequired[dict[str, Any]]
     jobDeploymentStatus: str
-    rayClusterName: str
-    rayClusterStatus: RayClusterStatus
-    startTime: str
+    rayClusterName: NotRequired[str]
+    rayClusterStatus: NotRequired[RayClusterStatus]
+    startTime: NotRequired[str]
 
     dashboardURL: NotRequired[str]
     endTime: NotRequired[str]
@@ -55,7 +55,25 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
         super().__init__(group=GROUP, version=VERSION, kind=KIND, plural=PLURAL, api_client=api_client)
 
     def get_ray_cluster_name(self, name: str, namespace: str, timeout: float, poll_interval: float = 1.0) -> str:
-        return self.get_status(name, namespace, timeout=timeout, poll_interval=poll_interval)["rayClusterName"]
+        start_time = time.time()
+        status = None
+
+        while not time.time() - start_time > timeout:
+            status = self.get_status(name, namespace, timeout=timeout, poll_interval=poll_interval)
+            if ray_cluster_name := status.get("rayClusterName"):
+                return ray_cluster_name
+
+            logger.debug(
+                f"RayJob {namespace}/{name} status does not yet contain rayClusterName. "
+                f"Current status: {status}. Waiting..."
+            )
+
+            time.sleep(poll_interval)
+
+        raise TimeoutError(
+            f"Timed out ({timeout:.1f}s) waiting for rayClusterName in RayJob {namespace}/{name} status. "
+            f"Last status: {status}"
+        )
 
     def get_job_submission_id(
         self, name: str, namespace: str, timeout: float, poll_interval: float = 1.0
