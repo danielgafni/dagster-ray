@@ -34,6 +34,61 @@ def test_instantiate_defaults():
     _ = KubeRayInteractiveJob()
 
 
+def test_env_vars_injection():
+    interactive_rayjob = KubeRayInteractiveJob(
+        image="test-image",
+        env_vars={
+            "RAY_LOG_TO_STDERR": "1",
+            "RAY_LOGGING_CONFIG_ENCODING": "JSON",
+        },
+    )
+    interactive_rayjob._name = "test-rayjob"
+    context = dg.build_init_resource_context()
+
+    k8s_manifest = interactive_rayjob.ray_job.to_k8s(
+        context,
+        image="test-image",
+        env_vars=interactive_rayjob.get_env_vars_to_inject(),
+    )
+
+    # Check that env_vars are injected into head and worker group specs
+    ray_cluster_spec = k8s_manifest["spec"]["rayClusterSpec"]
+    head_group_spec = ray_cluster_spec["headGroupSpec"]
+    worker_group_specs = ray_cluster_spec.get("workerGroupSpecs", [])
+
+    for group_spec in [head_group_spec, *worker_group_specs]:
+        for container in group_spec["template"]["spec"]["containers"]:
+            assert {"name": "RAY_LOG_TO_STDERR", "value": "1"} in container["env"], container
+            assert {"name": "RAY_LOGGING_CONFIG_ENCODING", "value": "JSON"} in container["env"], container
+
+
+def test_env_vars_with_debug_flags():
+    interactive_rayjob = KubeRayInteractiveJob(
+        image="test-image",
+        enable_debug_post_mortem=True,
+        enable_tracing=True,
+        enable_actor_task_logging=True,
+    )
+    interactive_rayjob._name = "test-rayjob"
+    context = dg.build_init_resource_context()
+
+    k8s_manifest = interactive_rayjob.ray_job.to_k8s(
+        context,
+        image="test-image",
+        env_vars=interactive_rayjob.get_env_vars_to_inject(),
+    )
+
+    ray_cluster_spec = k8s_manifest["spec"]["rayClusterSpec"]
+    head_group_spec = ray_cluster_spec["headGroupSpec"]
+    worker_group_specs = ray_cluster_spec.get("workerGroupSpecs", [])
+
+    for group_spec in [head_group_spec, *worker_group_specs]:
+        for container in group_spec["template"]["spec"]["containers"]:
+            assert {"name": "RAY_DEBUG_POST_MORTEM", "value": "1"} in container["env"], container
+            assert {"name": "RAY_PROFILING", "value": "1"} in container["env"], container
+            assert {"name": "RAY_ENABLE_RECORD_ACTOR_TASK_LOGGING", "value": "1"} in container["env"], container
+
+
 def test_no_lifecycle(dagster_instance: dg.DagsterInstance, rayjob_client: RayJobClient):
     interactive_rayjob = KubeRayInteractiveJob(
         client=rayjob_client, lifecycle=Lifecycle(create=False, wait=False, connect=False)

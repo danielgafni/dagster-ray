@@ -127,6 +127,7 @@ class KubeRayInteractiveJob(BaseKubeRayResource):
             context,
             image=(self.image or context.dagster_run.tags.get("dagster/image")),
             labels=normalize_k8s_label_values(self.get_dagster_tags(context)),
+            env_vars=self.get_env_vars_to_inject(),
         )
 
         k8s_manifest["metadata"]["name"] = self.name
