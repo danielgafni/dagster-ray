@@ -98,6 +98,10 @@ class RayResource(dg.ConfigurableResource, ABC):
         default=False,
         description="Enable legacy debugger: inject `RAY_DEBUG=legacy` into the Ray cluster configuration. Learn more: [KubeRay docs](https://docs.ray.io/en/latest/ray-observability/user-guides/debug-apps/ray-debugging.html#using-the-ray-debugger)",
     )
+    worker_process_setup_hook: str | None = Field(
+        default=None,
+        description="A module path to a function that will be called on each worker process after it starts, but before tasks/actors are scheduled. Must be importable by Ray workers. More details in [Ray docs](https://docs.ray.io/en/latest/ray-core/api/doc/ray.runtime_env.RuntimeEnv.html).",
+    )
 
     _context: RayBaseContext | None = PrivateAttr()
 
@@ -217,6 +221,9 @@ class RayResource(dg.ConfigurableResource, ABC):
 
         for var, value in self.get_env_vars_to_inject().items():
             init_options["runtime_env"]["env_vars"][var] = value
+
+        if self.worker_process_setup_hook is not None:
+            init_options["runtime_env"]["worker_process_setup_hook"] = self.worker_process_setup_hook
 
         self.data_execution_options.apply()
 

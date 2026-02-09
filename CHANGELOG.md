@@ -5,6 +5,16 @@ All notable user-facing changes to `dagster-ray` will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+#### Added
+
+- `worker_process_setup_hook` parameter of `RuntimeEnv` is now supported (only as a string module path)
+
+#### Fixes
+
+- fixed `env_vars` not being used by `KubeRayInteractiveJob`
+
 ## 0.4.1
 
 ### Added

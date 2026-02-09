@@ -91,6 +91,7 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
         num_gpus: int | None = None,
         memory: int | None = None,
         resources: dict[str, float] | None = None,
+        worker_process_setup_hook: str | None = None,
         inst_data: ConfigurableClassData | None = None,
     ):
         self._inst_data = dg._check.opt_inst_param(inst_data, "inst_data", ConfigurableClassData)
@@ -105,6 +106,7 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
         self.num_gpus = num_gpus
         self.memory = memory
         self.resources = resources
+        self.worker_process_setup_hook = worker_process_setup_hook
 
         super().__init__()
 
@@ -198,6 +200,10 @@ class RayRunLauncher(RunLauncher, ConfigurableClass):
                 "DAGSTER_RUN_JOB_NAME": job_origin.job_name,
             }
         )
+
+        worker_process_setup_hook = cfg_from_tags.worker_process_setup_hook or self.worker_process_setup_hook
+        if worker_process_setup_hook is not None:
+            runtime_env["worker_process_setup_hook"] = worker_process_setup_hook
 
         self._instance.report_engine_event(
             "Creating Ray run job",

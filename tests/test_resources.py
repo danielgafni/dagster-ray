@@ -1,5 +1,6 @@
 import os
 from typing import Any
+from unittest.mock import patch
 
 import dagster as dg
 import pytest
@@ -49,6 +50,46 @@ def test_debug_mode():
             instance=instance,
             resources={"ray_cluster": ray_cluster},
         )
+
+
+def test_worker_process_setup_hook():
+    import ray
+
+    from dagster_ray.configs import RayDataExecutionOptions
+
+    ray_cluster = LocalRay(worker_process_setup_hook="my_module.setup")
+
+    with (
+        patch.object(ray, "init", return_value=None) as mock_init,
+        patch.object(RayDataExecutionOptions, "apply"),
+        patch.object(RayDataExecutionOptions, "apply_remote"),
+    ):
+        ray_cluster.connect(dg.build_init_resource_context())
+
+    _, kwargs = mock_init.call_args
+    assert kwargs["runtime_env"]["worker_process_setup_hook"] == "my_module.setup"
+
+
+def test_worker_process_setup_hook_explicit_overrides_runtime_env():
+    """Explicit field takes priority over runtime_env dict key."""
+    import ray
+
+    from dagster_ray.configs import RayDataExecutionOptions
+
+    ray_cluster = LocalRay(
+        worker_process_setup_hook="my_module.explicit",
+        ray_init_options={"runtime_env": {"worker_process_setup_hook": "my_module.from_dict"}},
+    )
+
+    with (
+        patch.object(ray, "init", return_value=None) as mock_init,
+        patch.object(RayDataExecutionOptions, "apply"),
+        patch.object(RayDataExecutionOptions, "apply_remote"),
+    ):
+        ray_cluster.connect(dg.build_init_resource_context())
+
+    _, kwargs = mock_init.call_args
+    assert kwargs["runtime_env"]["worker_process_setup_hook"] == "my_module.explicit"
 
 
 @pytest.mark.parametrize(

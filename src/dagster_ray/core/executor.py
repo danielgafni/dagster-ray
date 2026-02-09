@@ -114,6 +114,7 @@ def ray_executor(init_context: InitExecutorContext) -> Executor:
             num_gpus=ray_cfg.num_gpus,
             memory=ray_cfg.memory,
             resources=ray_cfg.resources,
+            worker_process_setup_hook=ray_cfg.worker_process_setup_hook,
         ),
         retries=RetryMode.from_config(exc_cfg["retries"]),  # type: ignore
         max_concurrent=dg._check.opt_int_elem(exc_cfg, "max_concurrent"),
@@ -136,6 +137,7 @@ class RayStepHandler(StepHandler):
         num_gpus: float | None,
         memory: int | None,
         resources: dict[str, float] | None,
+        worker_process_setup_hook: str | None = None,
     ):
         super().__init__()
 
@@ -146,6 +148,7 @@ class RayStepHandler(StepHandler):
         self.num_gpus = num_gpus
         self.memory = memory
         self.resources = resources
+        self.worker_process_setup_hook = worker_process_setup_hook
 
     def _get_step_key(self, step_handler_context: StepHandlerContext) -> str:
         step_keys_to_execute = cast(list[str], step_handler_context.execute_step_args.step_keys_to_execute)
@@ -203,6 +206,10 @@ class RayStepHandler(StepHandler):
         runtime_env["env_vars"] = {**dagster_env_vars, **runtime_env.get("env_vars", {})}  # type: ignore
 
         runtime_env["env_vars"].update(resolve_env_vars_list(self.env_vars))
+
+        worker_process_setup_hook = user_provided_config.worker_process_setup_hook or self.worker_process_setup_hook
+        if worker_process_setup_hook is not None:
+            runtime_env["worker_process_setup_hook"] = worker_process_setup_hook
 
         num_cpus = self.num_cpus or user_provided_config.num_cpus
         num_gpus = self.num_gpus or user_provided_config.num_gpus
