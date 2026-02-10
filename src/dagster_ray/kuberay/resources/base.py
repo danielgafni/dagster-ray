@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from abc import ABC, abstractmethod
 
-from pydantic import Field, PrivateAttr
+from pydantic import Field
 
 from dagster_ray._base.constants import DEFAULT_DEPLOYMENT_NAME
 from dagster_ray._base.resources import RayResource
@@ -25,8 +25,6 @@ class BaseKubeRayResource(RayResource, ABC):
         description="The period in seconds to wait for the cluster to transition out of `failed` state if it reaches it. This state can be transient under certain conditions. With the default value of 0, the first `failed` state appearance will raise an exception immediately.",
     )
     poll_interval: float = Field(default=1.0, description="Poll interval for various API requests")
-
-    _host: str = PrivateAttr()
 
     @property
     @abstractmethod

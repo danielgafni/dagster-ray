@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import cast
 
 import dagster as dg
-from pydantic import Field, PrivateAttr
+from pydantic import Field
 from typing_extensions import override
 
 from dagster_ray._base.cluster_sharing_lock import ClusterSharingLock
@@ -61,23 +61,19 @@ class KubeRayCluster(BaseKubeRayResource):
         description="Whether to log RayCluster conditions while waiting for the RayCluster to become ready. Learn more: [KubeRay docs](https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/observability.html#raycluster-status-conditions).",
     )
 
-    _name: str = PrivateAttr()
-    _host: str = PrivateAttr()
-
     @property
     def host(self) -> str:
-        if not hasattr(self, "_host"):
+        if self._host is None:
             raise ValueError(f"{self.__class__.__name__} not initialized")
         return self._host
 
     @property
     def name(self) -> str:
-        if not hasattr(self, "_name") and self.ray_cluster.metadata.get("name") is None:
-            raise ValueError(f"{self.__class__.__name__} not initialized")
-        elif (name := self.ray_cluster.metadata.get("name")) is not None:
+        if (name := self.ray_cluster.metadata.get("name")) is not None:
             return name
-        else:
-            return self._name
+        if self._name is None:
+            raise ValueError(f"{self.__class__.__name__} not initialized")
+        return self._name
 
     @property
     def namespace(self) -> str:
