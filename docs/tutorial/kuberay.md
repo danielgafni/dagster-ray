@@ -138,6 +138,21 @@ Therefore, `KubeRayCluster` is a good choice for dev environments as it can spee
 
 Cluster sharing has to be enabled explicitly.
 
+!!! warning "Required Kubernetes Permissions"
+
+    Cluster sharing uses the Kubernetes [Lease](https://kubernetes.io/docs/concepts/architecture/leases/) API (`coordination.k8s.io`) for leader election to prevent multiple parallel steps from creating separate clusters simultaneously. The Dagster `ServiceAccount` must have the following RBAC permissions:
+
+    ```yaml
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      name: dagster-ray-cluster-sharing
+    rules:
+      - apiGroups: ["coordination.k8s.io"]
+        resources: ["leases"]
+        verbs: ["create", "get", "delete"]
+    ```
+
 ```python
 from dagster_ray.kuberay import KubeRayCluster
 from dagster_ray.kuberay.configs import RayClusterConfig, ClusterSharing
