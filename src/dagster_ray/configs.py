@@ -38,10 +38,6 @@ class RayExecutionConfig(dg.Config):
     num_gpus: float | None = Field(default=None, description="The number of GPUs to allocate.")
     memory: int | None = Field(default=None, description="The amount of memory in bytes to allocate.")
     resources: dict[str, float] | None = Field(default=None, description="Custom resources to allocate.")
-    worker_process_setup_hook: str | None = Field(
-        default=None,
-        description="A module path to a function that will be called on each worker process after it starts, but before tasks/actors are scheduled. Must be importable by Ray workers.",
-    )
 
     @classmethod
     def from_tags(cls, tags: Mapping[str, str]) -> RayExecutionConfig:
