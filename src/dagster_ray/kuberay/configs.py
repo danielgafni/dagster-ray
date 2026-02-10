@@ -315,7 +315,14 @@ DEFAULT_CLUSTER_SHARING_TTL_SECONDS = 30 * 60.0
 class ClusterSharing(dg.Config):
     """Defines the strategy for sharing `RayCluster` resources with other Dagster steps.
 
-    By default, the cluster is expected to be created by Dagster during one of the previously executed steps."""
+    By default, the cluster is expected to be created by Dagster during one of the previously executed steps.
+
+    !!!note
+
+        Cluster sharing uses the Kubernetes Lease API (`coordination.k8s.io`) for leader election
+        to coordinate cluster creation across parallel steps. The Dagster ServiceAccount must have
+        `create`, `get`, and `delete` permissions on `leases` in the `coordination.k8s.io` API group.
+    """
 
     enabled: bool = Field(default=False, description="Whether to enable sharing of RayClusters.")
     match_dagster_labels: MatchDagsterLabels = Field(
