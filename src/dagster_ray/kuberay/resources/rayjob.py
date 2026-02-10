@@ -73,20 +73,18 @@ class KubeRayInteractiveJob(BaseKubeRayResource):
         description="Whether to log `RayCluster` conditions while waiting for the RayCluster to become ready. Learn more: [KubeRay docs](https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/observability.html#raycluster-status-conditions).",
     )
 
-    _name: str = PrivateAttr()
-    _cluster_name: str = PrivateAttr()
-    _host: str = PrivateAttr()
+    _cluster_name: str | None = PrivateAttr(default=None)
 
     @property
     @override
     def host(self) -> str:
-        if not hasattr(self, "_host"):
+        if self._host is None:
             raise ValueError(f"{self.__class__.__name__} not initialized")
         return self._host
 
     @property
     def name(self) -> str:
-        if not hasattr(self, "_name"):
+        if self._name is None:
             raise ValueError(f"{self.__class__.__name__} is not initialized")
         elif (name := self.ray_job.metadata.get("name")) is not None:
             return name
@@ -105,7 +103,7 @@ class KubeRayInteractiveJob(BaseKubeRayResource):
 
     @property
     def cluster_name(self) -> str:
-        if not hasattr(self, "_cluster_name"):
+        if self._cluster_name is None:
             raise ValueError(f"{self.__class__.__name__} not initialized")
         else:
             return self._cluster_name

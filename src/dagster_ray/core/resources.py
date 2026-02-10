@@ -21,3 +21,11 @@ class LocalRay(RayResource):
     @property
     def name(self) -> str:
         return "LocalRay"
+
+    @property
+    def created(self) -> bool:
+        return True
+
+    @property
+    def ready(self) -> bool:
+        return True

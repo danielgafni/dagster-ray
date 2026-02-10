@@ -103,7 +103,9 @@ class RayResource(dg.ConfigurableResource, ABC):
         description="A module path to a function that will be called on each worker process after it starts, but before tasks/actors are scheduled. Must be importable by Ray workers. More details in [Ray docs](https://docs.ray.io/en/latest/ray-core/api/doc/ray.runtime_env.RuntimeEnv.html).",
     )
 
-    _context: RayBaseContext | None = PrivateAttr()
+    _name: str | None = PrivateAttr(default=None)
+    _host: str | None = PrivateAttr(default=None)
+    _context: RayBaseContext | None = PrivateAttr(default=None)
 
     _creation_verb: str = PrivateAttr(default="Created")
 
@@ -257,7 +259,7 @@ class RayResource(dg.ConfigurableResource, ABC):
             self.delete(context)
             context.log.info(f'Deleted {self.display_name} according to cleanup policy "{self.lifecycle.cleanup}"')
 
-        if self.connected and hasattr(self, "_context") and self._context is not None:
+        if self.connected and self._context is not None:
             self._context.disconnect()
 
     def get_dagster_tags(self, context: AnyDagsterContext) -> dict[str, str]:
@@ -279,12 +281,12 @@ class RayResource(dg.ConfigurableResource, ABC):
 
     @property
     def created(self) -> bool:
-        return hasattr(self, "_name") and self._name is not None
+        return self._name is not None
 
     @property
     def ready(self) -> bool:
-        return hasattr(self, "_host") and self._host is not None
+        return self._host is not None
 
     @property
     def connected(self) -> bool:
-        return hasattr(self, "_context") and self._context is not None
+        return self._context is not None
