@@ -161,11 +161,13 @@ class KubeRayInteractiveJob(BaseKubeRayResource):
             "head"
         ]["serviceIP"]
 
+    @override
+    def on_ready(self, context: AnyDagsterContext):
+        assert context.log is not None
         msg = f"RayJob {self.namespace}/{self.name} has created a RayCluster {self.namespace}/{self.cluster_name}! Connection command:\n"
         msg += (
             f"kubectl -n {self.namespace} port-forward svc/{self.cluster_name}-head-svc 8265:8265 6379:6379 10001:10001"
         )
-
         context.log.info(msg)
 
     @override

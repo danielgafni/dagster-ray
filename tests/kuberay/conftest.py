@@ -173,6 +173,12 @@ def head_group_spec(dagster_ray_image: str) -> dict[str, Any]:
     head_group_spec["serviceType"] = "LoadBalancer"
     head_group_spec["template"]["spec"]["containers"][0]["image"] = dagster_ray_image
     head_group_spec["template"]["spec"]["containers"][0]["imagePullPolicy"] = "IfNotPresent"
+    head_group_spec["template"]["spec"]["containers"][0]["env"] = head_group_spec["template"]["spec"]["containers"][
+        0
+    ].get("env", []) + [
+        # to prevent timeout errors in low-resource CI environments
+        {"name": "RAY_DASHBOARD_SUBPROCESS_MODULE_WAIT_READY_TIMEOUT", "value": "120"},
+    ]
     return head_group_spec
 
 

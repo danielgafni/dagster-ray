@@ -166,10 +166,10 @@ class RayResource(dg.ConfigurableResource, ABC):
         if not self.created:
             try:
                 self.create(context)
-                context.log.info(f"{self._creation_verb} {self.display_name}.")
             except BaseException:
                 context.log.exception(f"Failed to create {self.display_name}")
                 raise
+            self.on_create(context)
 
     def _wait(self, context: AnyDagsterContext):
         assert context.log is not None
@@ -181,6 +181,7 @@ class RayResource(dg.ConfigurableResource, ABC):
             except BaseException:
                 context.log.exception(f"Failed to wait for {self.display_name} readiness")
                 raise
+            self.on_ready(context)
 
     def _connect(self, context: AnyDagsterContext):
         assert context.log is not None
@@ -191,7 +192,7 @@ class RayResource(dg.ConfigurableResource, ABC):
             except BaseException:
                 context.log.exception(f"Failed to connect to {self.display_name}")
                 raise
-            context.log.info(f"Initialized Ray Client with {self.display_name}")
+            self.on_connect(context)
 
     def create(self, context: AnyDagsterContext):
         pass
@@ -228,11 +229,30 @@ class RayResource(dg.ConfigurableResource, ABC):
         )
         self.data_execution_options.apply()
         self.data_execution_options.apply_remote()
-        context.log.info("Initialized Ray in client mode!")
         return cast("RayBaseContext", self._context)
 
     def delete(self, context: AnyDagsterContext):
         pass
+
+    def on_create(self, context: AnyDagsterContext):
+        """Called after the resource is successfully created. Override to customize it."""
+        assert context.log is not None
+        context.log.info(f"{self._creation_verb} {self.display_name}.")
+
+    def on_ready(self, context: AnyDagsterContext):
+        """Called after the resource becomes ready. Override to customize it."""
+        pass
+
+    def on_connect(self, context: AnyDagsterContext):
+        """Called after the Ray client connects. Override to customize it."""
+        assert context.log is not None
+        context.log.info(f"Connected to {self.display_name} via Ray Client")
+
+    def on_cleanup(self, context: AnyDagsterContext, *, deleted: bool):
+        """Called after cleanup logic runs. Override to customize it."""
+        assert context.log is not None
+        if deleted:
+            context.log.info(f'Deleted {self.display_name} according to cleanup policy "{self.lifecycle.cleanup}"')
 
     def cleanup(self, context: AnyDagsterContext, exception: BaseException | None):  # noqa: UP007
         assert context.log is not None
@@ -250,10 +270,11 @@ class RayResource(dg.ConfigurableResource, ABC):
 
         if to_delete:
             self.delete(context)
-            context.log.info(f'Deleted {self.display_name} according to cleanup policy "{self.lifecycle.cleanup}"')
 
         if self.connected and self._context is not None:
             self._context.disconnect()
+
+        self.on_cleanup(context, deleted=to_delete)
 
     def get_dagster_tags(self, context: AnyDagsterContext) -> dict[str, str]:
         tags = get_dagster_tags(context)

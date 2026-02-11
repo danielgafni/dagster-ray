@@ -270,9 +270,11 @@ class KubeRayCluster(BaseKubeRayResource):
             "head"
         ]["serviceIP"]
 
+    @override
+    def on_ready(self, context: AnyDagsterContext):
+        assert context.log is not None
         msg = f"RayCluster {self.namespace}/{self.name} is ready! Connection command:\n"
         msg += f"kubectl -n {self.namespace} port-forward svc/{self.name}-head-svc 8265:8265 6379:6379 10001:10001"
-
         context.log.info(msg)
 
     @override
@@ -293,6 +295,9 @@ class KubeRayCluster(BaseKubeRayResource):
                 context.log.info(
                     f"Skipping cluster cleanup due to active cluster sharing locks: {', '.join([lock.identifier for lock in alive_locks])}"
                 )
+                if self.connected and self._context is not None:
+                    self._context.disconnect()
+                self.on_cleanup(context, deleted=False)
                 return
 
         super().cleanup(context, exception)
