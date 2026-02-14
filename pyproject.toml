@@ -89,6 +89,7 @@ docs = [
     "mkdocs-material>=9.6.20",
     "mkdocs-section-index>=0.3.10",
     "mkdocstrings[python]>=0.30.0",
+    "pygments>=2.19.1",
 ]
 
 
