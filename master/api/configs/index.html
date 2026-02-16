@@ -1264,10 +1264,6 @@
             <span class="doc doc-object-name doc-class-name">dagster_ray.configs.Lifecycle</span>
 
 
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-pydantic-model"><code>pydantic-model</code></small>
-  </span>
-
 <a href="#dagster_ray.configs.Lifecycle" class="headerlink" title="Permanent link">&para;</a></h3>
 
 
@@ -1275,85 +1271,13 @@
             <p class="doc doc-class-bases">
               Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.Config&lt;/code&gt;" href="https://docs.dagster.io/sections/api/dagster/config/#dagster.Config">Config</a></code></p>
 
-      <details><summary>Show JSON schema:</summary>
-        <div class="language-json highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">&quot;create&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Whether to create the resource. If set to `False`, the user can manually call `.create` instead.&quot;</span><span class="p">,</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Create&quot;</span><span class="p">,</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="nt">&quot;wait&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Whether to wait for the remote Ray cluster to become ready to accept connections. If set to `False`, the user can manually call `.wait` instead.&quot;</span><span class="p">,</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Wait&quot;</span><span class="p">,</span>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">    </span><span class="nt">&quot;connect&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Whether to run `ray.init` against the remote Ray cluster. If set to `False`, the user can manually call `.connect` instead.&quot;</span><span class="p">,</span>
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Connect&quot;</span><span class="p">,</span>
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">    </span><span class="nt">&quot;cleanup&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;always&quot;</span><span class="p">,</span>
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Resource cleanup policy. Determines when the resource should be deleted after Dagster step execution or during interruption.&quot;</span><span class="p">,</span>
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">      </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">        </span><span class="s2">&quot;never&quot;</span><span class="p">,</span>
-</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">        </span><span class="s2">&quot;always&quot;</span><span class="p">,</span>
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">        </span><span class="s2">&quot;on_exception&quot;</span>
-</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="w">      </span><span class="p">],</span>
-</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Cleanup&quot;</span><span class="p">,</span>
-</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
-</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="w">    </span><span class="p">}</span>
-</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="w">  </span><span class="p">},</span>
-</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="w">  </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Lifecycle&quot;</span><span class="p">,</span>
-</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
-</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="p">}</span>
-</span></code></pre></div>
-      </details>
-    
-
-        <p>Fields:</p>
-        <ul>
-            <li>
-              <code><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-attribute-name&quot;&gt;create&lt;/span&gt;
 
 
-  &lt;span class=&quot;doc doc-labels&quot;&gt;
-      &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt; (&lt;code&gt;dagster_ray.configs.Lifecycle.create&lt;/code&gt;)" href="#dagster_ray.configs.Lifecycle.create">create</a></code>
-                (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></code>)
-            </li>
-            <li>
-              <code><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-attribute-name&quot;&gt;wait&lt;/span&gt;
 
 
-  &lt;span class=&quot;doc doc-labels&quot;&gt;
-      &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt; (&lt;code&gt;dagster_ray.configs.Lifecycle.wait&lt;/code&gt;)" href="#dagster_ray.configs.Lifecycle.wait">wait</a></code>
-                (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></code>)
-            </li>
-            <li>
-              <code><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-attribute-name&quot;&gt;connect&lt;/span&gt;
 
 
-  &lt;span class=&quot;doc doc-labels&quot;&gt;
-      &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt; (&lt;code&gt;dagster_ray.configs.Lifecycle.connect&lt;/code&gt;)" href="#dagster_ray.configs.Lifecycle.connect">connect</a></code>
-                (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></code>)
-            </li>
-            <li>
-              <code><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-attribute-name&quot;&gt;cleanup&lt;/span&gt;
 
-
-  &lt;span class=&quot;doc doc-labels&quot;&gt;
-      &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt; (&lt;code&gt;dagster_ray.configs.Lifecycle.cleanup&lt;/code&gt;)" href="#dagster_ray.configs.Lifecycle.cleanup">cleanup</a></code>
-                (<code><a class="autorefs autorefs-external" title="&lt;code&gt;typing.Literal&lt;/code&gt;" href="https://docs.python.org/3/library/typing.html#typing.Literal">Literal</a>[&#39;never&#39;, &#39;always&#39;, &#39;on_exception&#39;]</code>)
-            </li>
-        </ul>
 
 
 
@@ -1375,16 +1299,18 @@
 
 
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-pydantic-field"><code>pydantic-field</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#dagster_ray.configs.Lifecycle.create" class="headerlink" title="Permanent link">&para;</a></h5>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">create</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">True</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">create</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;pydantic.Field&lt;/code&gt;" href="https://docs.pydantic.dev/latest/api/fields/#pydantic.fields.Field">Field</a></span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n"><span title="pydantic.Field(default)">default</span></span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n"><span title="pydantic.Field(description)">description</span></span><span class="o">=</span><span class="s2">&quot;Whether to create the resource. If set to `False`, the user can manually call `.create` instead.&quot;</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p">)</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
-
-        <p>Whether to create the resource. If set to <code>False</code>, the user can manually call <code>.create</code> instead.</p>
 
     </div>
 
@@ -1399,16 +1325,18 @@
 
 
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-pydantic-field"><code>pydantic-field</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#dagster_ray.configs.Lifecycle.wait" class="headerlink" title="Permanent link">&para;</a></h5>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">wait</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">True</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">wait</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;pydantic.Field&lt;/code&gt;" href="https://docs.pydantic.dev/latest/api/fields/#pydantic.fields.Field">Field</a></span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n"><span title="pydantic.Field(default)">default</span></span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n"><span title="pydantic.Field(description)">description</span></span><span class="o">=</span><span class="s2">&quot;Whether to wait for the remote Ray cluster to become ready to accept connections. If set to `False`, the user can manually call `.wait` instead.&quot;</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p">)</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
-
-        <p>Whether to wait for the remote Ray cluster to become ready to accept connections. If set to <code>False</code>, the user can manually call <code>.wait</code> instead.</p>
 
     </div>
 
@@ -1423,16 +1351,18 @@
 
 
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-pydantic-field"><code>pydantic-field</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#dagster_ray.configs.Lifecycle.connect" class="headerlink" title="Permanent link">&para;</a></h5>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">connect</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">True</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">connect</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;pydantic.Field&lt;/code&gt;" href="https://docs.pydantic.dev/latest/api/fields/#pydantic.fields.Field">Field</a></span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n"><span title="pydantic.Field(default)">default</span></span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n"><span title="pydantic.Field(description)">description</span></span><span class="o">=</span><span class="s2">&quot;Whether to run `ray.init` against the remote Ray cluster. If set to `False`, the user can manually call `.connect` instead.&quot;</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p">)</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
-
-        <p>Whether to run <code>ray.init</code> against the remote Ray cluster. If set to <code>False</code>, the user can manually call <code>.connect</code> instead.</p>
 
     </div>
 
@@ -1447,16 +1377,18 @@
 
 
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-pydantic-field"><code>pydantic-field</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#dagster_ray.configs.Lifecycle.cleanup" class="headerlink" title="Permanent link">&para;</a></h5>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">cleanup</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;typing.Literal&lt;/code&gt;" href="https://docs.python.org/3/library/typing.html#typing.Literal">Literal</a></span><span class="p">[</span><span class="s1">&#39;never&#39;</span><span class="p">,</span> <span class="s1">&#39;always&#39;</span><span class="p">,</span> <span class="s1">&#39;on_exception&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;always&#39;</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">cleanup</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;typing.Literal&lt;/code&gt;" href="https://docs.python.org/3/library/typing.html#typing.Literal">Literal</a></span><span class="p">[</span><span class="s2">&quot;never&quot;</span><span class="p">,</span> <span class="s2">&quot;always&quot;</span><span class="p">,</span> <span class="s2">&quot;on_exception&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;pydantic.Field&lt;/code&gt;" href="https://docs.pydantic.dev/latest/api/fields/#pydantic.fields.Field">Field</a></span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n"><span title="pydantic.Field(default)">default</span></span><span class="o">=</span><span class="s2">&quot;always&quot;</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n"><span title="pydantic.Field(description)">description</span></span><span class="o">=</span><span class="s2">&quot;Resource cleanup policy. Determines when the resource should be deleted after Dagster step execution or during interruption.&quot;</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p">)</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
-
-        <p>Resource cleanup policy. Determines when the resource should be deleted after Dagster step execution or during interruption.</p>
 
     </div>
 
@@ -1481,10 +1413,6 @@
             <span class="doc doc-object-name doc-class-name">dagster_ray.configs.RayDataExecutionOptions</span>
 
 
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-pydantic-model"><code>pydantic-model</code></small>
-  </span>
-
 <a href="#dagster_ray.configs.RayDataExecutionOptions" class="headerlink" title="Permanent link">&para;</a></h3>
 
 
@@ -1492,137 +1420,13 @@
             <p class="doc doc-class-bases">
               Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.Config&lt;/code&gt;" href="https://docs.dagster.io/sections/api/dagster/config/#dagster.Config">Config</a></code></p>
 
-      <details><summary>Show JSON schema:</summary>
-        <div class="language-json highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">&quot;$defs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">&quot;ExecutionOptionsConfig&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">      </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">        </span><span class="nt">&quot;cpu&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">          </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">            </span><span class="p">{</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">              </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;integer&quot;</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">            </span><span class="p">},</span>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">            </span><span class="p">{</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">              </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">            </span><span class="p">}</span>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">          </span><span class="p">],</span>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">          </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Cpu&quot;</span>
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">        </span><span class="p">},</span>
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">        </span><span class="nt">&quot;gpu&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">          </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">            </span><span class="p">{</span>
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">              </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;integer&quot;</span>
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">            </span><span class="p">},</span>
-</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">            </span><span class="p">{</span>
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">              </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">            </span><span class="p">}</span>
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">          </span><span class="p">],</span>
-</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">          </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Gpu&quot;</span>
-</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="w">        </span><span class="p">},</span>
-</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="w">        </span><span class="nt">&quot;object_store_memory&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="w">          </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="w">            </span><span class="p">{</span>
-</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="w">              </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;integer&quot;</span>
-</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="w">            </span><span class="p">},</span>
-</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="w">            </span><span class="p">{</span>
-</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="w">              </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
-</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="w">            </span><span class="p">}</span>
-</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="w">          </span><span class="p">],</span>
-</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a><span class="w">          </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
-</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a><span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Object Store Memory&quot;</span>
-</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a><span class="w">        </span><span class="p">}</span>
-</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a><span class="w">      </span><span class="p">},</span>
-</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ExecutionOptionsConfig&quot;</span><span class="p">,</span>
-</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
-</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a><span class="w">    </span><span class="p">}</span>
-</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a><span class="w">  </span><span class="p">},</span>
-</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a><span class="w">  </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a><span class="w">    </span><span class="nt">&quot;execution_options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a><span class="w">      </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/ExecutionOptionsConfig&quot;</span>
-</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50" href="#__codelineno-0-50"></a><span class="w">    </span><span class="nt">&quot;cpu_limit&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51" href="#__codelineno-0-51"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5000</span><span class="p">,</span>
-</span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52" href="#__codelineno-0-52"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Cpu Limit&quot;</span><span class="p">,</span>
-</span><span id="__span-0-53"><a id="__codelineno-0-53" name="__codelineno-0-53" href="#__codelineno-0-53"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;integer&quot;</span>
-</span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54" href="#__codelineno-0-54"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55" href="#__codelineno-0-55"></a><span class="w">    </span><span class="nt">&quot;gpu_limit&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-56"><a id="__codelineno-0-56" name="__codelineno-0-56" href="#__codelineno-0-56"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-</span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Gpu Limit&quot;</span><span class="p">,</span>
-</span><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;integer&quot;</span>
-</span><span id="__span-0-59"><a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-0-60"><a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a><span class="w">    </span><span class="nt">&quot;verbose_progress&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-61"><a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-</span><span id="__span-0-62"><a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Verbose Progress&quot;</span><span class="p">,</span>
-</span><span id="__span-0-63"><a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
-</span><span id="__span-0-64"><a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a><span class="w">    </span><span class="nt">&quot;use_polars&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-</span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Use Polars&quot;</span><span class="p">,</span>
-</span><span id="__span-0-68"><a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a><span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
-</span><span id="__span-0-69"><a id="__codelineno-0-69" name="__codelineno-0-69" href="#__codelineno-0-69"></a><span class="w">    </span><span class="p">}</span>
-</span><span id="__span-0-70"><a id="__codelineno-0-70" name="__codelineno-0-70" href="#__codelineno-0-70"></a><span class="w">  </span><span class="p">},</span>
-</span><span id="__span-0-71"><a id="__codelineno-0-71" name="__codelineno-0-71" href="#__codelineno-0-71"></a><span class="w">  </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;RayDataExecutionOptions&quot;</span><span class="p">,</span>
-</span><span id="__span-0-72"><a id="__codelineno-0-72" name="__codelineno-0-72" href="#__codelineno-0-72"></a><span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
-</span><span id="__span-0-73"><a id="__codelineno-0-73" name="__codelineno-0-73" href="#__codelineno-0-73"></a><span class="p">}</span>
-</span></code></pre></div>
-      </details>
-    
-
-        <p>Fields:</p>
-        <ul>
-            <li>
-              <code><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-attribute-name&quot;&gt;execution_options&lt;/span&gt;
 
 
-  &lt;span class=&quot;doc doc-labels&quot;&gt;
-      &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt; (&lt;code&gt;dagster_ray.configs.RayDataExecutionOptions.execution_options&lt;/code&gt;)" href="#dagster_ray.configs.RayDataExecutionOptions.execution_options">execution_options</a></code>
-                (<code><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;dagster_ray.configs.ExecutionOptionsConfig&lt;/span&gt;
 
 
-  &lt;span class=&quot;doc doc-labels&quot;&gt;
-      &lt;small class=&quot;doc doc-label doc-label-pydantic-model&quot;&gt;&lt;code&gt;pydantic-model&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="#dagster_ray.configs.ExecutionOptionsConfig">ExecutionOptionsConfig</a></code>)
-            </li>
-            <li>
-              <code><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-attribute-name&quot;&gt;cpu_limit&lt;/span&gt;
 
 
-  &lt;span class=&quot;doc doc-labels&quot;&gt;
-      &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt; (&lt;code&gt;dagster_ray.configs.RayDataExecutionOptions.cpu_limit&lt;/code&gt;)" href="#dagster_ray.configs.RayDataExecutionOptions.cpu_limit">cpu_limit</a></code>
-                (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>)
-            </li>
-            <li>
-              <code><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-attribute-name&quot;&gt;gpu_limit&lt;/span&gt;
 
-
-  &lt;span class=&quot;doc doc-labels&quot;&gt;
-      &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt; (&lt;code&gt;dagster_ray.configs.RayDataExecutionOptions.gpu_limit&lt;/code&gt;)" href="#dagster_ray.configs.RayDataExecutionOptions.gpu_limit">gpu_limit</a></code>
-                (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>)
-            </li>
-            <li>
-              <code><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-attribute-name&quot;&gt;verbose_progress&lt;/span&gt;
-
-
-  &lt;span class=&quot;doc doc-labels&quot;&gt;
-      &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt; (&lt;code&gt;dagster_ray.configs.RayDataExecutionOptions.verbose_progress&lt;/code&gt;)" href="#dagster_ray.configs.RayDataExecutionOptions.verbose_progress">verbose_progress</a></code>
-                (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></code>)
-            </li>
-            <li>
-              <code><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-attribute-name&quot;&gt;use_polars&lt;/span&gt;
-
-
-  &lt;span class=&quot;doc doc-labels&quot;&gt;
-      &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt; (&lt;code&gt;dagster_ray.configs.RayDataExecutionOptions.use_polars&lt;/code&gt;)" href="#dagster_ray.configs.RayDataExecutionOptions.use_polars">use_polars</a></code>
-                (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></code>)
-            </li>
-        </ul>
 
 
 
@@ -1644,16 +1448,12 @@
 
 
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-pydantic-field"><code>pydantic-field</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#dagster_ray.configs.RayDataExecutionOptions.execution_options" class="headerlink" title="Permanent link">&para;</a></h5>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">execution_options</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;dagster_ray.configs.ExecutionOptionsConfig&lt;/span&gt;
-
-
-  &lt;span class=&quot;doc doc-labels&quot;&gt;
-      &lt;small class=&quot;doc doc-label doc-label-pydantic-model&quot;&gt;&lt;code&gt;pydantic-model&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="#dagster_ray.configs.ExecutionOptionsConfig">ExecutionOptionsConfig</a></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">execution_options</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;dagster_ray.configs.ExecutionOptionsConfig&lt;/span&gt;" href="#dagster_ray.configs.ExecutionOptionsConfig">ExecutionOptionsConfig</a></span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;pydantic.Field&lt;/code&gt;" href="https://docs.pydantic.dev/latest/api/fields/#pydantic.fields.Field">Field</a></span><span class="p">(</span><span class="n"><span title="pydantic.Field(default_factory)">default_factory</span></span><span class="o">=</span><span class="n"><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;dagster_ray.configs.ExecutionOptionsConfig&lt;/span&gt;" href="#dagster_ray.configs.ExecutionOptionsConfig">ExecutionOptionsConfig</a></span><span class="p">)</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1671,7 +1471,8 @@
 
 
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-pydantic-field"><code>pydantic-field</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#dagster_ray.configs.RayDataExecutionOptions.cpu_limit" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -1693,7 +1494,8 @@
 
 
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-pydantic-field"><code>pydantic-field</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#dagster_ray.configs.RayDataExecutionOptions.gpu_limit" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -1715,7 +1517,8 @@
 
 
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-pydantic-field"><code>pydantic-field</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#dagster_ray.configs.RayDataExecutionOptions.verbose_progress" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -1737,7 +1540,8 @@
 
 
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-pydantic-field"><code>pydantic-field</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#dagster_ray.configs.RayDataExecutionOptions.use_polars" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -1855,10 +1659,6 @@
             <span class="doc doc-object-name doc-class-name">dagster_ray.configs.ExecutionOptionsConfig</span>
 
 
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-pydantic-model"><code>pydantic-model</code></small>
-  </span>
-
 <a href="#dagster_ray.configs.ExecutionOptionsConfig" class="headerlink" title="Permanent link">&para;</a></h3>
 
 
@@ -1866,83 +1666,13 @@
             <p class="doc doc-class-bases">
               Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.Config&lt;/code&gt;" href="https://docs.dagster.io/sections/api/dagster/config/#dagster.Config">Config</a></code></p>
 
-      <details><summary>Show JSON schema:</summary>
-        <div class="language-json highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">&quot;cpu&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">      </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">        </span><span class="p">{</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;integer&quot;</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">        </span><span class="p">},</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">        </span><span class="p">{</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">        </span><span class="p">}</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">      </span><span class="p">],</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Cpu&quot;</span>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">    </span><span class="nt">&quot;gpu&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">      </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">        </span><span class="p">{</span>
-</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;integer&quot;</span>
-</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">        </span><span class="p">},</span>
-</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">        </span><span class="p">{</span>
-</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
-</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">        </span><span class="p">}</span>
-</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">      </span><span class="p">],</span>
-</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
-</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Gpu&quot;</span>
-</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">    </span><span class="p">},</span>
-</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">    </span><span class="nt">&quot;object_store_memory&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="w">      </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="w">        </span><span class="p">{</span>
-</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;integer&quot;</span>
-</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="w">        </span><span class="p">},</span>
-</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="w">        </span><span class="p">{</span>
-</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
-</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="w">        </span><span class="p">}</span>
-</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="w">      </span><span class="p">],</span>
-</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
-</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Object Store Memory&quot;</span>
-</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a><span class="w">    </span><span class="p">}</span>
-</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a><span class="w">  </span><span class="p">},</span>
-</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a><span class="w">  </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ExecutionOptionsConfig&quot;</span><span class="p">,</span>
-</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a><span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
-</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a><span class="p">}</span>
-</span></code></pre></div>
-      </details>
-    
-
-        <p>Fields:</p>
-        <ul>
-            <li>
-              <code><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-attribute-name&quot;&gt;cpu&lt;/span&gt;
 
 
-  &lt;span class=&quot;doc doc-labels&quot;&gt;
-      &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt; (&lt;code&gt;dagster_ray.configs.ExecutionOptionsConfig.cpu&lt;/code&gt;)" href="#dagster_ray.configs.ExecutionOptionsConfig.cpu">cpu</a></code>
-                (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a> | None</code>)
-            </li>
-            <li>
-              <code><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-attribute-name&quot;&gt;gpu&lt;/span&gt;
 
 
-  &lt;span class=&quot;doc doc-labels&quot;&gt;
-      &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt; (&lt;code&gt;dagster_ray.configs.ExecutionOptionsConfig.gpu&lt;/code&gt;)" href="#dagster_ray.configs.ExecutionOptionsConfig.gpu">gpu</a></code>
-                (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a> | None</code>)
-            </li>
-            <li>
-              <code><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-attribute-name&quot;&gt;object_store_memory&lt;/span&gt;
 
 
-  &lt;span class=&quot;doc doc-labels&quot;&gt;
-      &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt; (&lt;code&gt;dagster_ray.configs.ExecutionOptionsConfig.object_store_memory&lt;/code&gt;)" href="#dagster_ray.configs.ExecutionOptionsConfig.object_store_memory">object_store_memory</a></code>
-                (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a> | None</code>)
-            </li>
-        </ul>
+
 
 
 
@@ -1964,7 +1694,8 @@
 
 
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-pydantic-field"><code>pydantic-field</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#dagster_ray.configs.ExecutionOptionsConfig.cpu" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -1986,7 +1717,8 @@
 
 
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-pydantic-field"><code>pydantic-field</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#dagster_ray.configs.ExecutionOptionsConfig.gpu" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -2008,7 +1740,8 @@
 
 
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-pydantic-field"><code>pydantic-field</code></small>
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
   </span>
 
 <a href="#dagster_ray.configs.ExecutionOptionsConfig.object_store_memory" class="headerlink" title="Permanent link">&para;</a></h5>
