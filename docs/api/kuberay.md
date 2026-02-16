@@ -101,7 +101,7 @@ These resources initialize Ray client connection with a remote cluster.
       inherited_members: true
       members: true
 
---
+---
 
 ::: dagster_ray.kuberay.resources.base.BaseKubeRayResource
     options:
