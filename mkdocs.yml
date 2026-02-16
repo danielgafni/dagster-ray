@@ -68,6 +68,8 @@ plugins:
       handlers:
         python:
           paths: ["src"]
+          preload_modules:
+            - dagster
           options:
             filters: ["!^_[^_]"]
             heading_level: 3
@@ -102,11 +104,11 @@ plugins:
               - griffe_inherited_docstrings
               - griffe_pydantic:
                   schema: true
-                  extra_bases:
-                    - Config
-                    - dg.Config
-                    - dagster.Config
-                    - dagster.ConfigurableResource
+                  # extra_bases:
+                  #   - Config
+                  #   - dg.Config
+                  #   - dagster.Config
+                  #   - dagster.ConfigurableResource
           extra:
             enable_autorefs: true
           inventories:
