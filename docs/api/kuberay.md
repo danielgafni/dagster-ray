@@ -75,7 +75,7 @@ These resources initialize Ray client connection with a remote cluster.
 ::: dagster_ray.kuberay.resources.rayjob.InteractiveRayJobSpec
     options:
       inherited_members: true
-      members: true
+      members: null
 
 ---
 
@@ -89,17 +89,17 @@ These resources initialize Ray client connection with a remote cluster.
 ::: dagster_ray.kuberay.configs.RayClusterSpec
     options:
       inherited_members: true
-      members: true
+      members: null
 
 ::: dagster_ray.kuberay.configs.MatchDagsterLabels
     options:
       inherited_members: true
-      members: true
+      members: null
 
 ::: dagster_ray.kuberay.configs.ClusterSharing
     options:
       inherited_members: true
-      members: true
+      members: null
 
 ---
 

@@ -14,8 +14,8 @@ Configuration classes for Ray execution and data processing options.
 
 ::: dagster_ray.configs.RayDataExecutionOptions
     options:
-      members: true
+      members: null
 
 ::: dagster_ray.configs.ExecutionOptionsConfig
     options:
-      members: true
+      members: null

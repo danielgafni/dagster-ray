@@ -10,7 +10,7 @@ Core `dagster-ray` APIs for using external Ray clusters. Learn how to use it [he
 
 ::: dagster_ray.RayResource
     options:
-      members: true
+      members: null
 
 The `LocalRay` can be used to connect to a local Ray cluster.
 
@@ -35,7 +35,7 @@ The `LocalRay` can be used to connect to a local Ray cluster.
 
 ::: dagster_ray.core.executor.ray_executor
     options:
-      members: true
+      members: null
 
 ---
 
