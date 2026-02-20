@@ -268,13 +268,18 @@ class RayResource(dg.ConfigurableResource, ABC):
         else:
             to_delete = False
 
-        if to_delete:
-            self.delete(context)
-
-        if self.connected and self._context is not None:
-            self._context.disconnect()
-
-        self.on_cleanup(context, deleted=to_delete)
+        deleted = False
+        try:
+            if to_delete:
+                self.delete(context)
+                deleted = True
+        except BaseException:
+            context.log.exception(f"Failed to delete {self.display_name}")
+            raise
+        finally:
+            if self.connected and self._context is not None:
+                self._context.disconnect()
+            self.on_cleanup(context, deleted=deleted)
 
     def get_dagster_tags(self, context: AnyDagsterContext) -> dict[str, str]:
         tags = get_dagster_tags(context)
