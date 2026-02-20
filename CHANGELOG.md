@@ -7,10 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 # Unreleased
 
+### Added
+
+- `RayResource` now has new lifecycle hook methods for customizing startup messages (and potentially doing something else):
+    - `on_create`
+    - `on_ready`
+    - `on_connect`
+    - `on_cleanup`
+
 ### Fixes
 
 - fixed duplicated startup log message for `LocalRay`
-- fixed the top-level `env_vars` Dagster config field not taking effect with `KubeRayInteractiveJob`
+- fixed the top-level `env_vars` Dagster config field not taking effect for `KubeRayInteractiveJob`
 
 ## 0.4.1
 
