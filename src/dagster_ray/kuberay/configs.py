@@ -82,6 +82,12 @@ DEFAULT_WORKER_GROUP_SPECS = [
 MISSING_IMAGE_MESSAGE = "Image is missing from the `RayCluster` spec, from the top-level Dagster resource config, and the Dagster run does not have a `dagster/image` tag. Please use one of these options to specify the image."
 
 
+class AuthOptions(dg.Config):
+    """[AuthOptions](https://ray-project.github.io/kuberay/reference/api/#authoptions) for the Ray cluster."""
+
+    mode: Literal["token", "disabled"] = "token"
+
+
 class RayClusterSpec(dg.PermissiveConfig):
     """[RayCluster spec](https://ray-project.github.io/kuberay/reference/api/#rayclusterspec) configuration options. A few sensible defaults are provided for convenience."""
 
@@ -94,6 +100,7 @@ class RayClusterSpec(dg.PermissiveConfig):
     head_group_spec: dict[str, Any] = DEFAULT_HEAD_GROUP_SPEC
     ray_version: str | None = None
     worker_group_specs: list[dict[str, Any]] = DEFAULT_WORKER_GROUP_SPECS
+    auth_options: AuthOptions | None = None
 
     def to_k8s(
         self,
@@ -143,6 +150,7 @@ class RayClusterSpec(dg.PermissiveConfig):
                 "headServiceAnnotations": self.head_service_annotations,
                 "gcsFaultToleranceOptions": self.gcs_fault_tolerance_options,
                 "rayVersion": self.ray_version,
+                "authOptions": self.auth_options,
             }
         )
 
