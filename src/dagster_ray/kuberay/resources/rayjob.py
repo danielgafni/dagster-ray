@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Literal
 
 import dagster as dg
 from pydantic import Field, PrivateAttr
@@ -23,17 +23,11 @@ class KubeRayJobClientResource(dg.ConfigurableResource[RayJobClient]):
 
     kube_context: str | None = None
     kube_config: str | None = None
-    address: str | None = None
-    headers: dict[str, Any] | None = None
-    verify: Any = None  # Can be True, False, or path to CA bundle
 
     def create_resource(self, context: dg.InitResourceContext):
         client = RayJobClient(
             kube_context=self.kube_context,
             kube_config=self.kube_config,
-            address=self.address,
-            headers=self.headers,
-            verify=self.verify,
         )
         return client
 

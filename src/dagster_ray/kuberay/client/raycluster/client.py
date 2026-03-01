@@ -97,15 +97,9 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
         kube_config: str | None = None,
         kube_context: str | None = None,
         api_client: ApiClient | None = None,
-        address: str | None = None,
-        headers: dict[str, Any] | None = None,
-        verify: str | bool | None = None,
     ) -> None:
         self.kube_config = kube_config
         self.kube_context = kube_context
-        self.address = address
-        self.headers = headers
-        self.verify = verify
 
         # note: this call must happen BEFORE creating the api clients
         if api_client is None:
@@ -294,6 +288,8 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
         address: str | None = None,
         headers: dict[str, Any] | None = None,
         verify: str | bool | None = None,
+        cookies: dict[str, Any] | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> Iterator[JobSubmissionClient]:
         """
         Returns a JobSubmissionClient object that can be used to interact with Ray jobs running in the KubeRay cluster.
@@ -309,6 +305,10 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
                 Only used when custom address is provided.
             verify: TLS certificate verification for custom address. Can be True, False, or path to CA bundle.
                 Only used when custom address is provided. Defaults to True when address is set.
+            cookies: Cookies to use when sending requests to the HTTP job server.
+                Only used when custom address is provided.
+            metadata: Arbitrary metadata to store along with all jobs. Will be merged with per-job metadata.
+                Only used when custom address is provided.
         """
 
         from ray.job_submission import JobSubmissionClient
@@ -318,6 +318,8 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
                 address=address,
                 headers=headers,
                 verify=verify if verify is not None else True,
+                cookies=cookies,
+                metadata=metadata,
             )
         elif port_forward:
             self.wait_for_service_endpoints(service_name=f"{name}-head-svc", namespace=namespace, timeout=timeout)

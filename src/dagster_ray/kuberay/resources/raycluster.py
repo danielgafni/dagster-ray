@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 from datetime import datetime
-from typing import Any, cast
+from typing import cast
 
 import dagster as dg
 from pydantic import Field
@@ -22,17 +22,11 @@ class KubeRayClusterClientResource(dg.ConfigurableResource[RayClusterClient]):
 
     kube_context: str | None = None
     kube_config: str | None = None
-    address: str | None = None
-    headers: dict[str, Any] | None = None
-    verify: Any = None  # Can be True, False, or path to CA bundle
 
     def create_resource(self, context: dg.InitResourceContext) -> RayClusterClient:
         client = RayClusterClient(
             kube_context=self.kube_context,
             kube_config=self.kube_config,
-            address=self.address,
-            headers=self.headers,
-            verify=self.verify,
         )
         return client
 

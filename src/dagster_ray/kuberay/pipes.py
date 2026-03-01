@@ -58,6 +58,13 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
             Can be True (verify with system certs), False (no verification), or a path to a CA bundle.
             Only used when custom address is provided. Defaults to True when address is set.
             Can be overridden per-job in the `run()` method.
+        cookies (Optional[dict[str, Any]]): Cookies to use when sending requests to the HTTP job server.
+            Only used when custom address is provided.
+            Can be overridden per-job in the `run()` method.
+        metadata (Optional[dict[str, Any]]): Arbitrary metadata to store along with all jobs.
+            Will be merged with per-job metadata.
+            Only used when custom address is provided.
+            Can be overridden per-job in the `run()` method.
 
     Info:
         Image defaults to `dagster/image` run tag.
@@ -78,12 +85,10 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
         address: str | None = None,
         headers: dict[str, Any] | None = None,
         verify: str | bool | None = None,
+        cookies: dict[str, Any] | None = None,
+        metadata: dict[str, Any] | None = None,
     ):
-        self.client: RayJobClient = client or RayJobClient(
-            address=address,
-            headers=headers,
-            verify=verify,
-        )
+        self.client: RayJobClient = client or RayJobClient()
 
         self._context_injector = context_injector or PipesEnvContextInjector()
 
@@ -92,6 +97,8 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
                 job_submission_client_kwargs={
                     "headers": headers,
                     "verify": verify,
+                    "cookies": cookies,
+                    "metadata": metadata,
                 }
             )
         else:
@@ -104,6 +111,8 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
         self.address = address
         self.headers = headers
         self.verify = verify
+        self.cookies = cookies
+        self.metadata = metadata
 
         self._job_submission_client: JobSubmissionClient | None = None
 
@@ -123,6 +132,8 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
         address: str | None = None,
         headers: dict[str, Any] | None = None,
         verify: str | bool | None = None,
+        cookies: dict[str, Any] | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> PipesClientCompletedInvocation:
         """
         Execute a RayJob, enriched with the Pipes protocol.
@@ -134,6 +145,8 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
             address (Optional[str]): Ray dashboard address override for this specific job.
             headers (Optional[dict[str, Any]]): HTTP headers override for this specific job.
             verify (Optional[Union[str, bool]]): TLS verification override for this specific job.
+            cookies (Optional[dict[str, Any]]): Cookies override for this specific job.
+            metadata (Optional[dict[str, Any]]): Metadata override for this specific job.
         """
         with open_pipes_session(
             context=context,
@@ -158,6 +171,8 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
                 address=address or self.address,
                 headers=headers or self.headers,
                 verify=verify if verify is not None else self.verify,
+                cookies=cookies or self.cookies,
+                metadata=metadata or self.metadata,
             ) as job_submission_client:
                 self._job_submission_client = job_submission_client
 
