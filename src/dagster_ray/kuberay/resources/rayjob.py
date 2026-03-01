@@ -25,7 +25,10 @@ class KubeRayJobClientResource(dg.ConfigurableResource[RayJobClient]):
     kube_config: str | None = None
 
     def create_resource(self, context: dg.InitResourceContext):
-        client = RayJobClient(kube_context=self.kube_context, kube_config=self.kube_config)
+        client = RayJobClient(
+            kube_context=self.kube_context,
+            kube_config=self.kube_config,
+        )
         return client
 
 

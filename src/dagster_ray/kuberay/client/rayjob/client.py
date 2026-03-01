@@ -83,7 +83,10 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
 
     @property
     def ray_cluster_client(self) -> RayClusterClient:
-        return RayClusterClient(kube_config=self.kube_config, kube_context=self.kube_context)
+        return RayClusterClient(
+            kube_config=self.kube_config,
+            kube_context=self.kube_context,
+        )
 
     def wait_until_ready(
         self,
@@ -203,12 +206,22 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
         timeout: float = 60 * 60,
         poll_interval: float = 1.0,
         port_forward: bool = False,
+        address: str | None = None,
+        headers: dict[str, Any] | None = None,
+        verify: str | bool | None = None,
+        cookies: dict[str, Any] | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> str:
         self._wait_for_job_submission(name, namespace, timeout=timeout)
         with self.ray_cluster_client.job_submission_client(
             name=self.get_ray_cluster_name(name, namespace, timeout=timeout, poll_interval=poll_interval),
             namespace=namespace,
             port_forward=port_forward,
+            address=address,
+            headers=headers,
+            verify=verify,
+            cookies=cookies,
+            metadata=metadata,
         ) as job_submission_client:
             return job_submission_client.get_job_logs(
                 job_id=cast(
@@ -223,6 +236,11 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
         timeout: float = 60 * 60,
         poll_interval: float = 1.0,
         port_forward: bool = False,
+        address: str | None = None,
+        headers: dict[str, Any] | None = None,
+        verify: str | bool | None = None,
+        cookies: dict[str, Any] | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> Iterator[str]:
         import asyncio
 
@@ -231,6 +249,11 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
             name=self.get_ray_cluster_name(name, namespace, timeout=timeout, poll_interval=poll_interval),
             namespace=namespace,
             port_forward=port_forward,
+            address=address,
+            headers=headers,
+            verify=verify,
+            cookies=cookies,
+            metadata=metadata,
         ) as job_submission_client:
             async_tailer = job_submission_client.tail_job_logs(
                 job_id=cast(
@@ -249,7 +272,17 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
             yield from tail_logs()
 
     def terminate(
-        self, name: str, namespace: str, timeout: float = 10.0, poll_interval: float = 1.0, port_forward: bool = False
+        self,
+        name: str,
+        namespace: str,
+        timeout: float = 10.0,
+        poll_interval: float = 1.0,
+        port_forward: bool = False,
+        address: str | None = None,
+        headers: dict[str, Any] | None = None,
+        verify: str | bool | None = None,
+        cookies: dict[str, Any] | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> bool:
         """
         Unlike the .delete method, this won't remove the Kubernetes object, but will instead stop the Ray Job.
@@ -258,6 +291,11 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
             name=self.get_ray_cluster_name(name, namespace, timeout=timeout, poll_interval=poll_interval),
             namespace=namespace,
             port_forward=port_forward,
+            address=address,
+            headers=headers,
+            verify=verify,
+            cookies=cookies,
+            metadata=metadata,
         ) as job_submission_client:
             job_id = cast(
                 str, self.get_job_submission_id(name, namespace, timeout=timeout, poll_interval=poll_interval)
