@@ -2,6 +2,7 @@ import socket
 import time
 from datetime import datetime, timedelta
 from typing import Any, cast
+from unittest.mock import MagicMock, patch
 
 import dagster as dg
 import pytest
@@ -628,3 +629,34 @@ def test_delete_kuberay_clusters_job(
     assert not raycluster_client.list(
         namespace=ray_cluster_resource_skip_cleanup.namespace, label_selector=f"dagster/run-id={result.run_id}"
     )["items"]
+
+
+READY_STATUS = {
+    "state": "ready",
+    "endpoints": {
+        "dashboard": "8265",
+        "client": "10001",
+        "metrics": "8080",
+        "redis": "6379",
+        "serve": "8000",
+    },
+    "head": {"serviceIP": "10.0.0.1", "serviceName": "mycluster-head-svc"},
+}
+
+
+def test_wait_until_ready_returns_service_name():
+    client = RayClusterClient(api_client=MagicMock())
+    with patch.object(client, "get_status", return_value=READY_STATUS):
+        name, endpoints = client.wait_until_ready("mycluster", "default", timeout=10, poll_interval=0)
+    assert name == "mycluster-head-svc"
+    assert endpoints["dashboard"] == "8265"
+
+
+def test_job_submission_client_uses_fqdn():
+    client = RayClusterClient(api_client=MagicMock())
+    with patch.object(client, "get_status", return_value=READY_STATUS):
+        with patch("ray.job_submission.JobSubmissionClient") as mock_jsc:
+            mock_jsc.return_value = MagicMock()
+            with client.job_submission_client("mycluster", "default"):
+                pass
+    mock_jsc.assert_called_once_with(address="http://mycluster-head-svc.default.svc.cluster.local:8265")
