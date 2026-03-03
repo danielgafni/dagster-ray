@@ -128,7 +128,7 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
             log_cluster_conditions (bool): Whether to log cluster conditions. See [KubeRay docs](https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/observability.html#raycluster-status-conditions)
 
         Returns:
-            tuple[str, RayClusterEndpoints]: The service ip address and a dictionary of ports.
+            tuple[str, RayClusterEndpoints]: The service name (FQDN-ready) and a dictionary of ports.
         """
         start_time = time.time()
 
@@ -177,10 +177,8 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
                 and head.get("serviceIP")
                 and head.get("serviceName")
             ):
-                # TODO: this should return serviceName instead
-                # to support multi-cluster networking
                 logger.debug(f"RayCluster {namespace}/{name} is ready!")
-                return head["serviceIP"], status["endpoints"]  # pyright: ignore[reportTypedDictNotRequiredAccess]
+                return head["serviceName"], status["endpoints"]  # pyright: ignore[reportTypedDictNotRequiredAccess]
 
             time.sleep(poll_interval)
         else:
@@ -295,10 +293,10 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
             #
             status = self.get_status(name, namespace)
 
-            host = status["head"]["serviceIP"]  # type: ignore
+            service_name = status["head"]["serviceName"]  # type: ignore
             dashboard_port = status["endpoints"]["dashboard"]  # type: ignore
 
-            yield JobSubmissionClient(address=f"http://{host}:{dashboard_port}")
+            yield JobSubmissionClient(address=f"http://{service_name}.{namespace}.svc.cluster.local:{dashboard_port}")
         else:
             self.wait_for_service_endpoints(service_name=f"{name}-head-svc", namespace=namespace, timeout=timeout)
             with self.port_forward(name=name, namespace=namespace, local_dashboard_port=0, local_gcs_port=0) as (
