@@ -264,11 +264,12 @@ class KubeRayCluster(BaseKubeRayResource):
             log_cluster_conditions=self.log_cluster_conditions,
         )
 
-        self._host = self.client.get_status(
+        service_name = self.client.get_status(
             name=self.name, namespace=self.namespace, timeout=self.timeout, poll_interval=self.poll_interval
         )[  # pyright: ignore
             "head"
-        ]["serviceIP"]
+        ]["serviceName"]
+        self._host = f"{service_name}.{self.namespace}.svc.cluster.local"
 
     @override
     def on_ready(self, context: AnyDagsterContext):
