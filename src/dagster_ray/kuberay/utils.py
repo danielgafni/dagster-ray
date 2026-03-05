@@ -60,6 +60,15 @@ def remove_none_from_dict(d: dict[str, Any]) -> dict[str, Any]:
     return {k: v for k, v in d.items() if v is not None}
 
 
+def k8s_service_fqdn(service_name: str, namespace: str) -> str:
+    """Returns the fully-qualified domain name (FQDN) for a Kubernetes Service.
+
+    Using the FQDN instead of a bare serviceIP ensures the address is resolvable
+    across clusters (e.g. via Cilium cluster mesh).
+    """
+    return f"{service_name}.{namespace}.svc.cluster.local"
+
+
 def get_k8s_object_name(run_id: str, step_key: str | None = None):
     """Creates a unique (short!) identifier to name k8s objects based on run ID and step key(s).
 
