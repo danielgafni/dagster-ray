@@ -107,7 +107,7 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
             log_cluster_conditions (bool): Whether to log cluster conditions. See [KubeRay docs](https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/observability.html#raycluster-status-conditions)
 
         Returns:
-            tuple[str, RayClusterEndpoints]: The service ip address and a dictionary of ports.
+            tuple[str, RayClusterEndpoints]: The service name (FQDN-ready) and a dictionary of ports.
         """
         ray_cluster_name = self.get_ray_cluster_name(name, namespace, timeout=timeout, poll_interval=poll_interval)
         ray_cluster_client = self.ray_cluster_client

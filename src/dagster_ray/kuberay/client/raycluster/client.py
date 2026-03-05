@@ -16,6 +16,7 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fi
 from typing_extensions import NotRequired
 
 from dagster_ray.kuberay.client.base import BaseKubeRayClient, load_kubeconfig
+from dagster_ray.kuberay.utils import k8s_service_fqdn
 
 logger = logging.getLogger(__name__)
 
@@ -117,7 +118,7 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
         log_cluster_conditions: bool = False,
     ) -> tuple[str, RayClusterEndpoints]:
         """
-        If ready, returns service ip address and a dictionary of ports.
+        If ready, returns service name (FQDN-ready) and a dictionary of ports.
 
         Parameters:
             name (str): The name of the `RayCluster` resource
@@ -296,7 +297,7 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
             service_name = status["head"]["serviceName"]  # type: ignore
             dashboard_port = status["endpoints"]["dashboard"]  # type: ignore
 
-            yield JobSubmissionClient(address=f"http://{service_name}.{namespace}.svc.cluster.local:{dashboard_port}")
+            yield JobSubmissionClient(address=f"http://{k8s_service_fqdn(service_name, namespace)}:{dashboard_port}")
         else:
             self.wait_for_service_endpoints(service_name=f"{name}-head-svc", namespace=namespace, timeout=timeout)
             with self.port_forward(name=name, namespace=namespace, local_dashboard_port=0, local_gcs_port=0) as (

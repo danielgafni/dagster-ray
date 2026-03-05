@@ -23,6 +23,7 @@ from dagster_ray.kuberay.client import RayClusterClient
 from dagster_ray.kuberay.configs import ClusterSharing, RayClusterSpec
 from dagster_ray.kuberay.jobs import delete_kuberay_clusters
 from dagster_ray.kuberay.ops import DeleteKubeRayClustersConfig, RayClusterRef
+from dagster_ray.kuberay.utils import k8s_service_fqdn
 from tests.kuberay.conftest import KUBERNETES_CONTEXT
 from tests.kuberay.utils import NAMESPACE, get_random_free_port
 from tests.utils import CodeLocationOrigin  # pyright: ignore[reportAttributeAccessIssue]
@@ -659,4 +660,4 @@ def test_job_submission_client_uses_fqdn():
             mock_jsc.return_value = MagicMock()
             with client.job_submission_client("mycluster", "default"):
                 pass
-    mock_jsc.assert_called_once_with(address="http://mycluster-head-svc.default.svc.cluster.local:8265")
+    mock_jsc.assert_called_once_with(address=f"http://{k8s_service_fqdn('mycluster-head-svc', 'default')}:8265")
