@@ -69,7 +69,7 @@ class PipesRayJobMessageReader(PipesMessageReader):
     populated in `extras` in order to start message reading.
 
     Args:
-        _job_submission_client_kwargs (Optional[dict[str, Any]]): additional arguments for `ray.job_submission.JobSubmissionClient`. The `address` value is expected to be set via `PipesSession.report_launched`, while other arguments can be set via this parameter.
+        job_submission_client_kwargs: additional arguments for [`JobSubmissionClient`][ray.job_submission.JobSubmissionClient]. The `address` value is expected to be set via `PipesSession.report_launched`, while other arguments can be set via this parameter.
     """
 
     _client: JobSubmissionClient | None
@@ -221,14 +221,14 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
     Starts the job directly on the Ray cluster and reads the logs from the job.
 
     Args:
-        client (JobSubmissionClient): The Ray job submission client
-        context_injector (Optional[PipesContextInjector]): A context injector to use to inject
+        client: The Ray job submission client
+        context_injector: A context injector to use to inject
             context into the Ray job. Defaults to [`PipesEnvContextInjector`][dagster.PipesEnvContextInjector].
-        message_reader (Optional[PipesMessageReader]): A message reader to use to read messages
+        message_reader (Optional[PipesMessageReader]): A message reader to use when reading Pipes messages.
             from the glue job run. Defaults to [`PipesRayJobMessageReader`][dagster_ray.core.pipes.PipesRayJobMessageReader].
-        forward_termination (bool): Whether to cancel the Ray job run when the Dagster process receives a termination signal.
-        timeout (int): Timeout for various internal interactions with the Kubernetes RayJob.
-        poll_interval (int): Interval at which to poll Kubernetes for status updates.
+        forward_termination: Whether to cancel the Ray job run when the Dagster process receives a termination signal.
+        timeout: Timeout for various internal interactions with the Ray job.
+        poll_interval: Interval at which to poll Ray for status updates.
             Is useful when running in a local environment.
     """
 
