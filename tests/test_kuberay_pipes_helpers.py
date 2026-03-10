@@ -100,12 +100,12 @@ class TestExtractSubmitJobParamsFromRayJob:
 
     def test_extracts_runtime_env_yaml(self, ray_job_spec_with_runtime_env: dict[str, Any]) -> None:
         params = _submit_params_from_ray_job(ray_job_spec_with_runtime_env)
-        assert params["runtime_env"] == {"pip": ["pandas"]}
+        assert params["runtime_env"] == {"pip": ["pandas"]}  # pyright: ignore[reportTypedDictNotRequiredAccess]
 
     def test_extracts_num_cpus_and_gpus(self, ray_job_spec_with_runtime_env: dict[str, Any]) -> None:
         params = _submit_params_from_ray_job(ray_job_spec_with_runtime_env)
-        assert params["entrypoint_num_cpus"] == 4.0
-        assert params["entrypoint_num_gpus"] == 2.0
+        assert params["entrypoint_num_cpus"] == 4.0  # pyright: ignore[reportTypedDictNotRequiredAccess]
+        assert params["entrypoint_num_gpus"] == 2.0  # pyright: ignore[reportTypedDictNotRequiredAccess]
 
     def test_handles_missing_optional_fields(self, minimal_ray_job_spec: dict[str, Any]) -> None:
         params = _submit_params_from_ray_job(minimal_ray_job_spec)
