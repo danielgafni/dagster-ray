@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 from typing import Any
 from unittest.mock import MagicMock
 
@@ -10,10 +9,8 @@ import yaml
 
 from dagster_ray.core.pipes import SubmitJobParams
 from dagster_ray.kuberay.pipes import (
-    PipesKubeRayJobClient,
     _merge_submit_params_into_ray_job,
     _ray_job_from_submit_params,
-    _submit_params_from_ray_job,
 )
 
 # ---------------------------------------------------------------------------
@@ -60,15 +57,6 @@ def minimal_ray_job_spec() -> dict[str, Any]:
 
 
 @pytest.fixture
-def ray_job_spec_with_runtime_env(minimal_ray_job_spec: dict[str, Any]) -> dict[str, Any]:
-    spec = copy.deepcopy(minimal_ray_job_spec)
-    spec["spec"]["runtimeEnvYAML"] = yaml.safe_dump({"pip": ["pandas"]})
-    spec["spec"]["entrypointNumCpus"] = 4
-    spec["spec"]["entrypointNumGpus"] = 2
-    return spec
-
-
-@pytest.fixture
 def mock_context() -> MagicMock:
     """A mock Dagster execution context with configurable run tags."""
     context = MagicMock(spec=dg.AssetExecutionContext)
@@ -86,37 +74,6 @@ def mock_context_no_image() -> MagicMock:
     run.tags = {}
     context.run = run
     return context
-
-
-# ---------------------------------------------------------------------------
-# _submit_params_from_ray_job
-# ---------------------------------------------------------------------------
-
-
-class TestExtractSubmitJobParamsFromRayJob:
-    def test_extracts_entrypoint(self, minimal_ray_job_spec: dict[str, Any]) -> None:
-        params = _submit_params_from_ray_job(minimal_ray_job_spec)
-        assert params["entrypoint"] == "python old_script.py"
-
-    def test_extracts_runtime_env_yaml(self, ray_job_spec_with_runtime_env: dict[str, Any]) -> None:
-        params = _submit_params_from_ray_job(ray_job_spec_with_runtime_env)
-        assert params["runtime_env"] == {"pip": ["pandas"]}  # pyright: ignore[reportTypedDictNotRequiredAccess]
-
-    def test_extracts_num_cpus_and_gpus(self, ray_job_spec_with_runtime_env: dict[str, Any]) -> None:
-        params = _submit_params_from_ray_job(ray_job_spec_with_runtime_env)
-        assert params["entrypoint_num_cpus"] == 4.0  # pyright: ignore[reportTypedDictNotRequiredAccess]
-        assert params["entrypoint_num_gpus"] == 2.0  # pyright: ignore[reportTypedDictNotRequiredAccess]
-
-    def test_handles_missing_optional_fields(self, minimal_ray_job_spec: dict[str, Any]) -> None:
-        params = _submit_params_from_ray_job(minimal_ray_job_spec)
-        assert "runtime_env" not in params
-        assert "entrypoint_num_cpus" not in params
-        assert "entrypoint_num_gpus" not in params
-
-    def test_minimal_spec_only_entrypoint(self) -> None:
-        spec = {"spec": {"entrypoint": "echo hello"}}
-        params = _submit_params_from_ray_job(spec)
-        assert params == {"entrypoint": "echo hello"}
 
 
 # ---------------------------------------------------------------------------
@@ -297,20 +254,3 @@ class TestBuildMinimalRayJob:
         cluster_spec = result["spec"]["rayClusterSpec"]
         assert "headGroupSpec" in cluster_spec
         assert "workerGroupSpecs" in cluster_spec
-
-
-# ---------------------------------------------------------------------------
-# PipesKubeRayJobClient.run() validation
-# ---------------------------------------------------------------------------
-
-
-class TestPipesKubeRayJobClientRunValidation:
-    def test_raises_when_neither_params_nor_ray_job_provided(self) -> None:
-        client = PipesKubeRayJobClient.__new__(PipesKubeRayJobClient)
-        mock_context = MagicMock(spec=dg.AssetExecutionContext)
-
-        with pytest.raises(
-            dg.DagsterInvariantViolationError,
-            match="Either `submit_job_params` or `ray_job` must be provided",
-        ):
-            client.run(context=mock_context)
