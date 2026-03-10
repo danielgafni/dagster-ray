@@ -3169,7 +3169,7 @@ This behavior can be disabled by setting <code>inherit_job_submission_client_fro
         </li>
         <li class="doc-section-item field-body">
             <b><code>context_injector</code></b>
-              (<code><span title="Optional">Optional</span>[<a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.pipes.client.PipesContextInjector&lt;/code&gt;" href="https://docs.dagster.io/sections/api/dagster/pipes/#dagster.PipesContextInjector">PipesContextInjector</a>]</code>, default:
+              (<code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.pipes.client.PipesContextInjector&lt;/code&gt;" href="https://docs.dagster.io/sections/api/dagster/pipes/#dagster.PipesContextInjector">PipesContextInjector</a> | None</code>, default:
                   <code>None</code>
 )
           –
@@ -3185,7 +3185,7 @@ context into the Ray job. Defaults to <a class="autorefs autorefs-external" href
 )
           –
           <div class="doc-md-description">
-            <p>A message reader to use to read messages
+            <p>A message reader to use when reading Pipes messages.
 from the glue job run. Defaults to <a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;dagster_ray.core.pipes.PipesRayJobMessageReader&lt;/span&gt;" href="#dagster_ray.core.pipes.PipesRayJobMessageReader"><code>PipesRayJobMessageReader</code></a>.</p>
           </div>
         </li>
@@ -3201,22 +3201,22 @@ from the glue job run. Defaults to <a class="autorefs autorefs-internal" title="
         </li>
         <li class="doc-section-item field-body">
             <b><code>timeout</code></b>
-              (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>, default:
+              (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></code>, default:
                   <code>600</code>
 )
           –
           <div class="doc-md-description">
-            <p>Timeout for various internal interactions with the Kubernetes RayJob.</p>
+            <p>Timeout for various internal interactions with the Ray job.</p>
           </div>
         </li>
         <li class="doc-section-item field-body">
             <b><code>poll_interval</code></b>
-              (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></code>, default:
+              (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#float">float</a></code>, default:
                   <code>1</code>
 )
           –
           <div class="doc-md-description">
-            <p>Interval at which to poll Kubernetes for status updates.
+            <p>Interval at which to poll Ray for status updates.
 Is useful when running in a local environment.</p>
           </div>
         </li>
