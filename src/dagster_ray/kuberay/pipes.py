@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import time
 from typing import TYPE_CHECKING, Any, cast
 
@@ -23,15 +24,89 @@ from dagster_ray.core.pipes import (
     PIPES_LAUNCHED_EXTRAS_RAY_ADDRESS_KEY,
     PIPES_LAUNCHED_EXTRAS_RAY_JOB_ID_KEY,
     PipesRayJobMessageReader,
+    SubmitJobParams,
     generate_job_id,
 )
 from dagster_ray.kuberay.client import RayJobClient
 from dagster_ray.kuberay.client.rayjob.client import RayJobStatus
+from dagster_ray.kuberay.configs import RayJobConfig, RayJobSpec
 from dagster_ray.kuberay.utils import k8s_service_fqdn, normalize_k8s_label_values
 from dagster_ray.types import OpOrAssetExecutionContext
 
 if TYPE_CHECKING:
     from ray.job_submission import JobSubmissionClient
+
+
+def _ray_job_from_submit_params(
+    context: OpOrAssetExecutionContext,
+    submit_job_params: SubmitJobParams,
+    namespace: str = "default",
+) -> dict[str, Any]:
+    """Build a minimal KubeRay RayJob manifest from submit_job_params.
+
+    Reuses ``RayJobConfig`` / ``RayJobSpec`` to generate the manifest,
+    consistent with how ``KubeRayCluster`` and ``KubeRayInteractiveJob``
+    auto-generate their specs. Uses the ``dagster/image`` run tag for
+    the container image.
+    """
+    runtime_env_yaml = None
+    if runtime_env := submit_job_params.get("runtime_env"):
+        runtime_env_yaml = yaml.safe_dump(runtime_env, default_style='"')
+
+    ray_job_config = RayJobConfig(
+        metadata={"namespace": namespace},
+        spec=RayJobSpec(
+            runtime_env_yaml=runtime_env_yaml,
+            entrypoint_num_cpus=submit_job_params.get("entrypoint_num_cpus"),
+            entrypoint_num_gpus=submit_job_params.get("entrypoint_num_gpus"),
+        ),
+    )
+
+    image = context.run.tags.get("dagster/image")
+    ray_job = ray_job_config.to_k8s(context=context, image=image)
+    ray_job["metadata"]["namespace"] = namespace
+    ray_job["spec"]["entrypoint"] = submit_job_params["entrypoint"]
+
+    return ray_job
+
+
+def _submit_params_from_ray_job(ray_job: dict[str, Any]) -> SubmitJobParams:
+    """Extract SubmitJobParams from a KubeRay RayJob spec dict for backward compatibility."""
+    spec = ray_job["spec"]
+
+    params: SubmitJobParams = {"entrypoint": spec["entrypoint"]}
+
+    if runtime_env_yaml := spec.get("runtimeEnvYAML"):
+        params["runtime_env"] = yaml.safe_load(runtime_env_yaml)
+
+    if (num_cpus := spec.get("entrypointNumCpus")) is not None:
+        params["entrypoint_num_cpus"] = float(num_cpus)
+
+    if (num_gpus := spec.get("entrypointNumGpus")) is not None:
+        params["entrypoint_num_gpus"] = float(num_gpus)
+
+    return params
+
+
+def _merge_submit_params_into_ray_job(
+    ray_job: dict[str, Any],
+    submit_job_params: SubmitJobParams,
+) -> dict[str, Any]:
+    """Override entrypoint and runtimeEnvYAML in a KubeRay RayJob spec from submit_job_params."""
+    ray_job = copy.deepcopy(ray_job)
+
+    ray_job["spec"]["entrypoint"] = submit_job_params["entrypoint"]
+
+    if runtime_env := submit_job_params.get("runtime_env"):
+        ray_job["spec"]["runtimeEnvYAML"] = yaml.safe_dump(runtime_env, default_style='"')
+
+    if (num_cpus := submit_job_params.get("entrypoint_num_cpus")) is not None:
+        ray_job["spec"]["entrypointNumCpus"] = num_cpus
+
+    if (num_gpus := submit_job_params.get("entrypoint_num_gpus")) is not None:
+        ray_job["spec"]["entrypointNumGpus"] = num_gpus
+
+    return ray_job
 
 
 class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
@@ -94,8 +169,8 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
         )
 
         self.forward_termination = check.bool_param(forward_termination, "forward_termination")
-        self.timeout = check.int_param(timeout, "timeout")
-        self.poll_interval = check.int_param(poll_interval, "poll_interval")
+        self.timeout = check.numeric_param(timeout, "timeout")
+        self.poll_interval = check.numeric_param(poll_interval, "poll_interval")
         self.port_forward = check.bool_param(port_forward, "port_forward")
         self.address = address
         self.headers = headers
@@ -116,7 +191,8 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
         self,
         *,
         context: OpOrAssetExecutionContext,
-        ray_job: dict[str, Any],
+        submit_job_params: SubmitJobParams | None = None,
+        ray_job: dict[str, Any] | None = None,
         extras: PipesExtras | None = None,
         address: str | None = None,
         headers: dict[str, Any] | None = None,
@@ -124,14 +200,20 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
         cookies: dict[str, Any] | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> PipesClientCompletedInvocation:
-        """
-        Execute a RayJob, enriched with the Pipes protocol.
+        """Execute a RayJob, enriched with the Pipes protocol.
+
+        The ``submit_job_params`` dict is the primary interface for specifying job
+        parameters (entrypoint, runtime_env, etc.).  When ``ray_job`` is also
+        provided it is used as the KubeRay template with ``submit_job_params``
+        values taking precedence. When only ``ray_job`` is provided (backward
+        compatibility) the submit parameters are extracted from it automatically.
 
         Parameters passed to [`JobSubmissionClient`][ray.job_submission.JobSubmissionClient] take precedence over the constructor arguments.
 
         Args:
             context: Current Dagster op or asset context.
-            ray_job: `RayJob` specification. See [API reference](https://ray-project.github.io/kuberay/reference/api/#rayjob).
+            submit_job_params: Job submission parameters (entrypoint, runtime_env, etc.).
+            ray_job: Optional KubeRay RayJob template dict. When omitted a minimal template is auto-generated using the ``dagster/image`` run tag.
             extras: Additional information to pass to the Pipes session, retrievable via [`PipesContext.get_extras`][dagster_pipes.PipesContext.get_extra].
             address: Ray dashboard address. Passed to [`JobSubmissionClient`][ray.job_submission.JobSubmissionClient].
                 Generated by [`resolve_hostname`][dagster_ray.kuberay.pipes.PipesKubeRayJobClient.resolve_hostname] if not provided.
@@ -140,6 +222,20 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
             cookies: HTTP cookies for Ray Dashboard requests. Passed to [`JobSubmissionClient`][ray.job_submission.JobSubmissionClient].
             metadata: Ray Job metadata. Passed to [`JobSubmissionClient`][ray.job_submission.JobSubmissionClient].
         """
+        if submit_job_params is None and ray_job is None:
+            raise dg.DagsterInvariantViolationError(
+                "Either `submit_job_params` or `ray_job` must be provided to PipesKubeRayJobClient.run()."
+            )
+
+        if submit_job_params is None:
+            assert ray_job is not None
+            submit_job_params = _submit_params_from_ray_job(ray_job)
+
+        if ray_job is not None:
+            ray_job = _merge_submit_params_into_ray_job(ray_job, submit_job_params)
+        else:
+            ray_job = _ray_job_from_submit_params(context, submit_job_params)
+
         with open_pipes_session(
             context=context,
             message_reader=self._message_reader,
