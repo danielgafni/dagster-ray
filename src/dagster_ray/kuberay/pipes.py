@@ -69,24 +69,6 @@ def _ray_job_from_submit_params(
     return ray_job
 
 
-def _submit_params_from_ray_job(ray_job: dict[str, Any]) -> SubmitJobParams:
-    """Extract SubmitJobParams from a KubeRay RayJob spec dict for backward compatibility."""
-    spec = ray_job["spec"]
-
-    params: SubmitJobParams = {"entrypoint": spec["entrypoint"]}
-
-    if runtime_env_yaml := spec.get("runtimeEnvYAML"):
-        params["runtime_env"] = yaml.safe_load(runtime_env_yaml)
-
-    if (num_cpus := spec.get("entrypointNumCpus")) is not None:
-        params["entrypoint_num_cpus"] = float(num_cpus)
-
-    if (num_gpus := spec.get("entrypointNumGpus")) is not None:
-        params["entrypoint_num_gpus"] = float(num_gpus)
-
-    return params
-
-
 def _merge_submit_params_into_ray_job(
     ray_job: dict[str, Any],
     submit_job_params: SubmitJobParams,
@@ -164,33 +146,18 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
         self,
         *,
         context: OpOrAssetExecutionContext,
-        submit_job_params: SubmitJobParams | None = None,
+        submit_job_params: SubmitJobParams,
         ray_job: dict[str, Any] | None = None,
         extras: PipesExtras | None = None,
     ) -> PipesClientCompletedInvocation:
         """Execute a RayJob, enriched with the Pipes protocol.
 
-        The ``submit_job_params`` dict is the primary interface for specifying job
-        parameters (entrypoint, runtime_env, etc.).  When ``ray_job`` is also
-        provided it is used as the KubeRay template with ``submit_job_params``
-        values taking precedence. When only ``ray_job`` is provided (backward
-        compatibility) the submit parameters are extracted from it automatically.
-
         Args:
             context: Current Dagster op or asset context.
             submit_job_params: Job submission parameters (entrypoint, runtime_env, etc.).
-            ray_job: Optional KubeRay RayJob template dict. When omitted a minimal template is auto-generated using the ``dagster/image`` run tag.
+            ray_job: Optional KubeRay RayJob template dict. When provided, ``submit_job_params`` values are merged into it. When omitted, a minimal template is auto-generated using the ``dagster/image`` run tag.
             extras: Additional information to pass to the Pipes session.
         """
-        if submit_job_params is None and ray_job is None:
-            raise dg.DagsterInvariantViolationError(
-                "Either `submit_job_params` or `ray_job` must be provided to PipesKubeRayJobClient.run()."
-            )
-
-        if submit_job_params is None:
-            assert ray_job is not None
-            submit_job_params = _submit_params_from_ray_job(ray_job)
-
         if ray_job is not None:
             ray_job = _merge_submit_params_into_ray_job(ray_job, submit_job_params)
         else:
