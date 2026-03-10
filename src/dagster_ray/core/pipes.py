@@ -365,12 +365,12 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
         context.log.info(f"[pipes] Ray job {job_id} terminated.")
 
 
-class PipesLocalRayJobClient(dg.PipesClient, TreatAsResourceParam):
+class PipesLocalRayJobClient(PipesRayJobClient):
     """A Pipes client that auto-starts a local Ray cluster and submits jobs to it.
 
-    Provides the same ``run()`` interface as ``PipesRayJobClient`` but handles
-    local cluster lifecycle automatically. Useful for local development and
-    testing without requiring a manual ``ray start --head``.
+    Extends ``PipesRayJobClient`` with automatic local cluster lifecycle
+    management. Useful for local development and testing without requiring
+    a manual ``ray start --head``.
 
     Args:
         address: Ray address to connect to. When ``None`` (default), starts a
@@ -399,13 +399,36 @@ class PipesLocalRayJobClient(dg.PipesClient, TreatAsResourceParam):
         self.address = address
         self.ray_init_kwargs = ray_init_kwargs or {}
         self.shutdown_on_close = shutdown_on_close
+        # client is set lazily in run(); pass a placeholder to satisfy the parent
+        super().__init__(
+            client=None,  # type: ignore[arg-type]
+            context_injector=context_injector,
+            message_reader=message_reader,
+            forward_termination=forward_termination,
+            timeout=timeout,
+            poll_interval=poll_interval,
+        )
 
-        self._context_injector = context_injector or PipesEnvContextInjector()
-        self._message_reader = message_reader or PipesRayJobMessageReader()
+    @staticmethod
+    def _wait_for_agent(
+        client: JobSubmissionClient,
+        context: OpOrAssetExecutionContext,
+        timeout: float = 60,
+        poll_interval: float = 1,
+    ) -> None:
+        """Poll the dashboard agent until it is ready to accept job submissions."""
+        from requests.exceptions import ConnectionError as RequestsConnectionError
 
-        self.forward_termination = check.bool_param(forward_termination, "forward_termination")
-        self.timeout = check.numeric_param(timeout, "timeout")
-        self.poll_interval = check.numeric_param(poll_interval, "poll_interval")
+        start = time.time()
+        while True:
+            try:
+                client.list_jobs()
+                return
+            except (RequestsConnectionError, OSError):
+                if time.time() - start > timeout:
+                    raise RuntimeError(f"Ray dashboard agent did not become ready within {timeout}s.")
+                context.log.debug("[pipes] Waiting for Ray dashboard agent to become ready...")
+                time.sleep(poll_interval)
 
     def run(  # type: ignore
         self,
@@ -416,8 +439,9 @@ class PipesLocalRayJobClient(dg.PipesClient, TreatAsResourceParam):
     ) -> PipesClientCompletedInvocation:
         """Execute a Ray job on a local cluster, enriched with the Pipes protocol.
 
-        Starts a local Ray cluster if one is not already running, submits the
-        job, waits for completion, and optionally shuts down the cluster.
+        Starts a local Ray cluster if one is not already running, delegates
+        job submission to ``PipesRayJobClient.run()``, and optionally shuts
+        down the cluster afterwards.
 
         Args:
             context: Current Dagster op or asset context.
@@ -438,37 +462,10 @@ class PipesLocalRayJobClient(dg.PipesClient, TreatAsResourceParam):
             if not dashboard_url.startswith("http"):
                 dashboard_url = f"http://{dashboard_url}"
 
-            client = _JobSubmissionClient(address=dashboard_url)
+            self.client = _JobSubmissionClient(address=dashboard_url)
+            self._wait_for_agent(self.client, context)
 
-            with open_pipes_session(
-                context=context,
-                message_reader=self._message_reader,
-                context_injector=self._context_injector,
-                extras=extras,
-            ) as session:
-                enriched_params = _enrich_submit_job_params(context, session, submit_job_params)
-
-                job_id = client.submit_job(**enriched_params)
-                context.log.info(f"[pipes] Submitted local Ray job {job_id}.")
-
-                session.report_launched(
-                    {
-                        "extras": {
-                            PIPES_LAUNCHED_EXTRAS_RAY_JOB_ID_KEY: job_id,
-                            PIPES_LAUNCHED_EXTRAS_RAY_ADDRESS_KEY: client.get_address(),
-                        }
-                    }
-                )
-
-                try:
-                    _wait_for_job_completion(client, context, job_id, self.poll_interval)
-                    return PipesClientCompletedInvocation(session, metadata={"Ray Job ID": job_id})
-
-                except DagsterExecutionInterruptedError:
-                    if self.forward_termination:
-                        context.log.warning(f"[pipes] Dagster process interrupted! Will terminate Ray job {job_id}.")
-                        client.stop_job(job_id)
-                    raise
+            return super().run(context=context, submit_job_params=submit_job_params, extras=extras)
         finally:
             if self.shutdown_on_close:
                 context_obj.disconnect()
