@@ -37,16 +37,16 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
     """A pipes client for running ``RayJob`` on Kubernetes.
 
     Args:
-        context_injector (Optional[PipesContextInjector]): A context injector to use to inject
+        context_injector: A context injector to use to inject
             context into the ``RayJob``. Defaults to [`PipesEnvContextInjector`][dagster.PipesEnvContextInjector].
-        message_reader (Optional[PipesMessageReader]): A message reader to use to read messages
+        message_reader: A message reader to use to read messages
             from the glue job run. Defaults to [`PipesRayJobMessageReader`][dagster_ray.core.pipes.PipesRayJobMessageReader].
-        client (Optional[boto3.client]): The Kubernetes API client.
-        forward_termination (bool): Whether to terminate the Ray job when the Dagster process receives a termination signal,
+        client: The Kubernetes API client.
+        forward_termination: Whether to terminate the Ray job when the Dagster process receives a termination signal,
             or if the startup timeout is reached. Defaults to ``True``.
-        timeout (int): Timeout for various internal interactions with the Kubernetes RayJob.
-        poll_interval (int): Interval at which to poll Kubernetes for status updates.
-        port_forward (bool): Whether to use Kubernetes port-forwarding to connect to the KubeRay cluster.
+        timeout: Timeout for various internal interactions with the Kubernetes RayJob.
+        poll_interval: Interval at which to poll Kubernetes for status updates.
+        port_forward: Whether to use Kubernetes port-forwarding to connect to the KubeRay cluster.
             Is useful when running in a local environment.
 
     Info:
