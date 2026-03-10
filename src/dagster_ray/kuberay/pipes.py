@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import copy
+import json
+import logging
 import time
 from typing import TYPE_CHECKING, Any, cast
 
@@ -32,6 +34,8 @@ from dagster_ray.kuberay.configs import RayJobConfig, RayJobSpec
 from dagster_ray.kuberay.utils import normalize_k8s_label_values
 from dagster_ray.types import OpOrAssetExecutionContext
 
+logger = logging.getLogger(__name__)
+
 if TYPE_CHECKING:
     from ray.job_submission import JobSubmissionClient
 
@@ -39,7 +43,7 @@ if TYPE_CHECKING:
 def _ray_job_from_submit_params(
     context: OpOrAssetExecutionContext,
     submit_job_params: SubmitJobParams,
-    namespace: str = "default",
+    namespace: str = "ray",
 ) -> dict[str, Any]:
     """Build a minimal KubeRay RayJob manifest from submit_job_params.
 
@@ -58,6 +62,12 @@ def _ray_job_from_submit_params(
             runtime_env_yaml=runtime_env_yaml,
             entrypoint_num_cpus=submit_job_params.get("entrypoint_num_cpus"),
             entrypoint_num_gpus=submit_job_params.get("entrypoint_num_gpus"),
+            entrypoint_memory=submit_job_params.get("entrypoint_memory"),
+            entrypoint_resources=json.dumps(er)
+            if (er := submit_job_params.get("entrypoint_resources")) is not None
+            else None,
+            metadata=submit_job_params.get("metadata"),
+            job_id=submit_job_params.get("submission_id"),
         ),
     )
 
@@ -73,19 +83,41 @@ def _merge_submit_params_into_ray_job(
     ray_job: dict[str, Any],
     submit_job_params: SubmitJobParams,
 ) -> dict[str, Any]:
-    """Override entrypoint and runtimeEnvYAML in a KubeRay RayJob spec from submit_job_params."""
+    """Merge ``submit_job_params`` into a KubeRay RayJob manifest, warning on conflicts."""
     ray_job = copy.deepcopy(ray_job)
 
-    ray_job["spec"]["entrypoint"] = submit_job_params["entrypoint"]
+    def _set(key: str, value: Any) -> None:
+        if key in ray_job["spec"] and ray_job["spec"][key] != value:
+            logger.warning(
+                "[pipes] submit_job_params overwriting ray_job spec field '%s': %r -> %r",
+                key,
+                ray_job["spec"][key],
+                value,
+            )
+        ray_job["spec"][key] = value
+
+    _set("entrypoint", submit_job_params["entrypoint"])
 
     if runtime_env := submit_job_params.get("runtime_env"):
-        ray_job["spec"]["runtimeEnvYAML"] = yaml.safe_dump(runtime_env, default_style='"')
+        _set("runtimeEnvYAML", yaml.safe_dump(runtime_env, default_style='"'))
 
     if (num_cpus := submit_job_params.get("entrypoint_num_cpus")) is not None:
-        ray_job["spec"]["entrypointNumCpus"] = num_cpus
+        _set("entrypointNumCpus", num_cpus)
 
     if (num_gpus := submit_job_params.get("entrypoint_num_gpus")) is not None:
-        ray_job["spec"]["entrypointNumGpus"] = num_gpus
+        _set("entrypointNumGpus", num_gpus)
+
+    if (memory := submit_job_params.get("entrypoint_memory")) is not None:
+        _set("entrypointMemory", memory)
+
+    if (resources := submit_job_params.get("entrypoint_resources")) is not None:
+        _set("entrypointResources", resources)
+
+    if (metadata := submit_job_params.get("metadata")) is not None:
+        _set("metadata", metadata)
+
+    if (submission_id := submit_job_params.get("submission_id")) is not None:
+        _set("jobId", submission_id)
 
     return ray_job
 
