@@ -10,6 +10,7 @@ import os
 import subprocess
 
 from mike import commands, git_utils, mkdocs_utils
+from mike.git_utils import GitEmptyCommit
 from mike.mkdocs_utils import docs_version_var
 
 
@@ -35,14 +36,17 @@ def main():
     cfg = mkdocs_utils.load_config(args.config_file)
 
     # Deploy using mike's git machinery — site_dir is already populated by zensical
-    with commands.deploy(
-        cfg,
-        args.version,
-        aliases=args.aliases,
-        update_aliases=args.update_aliases,
-        branch=args.branch,
-    ):
-        pass  # nothing to do — zensical already built into site_dir
+    try:
+        with commands.deploy(
+            cfg,
+            args.version,
+            aliases=args.aliases,
+            update_aliases=args.update_aliases,
+            branch=args.branch,
+        ):
+            pass  # nothing to do — zensical already built into site_dir
+    except GitEmptyCommit:
+        print("Docs unchanged, nothing to deploy.")
 
     if args.push:
         git_utils.push_branch(args.remote, args.branch)
