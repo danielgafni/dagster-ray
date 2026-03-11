@@ -181,8 +181,6 @@ class PipesRayJobMessageReader(PipesMessageReader):
                     if time.time() - session_closed_at > 30:  # wait for 30 seconds to flush all logs
                         self.completed.set()
                         return
-        except:
-            raise
         finally:
             self.completed.set()
 
@@ -213,6 +211,54 @@ def generate_job_id() -> str:
     letters = string.ascii_lowercase
     random_letters = "".join(random.choice(letters) for i in range(10))
     return f"pipes-{random_letters}"
+
+
+def _enrich_submit_job_params(
+    context: OpOrAssetExecutionContext,
+    session: PipesSession,
+    submit_job_params: SubmitJobParams,
+) -> EnrichedSubmitJobParams:
+    """Merge Pipes env vars, Dagster tags, and a submission ID into job params."""
+    runtime_env = submit_job_params.get("runtime_env", {})
+    metadata = submit_job_params.get("metadata", {})
+
+    env_vars = session.get_bootstrap_env_vars()
+
+    metadata.update(get_dagster_tags(context))
+    runtime_env["env_vars"] = runtime_env.get("env_vars", {})
+    runtime_env["env_vars"].update(env_vars)
+
+    submit_job_params["metadata"] = metadata
+    submit_job_params["runtime_env"] = runtime_env
+    submit_job_params["submission_id"] = submit_job_params.get("submission_id", generate_job_id())
+
+    return cast(EnrichedSubmitJobParams, submit_job_params)
+
+
+def _wait_for_job_completion(
+    client: JobSubmissionClient,
+    context: OpOrAssetExecutionContext,
+    job_id: str,
+    poll_interval: float,
+) -> JobStatus:
+    """Poll a Ray job until it reaches a terminal status."""
+    from ray.job_submission import JobStatus
+
+    context.log.info(f"[pipes] Waiting for Ray job {job_id} to complete...")
+
+    while True:
+        status = client.get_job_status(job_id)
+
+        if status.is_terminal():
+            if status in {JobStatus.FAILED, JobStatus.STOPPED}:
+                job_details = client.get_job_info(job_id)
+                raise RuntimeError(
+                    f"[pipes] Ray job {job_id} failed with status {status}. Message:\n{job_details.message}"
+                )
+
+            return status
+
+        time.sleep(poll_interval)
 
 
 class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
@@ -246,8 +292,8 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
         self._message_reader = message_reader or PipesRayJobMessageReader()
 
         self.forward_termination = check.bool_param(forward_termination, "forward_termination")
-        self.timeout = check.int_param(timeout, "timeout")
-        self.poll_interval = check.int_param(poll_interval, "poll_interval")
+        self.timeout = check.numeric_param(timeout, "timeout")
+        self.poll_interval = check.numeric_param(poll_interval, "poll_interval")
 
         self._job_submission_client: JobSubmissionClient | None = None
 
@@ -273,13 +319,12 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
             context_injector=self._context_injector,
             extras=extras,
         ) as session:
-            enriched_submit_job_params = self._enrich_submit_job_params(context, session, submit_job_params)
+            enriched_submit_job_params = _enrich_submit_job_params(context, session, submit_job_params)
 
             job_id = self._start(context, session, enriched_submit_job_params)
 
             try:
-                # self._read_messages(context, job_id)
-                self._wait_for_completion(context, job_id)
+                _wait_for_job_completion(self.client, context, job_id, self.poll_interval)
                 return PipesClientCompletedInvocation(session, metadata={"Ray Job ID": job_id})
 
             except DagsterExecutionInterruptedError:
@@ -291,24 +336,6 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
     def get_dagster_tags(self, context: OpOrAssetExecutionContext) -> dict[str, str]:
         tags = get_dagster_tags(context)
         return tags
-
-    def _enrich_submit_job_params(
-        self, context: OpOrAssetExecutionContext, session: PipesSession, submit_job_params: SubmitJobParams
-    ) -> EnrichedSubmitJobParams:
-        runtime_env = submit_job_params.get("runtime_env", {})
-        metadata = submit_job_params.get("metadata", {})
-
-        env_vars = session.get_bootstrap_env_vars()
-
-        metadata.update(self.get_dagster_tags(context))
-        runtime_env["env_vars"] = runtime_env.get("env_vars", {})
-        runtime_env["env_vars"].update(env_vars)
-
-        submit_job_params["metadata"] = metadata
-        submit_job_params["runtime_env"] = runtime_env
-        submit_job_params["submission_id"] = submit_job_params.get("submission_id", generate_job_id())
-
-        return cast(EnrichedSubmitJobParams, submit_job_params)
 
     def _start(
         self, context: OpOrAssetExecutionContext, session: PipesSession, submit_job_params: EnrichedSubmitJobParams
@@ -332,26 +359,114 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
 
         return job_id
 
-    def _wait_for_completion(self, context: OpOrAssetExecutionContext, job_id: str) -> JobStatus:
-        from ray.job_submission import JobStatus
-
-        context.log.info(f"[pipes] Waiting for RayJob {job_id} to complete...")
-
-        while True:
-            status = self.client.get_job_status(job_id)
-
-            if status.is_terminal():
-                if status in {JobStatus.FAILED, JobStatus.STOPPED}:
-                    job_details = self.client.get_job_info(job_id)
-                    raise RuntimeError(
-                        f"[pipes] RayJob {job_id} failed with status {status}. Message:\n{job_details.message}"
-                    )
-
-                return status
-
-            time.sleep(self.poll_interval)
-
     def _terminate(self, context: OpOrAssetExecutionContext, job_id: str) -> None:
         context.log.info(f"[pipes] Terminating RayJob {job_id} ...")
         self.client.stop_job(job_id)
         context.log.info(f"[pipes] Ray job {job_id} terminated.")
+
+
+class PipesLocalRayJobClient(PipesRayJobClient):
+    """A Pipes client that auto-starts a local Ray cluster and submits jobs to it.
+
+    Extends ``PipesRayJobClient`` with automatic local cluster lifecycle
+    management. Useful for local development and testing without requiring
+    a manual ``ray start --head``.
+
+    Args:
+        address: Ray address to connect to. When ``None`` (default), starts a
+            new local cluster. Use ``"auto"`` to connect to an existing cluster.
+        ray_init_kwargs: Additional keyword arguments passed to ``ray.init()``.
+        shutdown_on_close: Whether to shut down the local Ray cluster after
+            each ``run()`` completes. Defaults to ``False``.
+        context_injector: A context injector for the Pipes session.
+        message_reader: A message reader for the Pipes session.
+        forward_termination: Whether to cancel the Ray job on Dagster termination.
+        timeout: Timeout in seconds for job completion polling.
+        poll_interval: Interval in seconds between job status polls.
+    """
+
+    def __init__(
+        self,
+        address: str | None = None,
+        ray_init_kwargs: dict[str, Any] | None = None,
+        shutdown_on_close: bool = False,
+        context_injector: PipesContextInjector | None = None,
+        message_reader: PipesMessageReader | None = None,
+        forward_termination: bool = True,
+        timeout: float = 600,
+        poll_interval: float = 1,
+    ):
+        self.address = address
+        self.ray_init_kwargs = ray_init_kwargs or {}
+        self.shutdown_on_close = shutdown_on_close
+        super().__init__(
+            client=None,  # type: ignore[arg-type]
+            context_injector=context_injector,
+            message_reader=message_reader,
+            forward_termination=forward_termination,
+            timeout=timeout,
+            poll_interval=poll_interval,
+        )
+
+    @staticmethod
+    def _wait_for_agent(
+        client: JobSubmissionClient,
+        context: OpOrAssetExecutionContext,
+        timeout: float = 60,
+        poll_interval: float = 1,
+    ) -> None:
+        """Poll the dashboard agent until it is ready to accept job submissions."""
+        from requests.exceptions import ConnectionError as RequestsConnectionError
+
+        start = time.time()
+        while True:
+            try:
+                client.list_jobs()
+                return
+            except (RequestsConnectionError, OSError):
+                if time.time() - start > timeout:
+                    raise RuntimeError(f"Ray dashboard agent did not become ready within {timeout}s.")
+                context.log.debug("[pipes] Waiting for Ray dashboard agent to become ready...")
+                time.sleep(poll_interval)
+
+    def run(  # type: ignore
+        self,
+        *,
+        context: OpOrAssetExecutionContext,
+        submit_job_params: SubmitJobParams,
+        extras: PipesExtras | None = None,
+    ) -> PipesClientCompletedInvocation:
+        """Execute a Ray job on a local cluster, enriched with the Pipes protocol.
+
+        Starts a local Ray cluster if one is not already running, delegates
+        job submission to ``PipesRayJobClient.run()``, and optionally shuts
+        down the cluster afterwards.
+
+        Args:
+            context: Current Dagster op or asset context.
+            submit_job_params: Job submission parameters (entrypoint, runtime_env, etc.).
+            extras: Additional information to pass to the Pipes session.
+        """
+        import ray
+        from ray.job_submission import JobSubmissionClient as _JobSubmissionClient
+
+        context_obj = ray.init(address=self.address, ignore_reinit_error=True, **self.ray_init_kwargs)
+
+        try:
+            dashboard_url = context_obj.dashboard_url
+            if dashboard_url is None:
+                raise RuntimeError(
+                    "Ray cluster started but dashboard URL is not available. "
+                    "Ensure the Ray dashboard is enabled."
+                )
+            if not dashboard_url.startswith("http"):
+                dashboard_url = f"http://{dashboard_url}"
+
+            self.client = _JobSubmissionClient(address=dashboard_url)
+            self._wait_for_agent(self.client, context)
+
+            return super().run(context=context, submit_job_params=submit_job_params, extras=extras)
+        finally:
+            if self.shutdown_on_close:
+                context_obj.disconnect()
+                ray.shutdown()
