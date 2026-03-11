@@ -19,7 +19,7 @@ jobs:
       contents: write
       pages: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Install uv
         uses: astral-sh/setup-uv@v6
         with:
@@ -35,4 +35,4 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "actions@github.com"
-          uv run --group docs --all-extras mike deploy --push master
+          uv run --group docs --all-extras python scripts/deploy_docs.py --push master

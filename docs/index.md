@@ -16,8 +16,9 @@
 `dagster-ray` enables working with distributed Ray compute from Dagster pipelines, combining Dagster's excellent orchestration capabilities and Ray's distributed computing power together.
 
 
-> [!NOTE]
-> This project is ready for production use, but some APIs may change between minor releases.
+!!! note
+
+    This project is ready for production use, but some APIs may change between minor releases.
 
 ## 🚀 Key Features
 
