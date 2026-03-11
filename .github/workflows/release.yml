@@ -45,5 +45,5 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "actions@github.com"
-          uv run --group docs --all-extras mike deploy --push --update-aliases $VERSION latest
+          uv run --group docs --all-extras python scripts/deploy_docs.py --push --update-aliases $VERSION latest
 
