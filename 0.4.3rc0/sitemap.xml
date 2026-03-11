@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+      <url>
+        <loc>https://danielgafni.github.io/dagster-ray/</loc>
+      </url>
+      <url>
+        <loc>https://danielgafni.github.io/dagster-ray/tutorial/</loc>
+      </url>
+      <url>
+        <loc>https://danielgafni.github.io/dagster-ray/tutorial/external/</loc>
+      </url>
+      <url>
+        <loc>https://danielgafni.github.io/dagster-ray/tutorial/kuberay/</loc>
+      </url>
+      <url>
+        <loc>https://danielgafni.github.io/dagster-ray/api/</loc>
+      </url>
+      <url>
+        <loc>https://danielgafni.github.io/dagster-ray/api/core/</loc>
+      </url>
+      <url>
+        <loc>https://danielgafni.github.io/dagster-ray/api/kuberay/</loc>
+      </url>
+      <url>
+        <loc>https://danielgafni.github.io/dagster-ray/api/configs/</loc>
+      </url>
+      <url>
+        <loc>https://danielgafni.github.io/dagster-ray/api/types/</loc>
+      </url>
+      <url>
+        <loc>https://danielgafni.github.io/dagster-ray/changelog/</loc>
+      </url>
+</urlset>
