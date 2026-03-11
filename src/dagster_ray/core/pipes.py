@@ -221,7 +221,13 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
     Starts the job directly on the Ray cluster and reads the logs from the job.
 
     Args:
-        client (JobSubmissionClient): The Ray job submission client
+        address (Optional[str]): Ray dashboard HTTP address (e.g., "https://ray-cluster.example.com").
+            If unspecified, connects to a local Ray cluster or uses the ``RAY_ADDRESS`` environment variable.
+        headers (Optional[dict[str, Any]]): HTTP headers for dashboard requests, e.g. ``{"Authorization": "Bearer token"}``.
+        verify (Union[str, bool]): TLS certificate verification. ``True`` uses system certs, ``False`` disables
+            verification, or a path to a CA bundle. Default: ``True``.
+        cookies (Optional[dict[str, Any]]): Cookies to send with dashboard requests.
+        metadata (Optional[dict[str, Any]]): Arbitrary metadata stored alongside all submitted jobs.
         context_injector (Optional[PipesContextInjector]): A context injector to use to inject
             context into the Ray job. Defaults to [`PipesEnvContextInjector`][dagster.PipesEnvContextInjector].
         message_reader (Optional[PipesMessageReader]): A message reader to use to read messages
@@ -229,27 +235,43 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
         forward_termination (bool): Whether to cancel the Ray job run when the Dagster process receives a termination signal.
         timeout (int): Timeout for various internal interactions with the Kubernetes RayJob.
         poll_interval (int): Interval at which to poll Kubernetes for status updates.
-            Is useful when running in a local environment.
     """
 
     def __init__(
         self,
-        client: JobSubmissionClient,
+        address: str | None = None,
+        headers: dict[str, Any] | None = None,
+        verify: str | bool = True,
+        cookies: dict[str, Any] | None = None,
+        metadata: dict[str, Any] | None = None,
         context_injector: PipesContextInjector | None = None,
         message_reader: PipesMessageReader | None = None,
         forward_termination: bool = True,
         timeout: float = 600,
         poll_interval: float = 1,
     ):
-        self.client = client
+        from ray.job_submission import JobSubmissionClient
+
+        self.client = JobSubmissionClient(
+            address=address,
+            headers=headers,
+            verify=verify,
+            cookies=cookies,
+            metadata=metadata,
+        )
         self._context_injector = context_injector or PipesEnvContextInjector()
-        self._message_reader = message_reader or PipesRayJobMessageReader()
+        self._message_reader = message_reader or PipesRayJobMessageReader(
+            job_submission_client_kwargs={
+                "headers": headers,
+                "verify": verify,
+                "cookies": cookies,
+                "metadata": metadata,
+            }
+        )
 
         self.forward_termination = check.bool_param(forward_termination, "forward_termination")
         self.timeout = check.int_param(timeout, "timeout")
         self.poll_interval = check.int_param(poll_interval, "poll_interval")
-
-        self._job_submission_client: JobSubmissionClient | None = None
 
     def run(  # type: ignore
         self,

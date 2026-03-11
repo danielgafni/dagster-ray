@@ -287,7 +287,7 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
         timeout: float = 60,
         address: str | None = None,
         headers: dict[str, Any] | None = None,
-        verify: str | bool | None = None,
+        verify: str | bool = True,
         cookies: dict[str, Any] | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> Iterator[JobSubmissionClient]:
@@ -302,40 +302,44 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
             address: Custom Ray dashboard address (e.g., "https://ray-cluster.example.com").
                 When provided, connects directly to this address instead of using port-forwarding or in-cluster service IPs.
             headers: HTTP headers for dashboard authentication (e.g., {"Authorization": "Bearer token"}).
-                Only used when custom address is provided.
-            verify: TLS certificate verification for custom address. Can be True, False, or path to CA bundle.
-                Only used when custom address is provided. Defaults to True when address is set.
+            verify: TLS certificate verification. Can be True, False, or path to CA bundle.
             cookies: Cookies to use when sending requests to the HTTP job server.
-                Only used when custom address is provided.
             metadata: Arbitrary metadata to store along with all jobs. Will be merged with per-job metadata.
-                Only used when custom address is provided.
         """
 
         from ray.job_submission import JobSubmissionClient
 
         if address:
-            yield JobSubmissionClient(
-                address=address,
-                headers=headers,
-                verify=verify if verify is not None else True,
-                cookies=cookies,
-                metadata=metadata,
-            )
+            resolved_address = address
         elif port_forward:
             self.wait_for_service_endpoints(service_name=f"{name}-head-svc", namespace=namespace, timeout=timeout)
             with self.port_forward(name=name, namespace=namespace, local_dashboard_port=0, local_gcs_port=0) as (
                 local_dashboard_port,
                 _,
             ):
-                yield JobSubmissionClient(address=f"http://localhost:{local_dashboard_port}")
+                resolved_address = f"http://localhost:{local_dashboard_port}"
+                yield JobSubmissionClient(
+                    address=resolved_address,
+                    headers=headers,
+                    verify=verify,
+                    cookies=cookies,
+                    metadata=metadata,
+                )
+            return
         else:
             # TODO: revisit the decision to use this as context-manager in this case
             status = self.get_status(name, namespace)
-
             host = status["head"]["serviceIP"]  # type: ignore
             dashboard_port = status["endpoints"]["dashboard"]  # type: ignore
+            resolved_address = f"http://{host}:{dashboard_port}"
 
-            yield JobSubmissionClient(address=f"http://{host}:{dashboard_port}")
+        yield JobSubmissionClient(
+            address=resolved_address,
+            headers=headers,
+            verify=verify,
+            cookies=cookies,
+            metadata=metadata,
+        )
 
     def _read_head_pod_logs(self, status: RayClusterStatus, namespace: str, tail_lines: int = 500) -> str | None:
         if not ((head := status.get("head")) and (pod_name := head.get("podName"))):

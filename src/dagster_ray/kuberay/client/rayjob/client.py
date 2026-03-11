@@ -208,7 +208,7 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
         port_forward: bool = False,
         address: str | None = None,
         headers: dict[str, Any] | None = None,
-        verify: str | bool | None = None,
+        verify: str | bool = True,
         cookies: dict[str, Any] | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> str:
@@ -238,7 +238,7 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
         port_forward: bool = False,
         address: str | None = None,
         headers: dict[str, Any] | None = None,
-        verify: str | bool | None = None,
+        verify: str | bool = True,
         cookies: dict[str, Any] | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> Iterator[str]:
@@ -280,7 +280,7 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
         port_forward: bool = False,
         address: str | None = None,
         headers: dict[str, Any] | None = None,
-        verify: str | bool | None = None,
+        verify: str | bool = True,
         cookies: dict[str, Any] | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> bool:

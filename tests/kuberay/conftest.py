@@ -1,9 +1,11 @@
+import copy
 import logging
 import os
 import subprocess
 import sys
 import tempfile
 from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
@@ -89,6 +91,14 @@ KUBERNETES_CONTEXT = "pytest-dagster-ray"
 @pytest.mark.parametrize("kuberay_version_param", KUBERAY_VERSIONS)
 def kuberay_version(kuberay_version_param: str):
     return kuberay_version_param
+
+
+@pytest.fixture(scope="session")
+def ray_version() -> str:
+    """Get the Ray version from the installed ray package."""
+    import ray
+
+    return ray.__version__
 
 
 @pytest.fixture(scope="session")  # type: ignore
@@ -193,6 +203,25 @@ def worker_group_specs(dagster_ray_image: str) -> list[dict[str, Any]]:
 PERSISTENT_RAY_CLUSTER_NAME = "persistent-ray-cluster"
 RAYJOB_TIMEOUT = 45
 
+# Auth-enabled cluster constants
+AUTH_RAY_CLUSTER_NAME = "persistent-ray-cluster-with-auth"
+AUTH_TOKEN = "test-auth-token-12345"
+AUTH_SECRET_NAME = "ray-auth-token-secret"
+MIN_RAY_VERSION_FOR_AUTH = "2.52.0"  # Ray token auth requires 2.52.0+
+
+
+@contextmanager
+def _auth_secret(k8s: AClusterManager, namespace: str, secret_name: str, token: str) -> Iterator[None]:
+    """Create a Kubernetes secret for Ray auth token and delete it on exit."""
+    k8s.kubectl(["create", "secret", "generic", secret_name, f"--from-literal=auth_token={token}", "-n", namespace])
+    try:
+        yield
+    finally:
+        try:
+            k8s.kubectl(["delete", "secret", secret_name, "-n", namespace, "--ignore-not-found"])
+        except RuntimeError:
+            pass
+
 
 @pytest.fixture(scope="session")
 def k8s_with_raycluster(
@@ -239,6 +268,86 @@ def k8s_with_raycluster(
         name=PERSISTENT_RAY_CLUSTER_NAME,
         namespace=NAMESPACE,
     )
+
+
+@pytest.fixture(scope="session")
+def k8s_with_raycluster_with_auth(
+    k8s_with_kuberay: AClusterManager,
+    head_group_spec: dict[str, Any],
+    ray_version: str,
+) -> Iterator[tuple[dict[str, str], str, AClusterManager]]:
+    """Create a RayCluster with token authentication enabled.
+
+    Requires Ray 2.52.0+ for token authentication support.
+    Uses no workers to minimize resource usage alongside other test clusters.
+
+    Returns:
+        tuple: (addresses_dict, auth_token, cluster_manager)
+    """
+    if Version(ray_version) < Version(MIN_RAY_VERSION_FOR_AUTH):
+        pytest.skip(f"Ray {MIN_RAY_VERSION_FOR_AUTH}+ is required for token authentication (current: {ray_version})")
+
+    config.load_kube_config(str(k8s_with_kuberay.kubeconfig), context=KUBERNETES_CONTEXT)
+
+    client = RayClusterClient(kube_config=str(k8s_with_kuberay.kubeconfig), kube_context=KUBERNETES_CONTEXT)
+
+    head_spec = copy.deepcopy(head_group_spec)
+
+    # Add auth env vars to head container
+    head_container = head_spec["template"]["spec"]["containers"][0]
+    if "env" not in head_container:
+        head_container["env"] = []
+    head_container["env"].extend(
+        [
+            {"name": "RAY_AUTH_MODE", "value": "token"},
+            {
+                "name": "RAY_AUTH_TOKEN",
+                "valueFrom": {"secretKeyRef": {"name": AUTH_SECRET_NAME, "key": "auth_token"}},
+            },
+        ]
+    )
+
+    cluster_spec = {
+        "headGroupSpec": head_spec,
+        "workerGroupSpecs": [],
+    }
+
+    manifest = {
+        "kind": "RayCluster",
+        "apiVersion": "ray.io/v1",
+        "metadata": {"name": AUTH_RAY_CLUSTER_NAME},
+        "spec": cluster_spec,
+    }
+
+    with _auth_secret(k8s_with_kuberay, NAMESPACE, AUTH_SECRET_NAME, AUTH_TOKEN):
+        client.create(
+            body=manifest,
+            namespace=NAMESPACE,
+        )
+        logger.info(f"Manifest: {manifest}")
+
+        client.wait_until_ready(
+            name=AUTH_RAY_CLUSTER_NAME,
+            namespace=NAMESPACE,
+            timeout=600,
+        )
+
+        with client.port_forward(
+            name=AUTH_RAY_CLUSTER_NAME,
+            namespace=NAMESPACE,
+            local_dashboard_port=0,
+            local_gcs_port=0,
+        ) as (dashboard_port, redis_port):
+            yield (
+                {"gcs": f"ray://localhost:{redis_port}", "dashboard": f"http://localhost:{dashboard_port}"},
+                AUTH_TOKEN,
+                k8s_with_kuberay,
+            )
+
+        client.delete(
+            name=AUTH_RAY_CLUSTER_NAME,
+            namespace=NAMESPACE,
+        )
 
 
 @pytest.fixture(autouse=True)

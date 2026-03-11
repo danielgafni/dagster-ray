@@ -48,23 +48,18 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
         poll_interval (int): Interval at which to poll Kubernetes for status updates.
         port_forward (bool): Whether to use Kubernetes port-forwarding to connect to the KubeRay cluster.
             Is useful when running in a local environment.
-        address (Optional[str]): Ray dashboard HTTP address (e.g., "https://ray-cluster.example.com").
+        address (Optional[str]): Ray dashboard address (e.g., "https://ray-cluster.example.com").
             When provided, connects directly to this address instead of using port-forwarding or in-cluster service IPs.
             Can be overridden per-job in the `run()` method.
-        headers (Optional[dict[str, Any]]): HTTP headers for dashboard authentication
-            (e.g., {"Authorization": "Bearer token"}). Only used when custom address is provided.
+        headers (Optional[dict[str, Any]]): HTTP headers for dashboard requests, e.g. ``{"Authorization": "Bearer token"}``.
             Can be overridden per-job in the `run()` method.
-        verify (Optional[Union[str, bool]]): TLS certificate verification for custom address connections.
-            Can be True (verify with system certs), False (no verification), or a path to a CA bundle.
-            Only used when custom address is provided. Defaults to True when address is set.
+        verify (Optional[Union[str, bool]]): TLS certificate verification. ``True`` uses system certs, ``False`` disables
+            verification, or a path to a CA bundle.
             Can be overridden per-job in the `run()` method.
-        cookies (Optional[dict[str, Any]]): Cookies to use when sending requests to the HTTP job server.
-            Only used when custom address is provided.
+        cookies (Optional[dict[str, Any]]): Arbitrary metadata stored alongside all submitted jobs.
             Can be overridden per-job in the `run()` method.
         metadata (Optional[dict[str, Any]]): Arbitrary metadata to store along with all jobs.
-            Will be merged with per-job metadata.
-            Only used when custom address is provided.
-            Can be overridden per-job in the `run()` method.
+            Will be merged with per-job metadata. Can be overridden per-job in the `run()` method.
 
     Info:
         Image defaults to `dagster/image` run tag.
@@ -84,7 +79,7 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
         port_forward: bool = False,
         address: str | None = None,
         headers: dict[str, Any] | None = None,
-        verify: str | bool | None = None,
+        verify: str | bool = True,
         cookies: dict[str, Any] | None = None,
         metadata: dict[str, Any] | None = None,
     ):
@@ -92,17 +87,14 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
 
         self._context_injector = context_injector or PipesEnvContextInjector()
 
-        if message_reader is None and address is not None:
-            self._message_reader = PipesRayJobMessageReader(
-                job_submission_client_kwargs={
-                    "headers": headers,
-                    "verify": verify,
-                    "cookies": cookies,
-                    "metadata": metadata,
-                }
-            )
-        else:
-            self._message_reader = message_reader or PipesRayJobMessageReader()
+        self._message_reader = message_reader or PipesRayJobMessageReader(
+            job_submission_client_kwargs={
+                "headers": headers,
+                "verify": verify,
+                "cookies": cookies,
+                "metadata": metadata,
+            }
+        )
 
         self.forward_termination = check.bool_param(forward_termination, "forward_termination")
         self.timeout = check.int_param(timeout, "timeout")

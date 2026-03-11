@@ -118,6 +118,11 @@ jobs:
           PYTEST_KUBERAY_VERSIONS: "${{ matrix.kuberay }}"
           UV_LOCKED: "1"
         run: uv run pytest -v .
+      - name: Run auth tests
+        env:
+          PYTEST_KUBERAY_VERSIONS: "${{ matrix.kuberay }}"
+          UV_LOCKED: "1"
+        run: uv run pytest -v -m kuberay_auth .
 
   lint:
     name: Lint ${{ matrix.py }}
