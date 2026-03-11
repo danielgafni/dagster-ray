@@ -200,7 +200,15 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
                         context.log.warning(
                             f"[pipes] Dagster process interrupted! Will terminate RayJob {namespace}/{name}."
                         )
-                        self._terminate(context, start_response)
+                        self._terminate(
+                            context,
+                            start_response,
+                            address=address,
+                            headers=headers,
+                            verify=verify,
+                            cookies=cookies,
+                            metadata=metadata,
+                        )
                     raise
 
     def get_dagster_tags(self, context: OpOrAssetExecutionContext) -> dict[str, str]:
@@ -294,10 +302,28 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
 
             time.sleep(self.poll_interval)
 
-    def _terminate(self, context: OpOrAssetExecutionContext, start_response: dict[str, Any]) -> None:
+    def _terminate(
+        self,
+        context: OpOrAssetExecutionContext,
+        start_response: dict[str, Any],
+        address: str | None = None,
+        headers: dict[str, Any] | None = None,
+        verify: str | bool | None = None,
+        cookies: dict[str, Any] | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
         name = start_response["metadata"]["name"]
         namespace = start_response["metadata"]["namespace"]
 
         context.log.info(f"[pipes] Terminating RayJob {namespace}/{name} ...")
-        self.client.terminate(name=name, namespace=namespace, port_forward=self.port_forward)
+        self.client.terminate(
+            name=name,
+            namespace=namespace,
+            port_forward=self.port_forward,
+            address=address or self.address,
+            headers=headers or self.headers,
+            verify=verify if verify is not None else self.verify,
+            cookies=cookies or self.cookies,
+            metadata=metadata or self.metadata,
+        )
         context.log.info(f"[pipes] RayJob {namespace}/{name} terminated.")

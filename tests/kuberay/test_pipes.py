@@ -263,3 +263,72 @@ def test_pipes_kube_rayjob_client_params_forwarded():
 
     assert captured_kwargs["address"] == address
     assert captured_kwargs["headers"] == headers
+
+
+def test_pipes_kube_rayjob_client_params_forwarded_on_termination():
+    """Verifies that address/headers are forwarded to client.terminate() on interruption.
+
+    Regression test: previously _terminate() did not forward connection params,
+    causing a ConnectionError when trying to reach the in-cluster dashboard IP.
+    """
+    from dagster._core.errors import DagsterExecutionInterruptedError
+
+    address = "https://ray.example.com"
+    headers = {"Authorization": "Bearer secret-token"}
+
+    mock_jsc = MagicMock()
+    mock_jsc.get_address.return_value = address
+
+    @contextmanager
+    def fake_job_submission_client(**kwargs):
+        yield mock_jsc
+
+    mock_client = MagicMock()
+    mock_client.get_ray_cluster_name.return_value = "test-raycluster"
+    mock_client.ray_cluster_client.job_submission_client = fake_job_submission_client
+
+    pipes_client = PipesKubeRayJobClient(
+        client=mock_client,
+        address=address,
+        headers=headers,
+        forward_termination=True,
+    )
+
+    mock_session = MagicMock()
+    mock_session.get_bootstrap_env_vars.return_value = {}
+
+    mock_context = MagicMock()
+    mock_context.run.tags = {}
+    mock_context.run.dagster_execution_info = {}
+
+    start_response = {
+        "metadata": {"name": "test-job", "namespace": "ray"},
+        "status": {"jobId": "fake-job-id"},
+    }
+
+    with (
+        patch("dagster_ray.kuberay.pipes.open_pipes_session") as mock_open_session,
+        patch.object(pipes_client, "_start", return_value=start_response),
+        patch.object(pipes_client, "_wait_for_completion", side_effect=DagsterExecutionInterruptedError()),
+    ):
+        mock_open_session.return_value.__enter__.return_value = mock_session
+        mock_open_session.return_value.__exit__ = MagicMock(return_value=False)
+
+        with pytest.raises(DagsterExecutionInterruptedError):
+            pipes_client.run(
+                context=mock_context,
+                ray_job={
+                    "metadata": {"name": "test-job", "namespace": "ray"},
+                    "spec": {
+                        "rayClusterSpec": {
+                            "headGroupSpec": {"template": {"spec": {"containers": []}}},
+                            "workerGroupSpecs": [],
+                        },
+                    },
+                },
+            )
+
+    mock_client.terminate.assert_called_once()
+    _, terminate_kwargs = mock_client.terminate.call_args
+    assert terminate_kwargs["address"] == address
+    assert terminate_kwargs["headers"] == headers
