@@ -5,6 +5,14 @@ on:
   push:
     branches:
       - master
+    paths:
+      - "docs/**"
+      - "mkdocs.yml"
+      - "src/**"
+      - "scripts/deploy_docs.py"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/CD-master.yml"
 
 env:
   UV_SYSTEM_PYTHON: "1"
