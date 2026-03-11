@@ -40,6 +40,7 @@ pip install dagster-ray
 
 - **[Tutorial](https://danielgafni.github.io/dagster-ray/tutorial/)**: Step-by-step guide with examples
 - **[API Reference](https://danielgafni.github.io/dagster-ray/api/)**: Complete API reference
+- **[Changelog](https://danielgafni.github.io/dagster-ray/changelog)**: History of changes and links to docs for older `dagster-ray` releases.
 
 ## 🤝 Contributing
 

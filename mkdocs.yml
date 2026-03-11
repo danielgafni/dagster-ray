@@ -109,6 +109,7 @@ plugins:
                     - dg.Config
                     - dagster.Config
                     - dagster.ConfigurableResource
+                    - BaseKubeRayResource
           extra:
             enable_autorefs: true
           inventories:

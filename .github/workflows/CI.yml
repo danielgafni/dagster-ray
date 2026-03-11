@@ -7,11 +7,11 @@ on:
     branches:
       - master
   release:
-      types:
-        - created
-      # Sequence of patterns matched against refs/tags
-      tags:
-        - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+    types:
+      - created
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -30,30 +30,30 @@ jobs:
       src: ${{ steps.filter.outputs.src }}
       docs: ${{ steps.filter.outputs.docs }}
     steps:
-    - uses: actions/checkout@v5
-    - uses: dorny/paths-filter@v3
-      id: filter
-      with:
-        filters: |
-          src:
-            - .github/workflows/CI.yml
-            - 'src/dagster_ray/**'
-            - 'tests/**'
-            - 'examples/**/*.py'
-            - pyproject.toml
-            - uv.lock
-            - .pre-commit-config.yaml
-            - Dockerfile
-            - .dockerignore
-            - scripts/generate_test_matrix.py
-          docs:
-            - '**/*.md'
-            - .github/workflows/CI.yml
-            - 'docs/**'
-            - mkdocs.yml
-            - 'src/dagster_ray/**'
-            - pyproject.toml
-            - uv.lock
+      - uses: actions/checkout@v5
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            src:
+              - .github/workflows/CI.yml
+              - 'src/dagster_ray/**'
+              - 'tests/**'
+              - 'examples/**/*.py'
+              - pyproject.toml
+              - uv.lock
+              - .pre-commit-config.yaml
+              - Dockerfile
+              - .dockerignore
+              - scripts/generate_test_matrix.py
+            docs:
+              - '**/*.md'
+              - .github/workflows/CI.yml
+              - 'docs/**'
+              - mkdocs.yml
+              - 'src/dagster_ray/**'
+              - pyproject.toml
+              - uv.lock
 
   generate-matrix:
     name: Generate Test Matrix
@@ -182,21 +182,21 @@ jobs:
       - name: Set up Python 3.10
         run: uv python install 3.10 && uv python pin 3.10
       - name: Build Docs
-        run: uv run --group docs mkdocs build --strict --clean
+        run: uv run --group docs zensical build --strict --clean
 
   qa_success:
     name: QA Success
     if: always()
     needs:
-    - test
-    - lint
-    - typecheck
-    - build-docs
+      - test
+      - lint
+      - typecheck
+      - build-docs
     runs-on: Ubuntu-latest
     steps:
-    - name: Decide whether the needed jobs succeeded or failed
-      uses: re-actors/alls-green@release/v1
-      with:
-        allowed-failures: ""
-        allowed-skips: lint, test, typecheck, build-docs
-        jobs: ${{ toJSON(needs) }}
+      - name: Decide whether the needed jobs succeeded or failed
+        uses: re-actors/alls-green@release/v1
+        with:
+          allowed-failures: ""
+          allowed-skips: lint, test, typecheck, build-docs
+          jobs: ${{ toJSON(needs) }}
