@@ -8,7 +8,7 @@ from dagster_ray.configs import Lifecycle
 from dagster_ray.kuberay.client import RayJobClient
 from dagster_ray.kuberay.configs import RayJobConfig, RayJobSpec
 from dagster_ray.kuberay.resources.base import BaseKubeRayResource
-from dagster_ray.kuberay.utils import normalize_k8s_label_values
+from dagster_ray.kuberay.utils import k8s_service_fqdn, normalize_k8s_label_values
 from dagster_ray.types import AnyDagsterContext
 
 if TYPE_CHECKING:
@@ -155,11 +155,12 @@ class KubeRayInteractiveJob(BaseKubeRayResource):
         self._cluster_name = self.client.get_ray_cluster_name(
             self.name, self.namespace, timeout=self.timeout, poll_interval=self.poll_interval
         )
-        self._host = self.client.ray_cluster_client.get_status(
+        service_name = self.client.ray_cluster_client.get_status(
             name=self.cluster_name, namespace=self.namespace, timeout=self.timeout, poll_interval=self.poll_interval
         )[  # pyright: ignore
             "head"
-        ]["serviceIP"]
+        ]["serviceName"]
+        self._host = k8s_service_fqdn(service_name, self.namespace)
 
     @override
     def on_ready(self, context: AnyDagsterContext):

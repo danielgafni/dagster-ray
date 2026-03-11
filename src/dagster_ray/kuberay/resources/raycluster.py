@@ -12,7 +12,7 @@ from dagster_ray.kuberay.client import RayClusterClient
 from dagster_ray.kuberay.configs import ClusterSharing, RayClusterConfig
 from dagster_ray.kuberay.leader_election import LeaderElection
 from dagster_ray.kuberay.resources.base import BaseKubeRayResource
-from dagster_ray.kuberay.utils import normalize_k8s_label_values
+from dagster_ray.kuberay.utils import k8s_service_fqdn, normalize_k8s_label_values
 from dagster_ray.types import AnyDagsterContext
 from dagster_ray.utils import get_dagster_run
 
@@ -264,11 +264,12 @@ class KubeRayCluster(BaseKubeRayResource):
             log_cluster_conditions=self.log_cluster_conditions,
         )
 
-        self._host = self.client.get_status(
+        service_name = self.client.get_status(
             name=self.name, namespace=self.namespace, timeout=self.timeout, poll_interval=self.poll_interval
         )[  # pyright: ignore
             "head"
-        ]["serviceIP"]
+        ]["serviceName"]
+        self._host = k8s_service_fqdn(service_name, self.namespace)
 
     @override
     def on_ready(self, context: AnyDagsterContext):
