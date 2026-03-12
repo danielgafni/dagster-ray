@@ -196,6 +196,7 @@ class SubmitJobParams(TypedDict):
     entrypoint_num_gpus: NotRequired[float]
     entrypoint_memory: NotRequired[int]
     entrypoint_resources: NotRequired[dict[str, float]]
+    entrypoint_label_selector: NotRequired[dict[str, str]]
 
 
 class EnrichedSubmitJobParams(TypedDict):
@@ -207,6 +208,7 @@ class EnrichedSubmitJobParams(TypedDict):
     entrypoint_num_gpus: NotRequired[float]
     entrypoint_memory: NotRequired[int]
     entrypoint_resources: NotRequired[dict[str, float]]
+    entrypoint_label_selector: NotRequired[dict[str, str]]
 
 
 def generate_job_id() -> str:
@@ -220,12 +222,14 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
 
     Starts the job directly on the Ray cluster and reads the logs from the job.
 
+    Uses [`JobSubmissionClient`][ray.job_submission.JobSubmissionClient] to run and monitor the job. Learn more about it [here](https://docs.ray.io/en/latest/cluster/running-applications/job-submission/sdk.html#python-sdk-overview).
+
     Args:
-        address: Ray dashboard HTTP address (e.g., "https://ray-cluster.example.com").
+        address: Ray dashboard HTTP address.
             If unspecified, connects to a local Ray cluster or uses the ``RAY_ADDRESS`` environment variable.
         headers: HTTP headers for dashboard requests, e.g. ``{"Authorization": "Bearer token"}``.
         verify: TLS certificate verification. ``True`` uses system certs, ``False`` disables
-            verification, or a path to a CA bundle. Default: ``True``.
+            verification, or a path to a CA bundle.
         cookies: Cookies to send with dashboard requests.
         metadata: Arbitrary metadata stored alongside all submitted jobs.
         context_injector: A context injector to use to inject
@@ -286,7 +290,7 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
 
         Args:
             context (OpExecutionContext): Current Dagster op or asset context.
-            submit_job_params (Dict[str, Any]): RayJob specification. `API reference <https://ray-project.github.io/kuberay/reference/api/#rayjob>`_.
+            submit_job_params (Dict[str, Any]): Parameters for [`JobSubmissionClient.submit_job`][ray.job_submission.JobSubmissionClient.submit_job].
             extras (Optional[Dict[str, Any]]): Additional information to pass to the Pipes session.
         """
 
