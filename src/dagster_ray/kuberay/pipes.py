@@ -48,17 +48,17 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
         poll_interval: Interval at which to poll Kubernetes for status updates.
         port_forward: Whether to use Kubernetes port-forwarding to connect to the KubeRay cluster.
             Is useful when running in a local environment.
-        address (Optional[str]): Ray dashboard address (e.g., "https://ray-cluster.example.com").
+        address: Ray dashboard address (e.g., "https://ray-cluster.example.com").
             When provided, connects directly to this address instead of using port-forwarding or in-cluster service IPs.
             Can be overridden per-job in the `run()` method.
-        headers (Optional[dict[str, Any]]): HTTP headers for dashboard requests, e.g. ``{"Authorization": "Bearer token"}``.
+        headers: HTTP headers for dashboard requests, e.g. ``{"Authorization": "Bearer token"}``.
             Can be overridden per-job in the `run()` method.
-        verify (Optional[Union[str, bool]]): TLS certificate verification. ``True`` uses system certs, ``False`` disables
+        verify: TLS certificate verification. ``True`` uses system certs, ``False`` disables
             verification, or a path to a CA bundle.
             Can be overridden per-job in the `run()` method.
-        cookies (Optional[dict[str, Any]]): Arbitrary metadata stored alongside all submitted jobs.
+        cookies: Arbitrary metadata stored alongside all submitted jobs.
             Can be overridden per-job in the `run()` method.
-        metadata (Optional[dict[str, Any]]): Arbitrary metadata to store along with all jobs.
+        metadata: Arbitrary metadata to store along with all jobs.
             Will be merged with per-job metadata. Can be overridden per-job in the `run()` method.
 
     Info:
@@ -131,14 +131,14 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
         Execute a RayJob, enriched with the Pipes protocol.
 
         Args:
-            context (OpExecutionContext): Current Dagster op or asset context.
-            ray_job (Dict[str, Any]): RayJob specification. `API reference <https://ray-project.github.io/kuberay/reference/api/#rayjob>`_.
-            extras (Optional[Dict[str, Any]]): Additional information to pass to the Pipes session.
-            address (Optional[str]): Ray dashboard address override for this specific job.
-            headers (Optional[dict[str, Any]]): HTTP headers override for this specific job.
-            verify (Optional[Union[str, bool]]): TLS verification override for this specific job.
-            cookies (Optional[dict[str, Any]]): Cookies override for this specific job.
-            metadata (Optional[dict[str, Any]]): Metadata override for this specific job.
+            context: Current Dagster op or asset context.
+            ray_job: RayJob specification. `API reference <https://ray-project.github.io/kuberay/reference/api/#rayjob>`_.
+            extras: Additional information to pass to the Pipes session.
+            address: Ray dashboard address override for this specific job.
+            headers: HTTP headers override for this specific job.
+            verify: TLS verification override for this specific job.
+            cookies: Cookies override for this specific job.
+            metadata: Metadata override for this specific job.
         """
         with open_pipes_session(
             context=context,

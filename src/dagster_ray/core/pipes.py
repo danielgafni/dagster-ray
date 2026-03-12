@@ -221,16 +221,16 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
     Starts the job directly on the Ray cluster and reads the logs from the job.
 
     Args:
-        address (Optional[str]): Ray dashboard HTTP address (e.g., "https://ray-cluster.example.com").
+        address: Ray dashboard HTTP address (e.g., "https://ray-cluster.example.com").
             If unspecified, connects to a local Ray cluster or uses the ``RAY_ADDRESS`` environment variable.
-        headers (Optional[dict[str, Any]]): HTTP headers for dashboard requests, e.g. ``{"Authorization": "Bearer token"}``.
-        verify (Union[str, bool]): TLS certificate verification. ``True`` uses system certs, ``False`` disables
+        headers: HTTP headers for dashboard requests, e.g. ``{"Authorization": "Bearer token"}``.
+        verify: TLS certificate verification. ``True`` uses system certs, ``False`` disables
             verification, or a path to a CA bundle. Default: ``True``.
-        cookies (Optional[dict[str, Any]]): Cookies to send with dashboard requests.
-        metadata (Optional[dict[str, Any]]): Arbitrary metadata stored alongside all submitted jobs.
+        cookies: Cookies to send with dashboard requests.
+        metadata: Arbitrary metadata stored alongside all submitted jobs.
         context_injector: A context injector to use to inject
             context into the Ray job. Defaults to [`PipesEnvContextInjector`][dagster.PipesEnvContextInjector].
-        message_reader (Optional[PipesMessageReader]): A message reader to use when reading Pipes messages.
+        message_reader: A message reader to use when reading Pipes messages.
             from the glue job run. Defaults to [`PipesRayJobMessageReader`][dagster_ray.core.pipes.PipesRayJobMessageReader].
         forward_termination: Whether to cancel the Ray job run when the Dagster process receives a termination signal.
         timeout: Timeout for various internal interactions with the Ray job.
