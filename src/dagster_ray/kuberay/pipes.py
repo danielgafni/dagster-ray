@@ -48,6 +48,18 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
         poll_interval: Interval at which to poll Kubernetes for status updates.
         port_forward: Whether to use Kubernetes port-forwarding to connect to the KubeRay cluster.
             Is useful when running in a local environment.
+        address: Ray dashboard address (e.g., "https://ray-cluster.example.com").
+            When provided, connects directly to this address instead of using port-forwarding or in-cluster service IPs.
+            Can be overridden per-job in the `run()` method.
+        headers: HTTP headers for dashboard requests, e.g. ``{"Authorization": "Bearer token"}``.
+            Can be overridden per-job in the `run()` method.
+        verify: TLS certificate verification. ``True`` uses system certs, ``False`` disables
+            verification, or a path to a CA bundle.
+            Can be overridden per-job in the `run()` method.
+        cookies: Arbitrary metadata stored alongside all submitted jobs.
+            Can be overridden per-job in the `run()` method.
+        metadata: Arbitrary metadata to store along with all jobs.
+            Will be merged with per-job metadata. Can be overridden per-job in the `run()` method.
 
     Info:
         Image defaults to `dagster/image` run tag.
@@ -65,16 +77,34 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
         timeout: float = 600,
         poll_interval: float = 1,
         port_forward: bool = False,
+        address: str | None = None,
+        headers: dict[str, Any] | None = None,
+        verify: str | bool = True,
+        cookies: dict[str, Any] | None = None,
+        metadata: dict[str, Any] | None = None,
     ):
         self.client: RayJobClient = client or RayJobClient()
 
         self._context_injector = context_injector or PipesEnvContextInjector()
-        self._message_reader = message_reader or PipesRayJobMessageReader()
+
+        self._message_reader = message_reader or PipesRayJobMessageReader(
+            job_submission_client_kwargs={
+                "headers": headers,
+                "verify": verify,
+                "cookies": cookies,
+                "metadata": metadata,
+            }
+        )
 
         self.forward_termination = check.bool_param(forward_termination, "forward_termination")
         self.timeout = check.int_param(timeout, "timeout")
         self.poll_interval = check.int_param(poll_interval, "poll_interval")
         self.port_forward = check.bool_param(port_forward, "port_forward")
+        self.address = address
+        self.headers = headers
+        self.verify = verify
+        self.cookies = cookies
+        self.metadata = metadata
 
         self._job_submission_client: JobSubmissionClient | None = None
 
@@ -91,14 +121,24 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
         context: OpOrAssetExecutionContext,
         ray_job: dict[str, Any],
         extras: PipesExtras | None = None,
+        address: str | None = None,
+        headers: dict[str, Any] | None = None,
+        verify: str | bool | None = None,
+        cookies: dict[str, Any] | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> PipesClientCompletedInvocation:
         """
         Execute a RayJob, enriched with the Pipes protocol.
 
         Args:
-            context (OpExecutionContext): Current Dagster op or asset context.
-            ray_job (Dict[str, Any]): RayJob specification. `API reference <https://ray-project.github.io/kuberay/reference/api/#rayjob>`_.
-            extras (Optional[Dict[str, Any]]): Additional information to pass to the Pipes session.
+            context: Current Dagster op or asset context.
+            ray_job: RayJob specification. `API reference <https://ray-project.github.io/kuberay/reference/api/#rayjob>`_.
+            extras: Additional information to pass to the Pipes session.
+            address: Ray dashboard address override for this specific job.
+            headers: HTTP headers override for this specific job.
+            verify: TLS verification override for this specific job.
+            cookies: Cookies override for this specific job.
+            metadata: Metadata override for this specific job.
         """
         with open_pipes_session(
             context=context,
@@ -120,6 +160,11 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
                 ),
                 namespace=namespace,
                 port_forward=self.port_forward,
+                address=address or self.address,
+                headers=headers or self.headers,
+                verify=verify if verify is not None else self.verify,
+                cookies=cookies or self.cookies,
+                metadata=metadata or self.metadata,
             ) as job_submission_client:
                 self._job_submission_client = job_submission_client
 
@@ -155,7 +200,15 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
                         context.log.warning(
                             f"[pipes] Dagster process interrupted! Will terminate RayJob {namespace}/{name}."
                         )
-                        self._terminate(context, start_response)
+                        self._terminate(
+                            context,
+                            start_response,
+                            address=address,
+                            headers=headers,
+                            verify=verify,
+                            cookies=cookies,
+                            metadata=metadata,
+                        )
                     raise
 
     def get_dagster_tags(self, context: OpOrAssetExecutionContext) -> dict[str, str]:
@@ -249,10 +302,28 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
 
             time.sleep(self.poll_interval)
 
-    def _terminate(self, context: OpOrAssetExecutionContext, start_response: dict[str, Any]) -> None:
+    def _terminate(
+        self,
+        context: OpOrAssetExecutionContext,
+        start_response: dict[str, Any],
+        address: str | None = None,
+        headers: dict[str, Any] | None = None,
+        verify: str | bool | None = None,
+        cookies: dict[str, Any] | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
         name = start_response["metadata"]["name"]
         namespace = start_response["metadata"]["namespace"]
 
         context.log.info(f"[pipes] Terminating RayJob {namespace}/{name} ...")
-        self.client.terminate(name=name, namespace=namespace, port_forward=self.port_forward)
+        self.client.terminate(
+            name=name,
+            namespace=namespace,
+            port_forward=self.port_forward,
+            address=address or self.address,
+            headers=headers or self.headers,
+            verify=verify if verify is not None else self.verify,
+            cookies=cookies or self.cookies,
+            metadata=metadata or self.metadata,
+        )
         context.log.info(f"[pipes] RayJob {namespace}/{name} terminated.")
