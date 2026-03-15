@@ -5,6 +5,20 @@ All notable user-facing changes to `dagster-ray` will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- Ray Job and `RayJob` submission now supports custom dashboard addresses and authentication (thanks @JosefNagelschmidt!)
+
+### Docs
+
+- The docs have been migrated to use [Zensical](https://zensical.org/).
+
+### Breaking
+
+- The constructor of [`PipesRayJobClient`][dagster_ray.PipesRayJobClient]'s has been changed to take parameters for [`JobSubmissionClient`][ray.job_submission.JobSubmissionClient]
+
 ## [0.4.2](https://danielgafni.github.io/dagster-ray/0.4.2/)
 
 ### Added
