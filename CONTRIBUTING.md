@@ -4,7 +4,7 @@
 
 ```bash
 uv sync --all-extras --all-groups
-uv run pre-commit install
+uv run prek install
 ```
 
 ## Commit Messages

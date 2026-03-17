@@ -143,8 +143,8 @@ jobs:
         with:
           version: 0.10.9
           enable-cache: true
-      - name: Run pre-commit hooks
-        run: SKIP=basedpyright uv run  --with pre-commit --with ruff pre-commit run --all-files
+      - name: Run prek hooks
+        run: SKIP=basedpyright uv run prek run --all-files
 
   typecheck:
     name: Typecheck ${{ matrix.py }}
