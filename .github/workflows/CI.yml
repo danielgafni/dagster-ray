@@ -7,11 +7,11 @@ on:
     branches:
       - master
   release:
-      types:
-        - created
-      # Sequence of patterns matched against refs/tags
-      tags:
-        - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+    types:
+      - created
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -30,30 +30,30 @@ jobs:
       src: ${{ steps.filter.outputs.src }}
       docs: ${{ steps.filter.outputs.docs }}
     steps:
-    - uses: actions/checkout@v5
-    - uses: dorny/paths-filter@v3
-      id: filter
-      with:
-        filters: |
-          src:
-            - .github/workflows/CI.yml
-            - 'src/dagster_ray/**'
-            - 'tests/**'
-            - 'examples/**/*.py'
-            - pyproject.toml
-            - uv.lock
-            - .pre-commit-config.yaml
-            - Dockerfile
-            - .dockerignore
-            - scripts/generate_test_matrix.py
-          docs:
-            - '**/*.md'
-            - .github/workflows/CI.yml
-            - 'docs/**'
-            - mkdocs.yml
-            - 'src/dagster_ray/**'
-            - pyproject.toml
-            - uv.lock
+      - uses: actions/checkout@v6
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            src:
+              - .github/workflows/CI.yml
+              - 'src/dagster_ray/**'
+              - 'tests/**'
+              - 'examples/**/*.py'
+              - pyproject.toml
+              - uv.lock
+              - .pre-commit-config.yaml
+              - Dockerfile
+              - .dockerignore
+              - scripts/generate_test_matrix.py
+            docs:
+              - '**/*.md'
+              - .github/workflows/CI.yml
+              - 'docs/**'
+              - mkdocs.yml
+              - 'src/dagster_ray/**'
+              - pyproject.toml
+              - uv.lock
 
   generate-matrix:
     name: Generate Test Matrix
@@ -63,11 +63,11 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Install uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
         with:
-          version: 0.9.27
+          version: 0.10.9
           enable-cache: true
       - name: Generate matrix
         id: set-matrix
@@ -85,7 +85,7 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: azure/setup-helm@v4.3.1
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -95,9 +95,9 @@ jobs:
           start: false
           driver: docker
       - name: Install uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
         with:
-          version: 0.9.27
+          version: 0.10.9
           enable-cache: true
       - name: Set up Python ${{ matrix.py }}
         run: uv python install ${{ matrix.py }} && uv python pin ${{ matrix.py }} && uv venv --python ${{ matrix.py }}
@@ -118,6 +118,11 @@ jobs:
           PYTEST_KUBERAY_VERSIONS: "${{ matrix.kuberay }}"
           UV_LOCKED: "1"
         run: uv run pytest -v .
+      - name: Run auth tests
+        env:
+          PYTEST_KUBERAY_VERSIONS: "${{ matrix.kuberay }}"
+          UV_LOCKED: "1"
+        run: uv run pytest -v -m kuberay_auth .
 
   lint:
     name: Lint ${{ matrix.py }}
@@ -132,11 +137,11 @@ jobs:
         py:
           - "3.10"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Install uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
         with:
-          version: 0.9.27
+          version: 0.10.9
           enable-cache: true
       - name: Run pre-commit hooks
         run: SKIP=basedpyright uv run  --with pre-commit --with ruff pre-commit run --all-files
@@ -154,11 +159,11 @@ jobs:
         py:
           - "3.10"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Install uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
         with:
-          version: 0.9.27
+          version: 0.10.9
           enable-cache: true
       - name: Set up Python ${{ matrix.py }}
         run: uv python install ${{ matrix.py }} && uv python pin ${{ matrix.py }}
@@ -173,30 +178,30 @@ jobs:
     needs: changes
     if: ${{ needs.changes.outputs.docs == 'true' }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Install uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
         with:
-          version: 0.9.27
+          version: 0.10.9
           enable-cache: true
       - name: Set up Python 3.10
         run: uv python install 3.10 && uv python pin 3.10
       - name: Build Docs
-        run: uv run --group docs mkdocs build --strict --clean
+        run: uv run --group docs zensical build --strict --clean
 
   qa_success:
     name: QA Success
     if: always()
     needs:
-    - test
-    - lint
-    - typecheck
-    - build-docs
+      - test
+      - lint
+      - typecheck
+      - build-docs
     runs-on: Ubuntu-latest
     steps:
-    - name: Decide whether the needed jobs succeeded or failed
-      uses: re-actors/alls-green@release/v1
-      with:
-        allowed-failures: ""
-        allowed-skips: lint, test, typecheck, build-docs
-        jobs: ${{ toJSON(needs) }}
+      - name: Decide whether the needed jobs succeeded or failed
+        uses: re-actors/alls-green@release/v1
+        with:
+          allowed-failures: ""
+          allowed-skips: lint, test, typecheck, build-docs
+          jobs: ${{ toJSON(needs) }}

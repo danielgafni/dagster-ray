@@ -23,11 +23,11 @@ jobs:
       pages: write
       id-token: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Install uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
         with:
-          version: 0.9.27
+          version: 0.10.9
           enable-cache: true
       - name: Set up Python
         run: uv python install $PYTHON_VERSION && uv python pin $PYTHON_VERSION
@@ -45,5 +45,5 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "actions@github.com"
-          uv run --group docs --all-extras mike deploy --push --update-aliases $VERSION latest
+          uv run --group docs --all-extras python scripts/deploy_docs.py --push --update-aliases $VERSION latest
 

@@ -69,7 +69,7 @@ class PipesRayJobMessageReader(PipesMessageReader):
     populated in `extras` in order to start message reading.
 
     Args:
-        _job_submission_client_kwargs (Optional[dict[str, Any]]): additional arguments for `ray.job_submission.JobSubmissionClient`. The `address` value is expected to be set via `PipesSession.report_launched`, while other arguments can be set via this parameter.
+        job_submission_client_kwargs: additional arguments for [`JobSubmissionClient`][ray.job_submission.JobSubmissionClient]. The `address` value is expected to be set via `PipesSession.report_launched`, while other arguments can be set via this parameter.
     """
 
     _client: JobSubmissionClient | None
@@ -196,6 +196,7 @@ class SubmitJobParams(TypedDict):
     entrypoint_num_gpus: NotRequired[float]
     entrypoint_memory: NotRequired[int]
     entrypoint_resources: NotRequired[dict[str, float]]
+    entrypoint_label_selector: NotRequired[dict[str, str]]
 
 
 class EnrichedSubmitJobParams(TypedDict):
@@ -207,6 +208,7 @@ class EnrichedSubmitJobParams(TypedDict):
     entrypoint_num_gpus: NotRequired[float]
     entrypoint_memory: NotRequired[int]
     entrypoint_resources: NotRequired[dict[str, float]]
+    entrypoint_label_selector: NotRequired[dict[str, str]]
 
 
 def generate_job_id() -> str:
@@ -220,36 +222,61 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
 
     Starts the job directly on the Ray cluster and reads the logs from the job.
 
+    Uses [`JobSubmissionClient`][ray.job_submission.JobSubmissionClient] to run and monitor the job. Learn more about it [here](https://docs.ray.io/en/latest/cluster/running-applications/job-submission/sdk.html#python-sdk-overview).
+
     Args:
-        client (JobSubmissionClient): The Ray job submission client
-        context_injector (Optional[PipesContextInjector]): A context injector to use to inject
+        address: Ray dashboard HTTP address.
+            If unspecified, connects to a local Ray cluster or uses the ``RAY_ADDRESS`` environment variable.
+        headers: HTTP headers for dashboard requests, e.g. ``{"Authorization": "Bearer token"}``.
+        verify: TLS certificate verification. ``True`` uses system certs, ``False`` disables
+            verification, or a path to a CA bundle.
+        cookies: Cookies to send with dashboard requests.
+        metadata: Arbitrary metadata stored alongside all submitted jobs.
+        context_injector: A context injector to use to inject
             context into the Ray job. Defaults to [`PipesEnvContextInjector`][dagster.PipesEnvContextInjector].
-        message_reader (Optional[PipesMessageReader]): A message reader to use to read messages
+        message_reader: A message reader to use when reading Pipes messages.
             from the glue job run. Defaults to [`PipesRayJobMessageReader`][dagster_ray.core.pipes.PipesRayJobMessageReader].
-        forward_termination (bool): Whether to cancel the Ray job run when the Dagster process receives a termination signal.
-        timeout (int): Timeout for various internal interactions with the Kubernetes RayJob.
-        poll_interval (int): Interval at which to poll Kubernetes for status updates.
+        forward_termination: Whether to cancel the Ray job run when the Dagster process receives a termination signal.
+        timeout: Timeout for various internal interactions with the Ray job.
+        poll_interval: Interval at which to poll Ray for status updates.
             Is useful when running in a local environment.
     """
 
     def __init__(
         self,
-        client: JobSubmissionClient,
+        address: str | None = None,
+        headers: dict[str, Any] | None = None,
+        verify: str | bool = True,
+        cookies: dict[str, Any] | None = None,
+        metadata: dict[str, Any] | None = None,
         context_injector: PipesContextInjector | None = None,
         message_reader: PipesMessageReader | None = None,
         forward_termination: bool = True,
         timeout: float = 600,
         poll_interval: float = 1,
     ):
-        self.client = client
+        from ray.job_submission import JobSubmissionClient
+
+        self.client = JobSubmissionClient(
+            address=address,
+            headers=headers,
+            verify=verify,
+            cookies=cookies,
+            metadata=metadata,
+        )
         self._context_injector = context_injector or PipesEnvContextInjector()
-        self._message_reader = message_reader or PipesRayJobMessageReader()
+        self._message_reader = message_reader or PipesRayJobMessageReader(
+            job_submission_client_kwargs={
+                "headers": headers,
+                "verify": verify,
+                "cookies": cookies,
+                "metadata": metadata,
+            }
+        )
 
         self.forward_termination = check.bool_param(forward_termination, "forward_termination")
         self.timeout = check.int_param(timeout, "timeout")
         self.poll_interval = check.int_param(poll_interval, "poll_interval")
-
-        self._job_submission_client: JobSubmissionClient | None = None
 
     def run(  # type: ignore
         self,
@@ -263,7 +290,7 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
 
         Args:
             context (OpExecutionContext): Current Dagster op or asset context.
-            submit_job_params (Dict[str, Any]): RayJob specification. `API reference <https://ray-project.github.io/kuberay/reference/api/#rayjob>`_.
+            submit_job_params (Dict[str, Any]): Parameters for [`JobSubmissionClient.submit_job`][ray.job_submission.JobSubmissionClient.submit_job].
             extras (Optional[Dict[str, Any]]): Additional information to pass to the Pipes session.
         """
 

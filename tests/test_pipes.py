@@ -7,7 +7,6 @@ from dagster._core.definitions.data_version import (
     DATA_VERSION_IS_USER_PROVIDED_TAG,
     DATA_VERSION_TAG,
 )
-from ray.job_submission import JobSubmissionClient  # noqa: TID253
 
 from dagster_ray import PipesRayJobClient
 
@@ -16,7 +15,7 @@ LOCAL_SCRIPT_PATH = Path(__file__).parent / "scripts" / "remote_job.py"
 
 @pytest.fixture
 def pipes_ray_job_client(local_ray_address: str) -> PipesRayJobClient:
-    return PipesRayJobClient(client=JobSubmissionClient(address=local_ray_address))
+    return PipesRayJobClient(address=local_ray_address)
 
 
 def test_ray_job_pipes(pipes_ray_job_client: PipesRayJobClient, capsys):

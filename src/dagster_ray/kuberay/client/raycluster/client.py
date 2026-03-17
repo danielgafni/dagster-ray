@@ -279,32 +279,66 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
 
     @contextmanager
     def job_submission_client(
-        self, name: str, namespace: str, port_forward: bool = False, timeout: float = 60
+        self,
+        name: str,
+        namespace: str,
+        port_forward: bool = False,
+        timeout: float = 60,
+        address: str | None = None,
+        headers: dict[str, Any] | None = None,
+        verify: str | bool = True,
+        cookies: dict[str, Any] | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> Iterator[JobSubmissionClient]:
         """
         Returns a JobSubmissionClient object that can be used to interact with Ray jobs running in the KubeRay cluster.
-        If port_forward is True, it will port forward the dashboard and GCS ports to localhost, and should be used in a context manager.
-        If port_forward is False, the client will connect to the dashboard directly (assuming the dashboard is accessible from the host).
+
+        Args:
+            name: Name of the RayCluster resource
+            namespace: Namespace of the RayCluster resource
+            port_forward: If True, port forward the dashboard to localhost
+            timeout: Timeout for various operations
+            address: Custom Ray dashboard address (e.g., "https://ray-cluster.example.com").
+                When provided, connects directly to this address instead of using port-forwarding or in-cluster service IPs.
+            headers: HTTP headers for dashboard authentication (e.g., {"Authorization": "Bearer token"}).
+            verify: TLS certificate verification. Can be True, False, or path to CA bundle.
+            cookies: Cookies to use when sending requests to the HTTP job server.
+            metadata: Arbitrary metadata to store along with all jobs. Will be merged with per-job metadata.
         """
 
         from ray.job_submission import JobSubmissionClient
 
-        if not port_forward:
-            # TODO: revisit the decision to use this as context-manager in this case
-            #
-            status = self.get_status(name, namespace)
-
-            service_name = status["head"]["serviceName"]  # type: ignore
-            dashboard_port = status["endpoints"]["dashboard"]  # type: ignore
-
-            yield JobSubmissionClient(address=f"http://{k8s_service_fqdn(service_name, namespace)}:{dashboard_port}")
-        else:
+        if address:
+            resolved_address = address
+        elif port_forward:
             self.wait_for_service_endpoints(service_name=f"{name}-head-svc", namespace=namespace, timeout=timeout)
             with self.port_forward(name=name, namespace=namespace, local_dashboard_port=0, local_gcs_port=0) as (
                 local_dashboard_port,
                 _,
             ):
-                yield JobSubmissionClient(address=f"http://localhost:{local_dashboard_port}")
+                resolved_address = f"http://localhost:{local_dashboard_port}"
+                yield JobSubmissionClient(
+                    address=resolved_address,
+                    headers=headers,
+                    verify=verify,
+                    cookies=cookies,
+                    metadata=metadata,
+                )
+            return
+        else:
+            # TODO: revisit the decision to use this as context-manager in this case
+            status = self.get_status(name, namespace)
+            service_name = status["head"]["serviceName"]  # type: ignore
+            dashboard_port = status["endpoints"]["dashboard"]  # type: ignore
+            resolved_address = f"http://{k8s_service_fqdn(service_name, namespace)}:{dashboard_port}"
+
+        yield JobSubmissionClient(
+            address=resolved_address,
+            headers=headers,
+            verify=verify,
+            cookies=cookies,
+            metadata=metadata,
+        )
 
     def _read_head_pod_logs(self, status: RayClusterStatus, namespace: str, tail_lines: int = 500) -> str | None:
         if not ((head := status.get("head")) and (pod_name := head.get("podName"))):

@@ -195,6 +195,7 @@ class RayJobSpec(dg.PermissiveConfig):
     backoff_limit: int = 0
     ray_cluster_spec: RayClusterSpec | None = Field(default_factory=RayClusterSpec)
     submitter_pod_template: dict[str, Any] | None = None
+    submitter_config: dict[str, Any] | None = None
     metadata: dict[str, Any] | None = None
     cluster_selector: dict[str, str] | None = None
     managed_by: str | None = None
@@ -203,7 +204,7 @@ class RayJobSpec(dg.PermissiveConfig):
     )
     runtime_env_yaml: str | None = None
     job_id: str | None = None
-    submission_mode: Literal["K8sJobMode", "HTTPMode", "InteractiveMode"] = "K8sJobMode"
+    submission_mode: Literal["K8sJobMode", "HTTPMode", "InteractiveMode", "SidecarMode"] = "K8sJobMode"
     entrypoint_resources: str | None = None
     entrypoint_num_cpus: float | None = None
     entrypoint_memory: float | None = None
@@ -224,6 +225,7 @@ class RayJobSpec(dg.PermissiveConfig):
                 "activeDeadlineSeconds": self.active_deadline_seconds,
                 "backoffLimit": self.backoff_limit,
                 "submitterPodTemplate": self.submitter_pod_template,
+                "submitterConfig": self.submitter_config,
                 "metadata": self.metadata,
                 "clusterSelector": self.cluster_selector,
                 "managedBy": self.managed_by,
