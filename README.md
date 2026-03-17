@@ -44,36 +44,4 @@ pip install dagster-ray
 
 ## 🤝 Contributing
 
-Contributions are very welcome! To get started:
-
-```bash
-uv sync --all-extras --all-groups
-uv run pre-commit install
-```
-
-### 🧪 Testing
-
-```bash
-uv run pytest
-```
-
-Running KubeRay tests requires the following tools to be present:
-- `docker`
-- `kubectl`
-- `helm`
-- `minikube`
-
-❄️ Nix users will find them provided in the dev shell:
-
-```
-nix develop
-```
-
-### Documentation
-
-To build and serve the documentation locally:
-
-```bash
-# Serve documentation locally
-uv run --group docs mkdocs serve
-```
+Contributions are very welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
