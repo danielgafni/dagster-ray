@@ -660,4 +660,10 @@ def test_job_submission_client_uses_fqdn():
             mock_jsc.return_value = MagicMock()
             with client.job_submission_client("mycluster", "default"):
                 pass
-    mock_jsc.assert_called_once_with(address=f"http://{k8s_service_fqdn('mycluster-head-svc', 'default')}:8265")
+    mock_jsc.assert_called_once_with(
+        address=f"http://{k8s_service_fqdn('mycluster-head-svc', 'default')}:8265",
+        headers=None,
+        verify=True,
+        cookies=None,
+        metadata=None,
+    )
