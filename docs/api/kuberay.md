@@ -2,6 +2,12 @@
 
 KubeRay integration components for running Ray on Kubernetes.  Learn how to use it [here](../tutorial/kuberay.md).
 
+!!! tip "Authentication"
+    For connecting to auth-protected Ray clusters, see [Authentication docs](../tutorial/auth.md). Client-mode resources support Ray's [token authentication](https://docs.ray.io/en/latest/ray-core/internals/token-authentication.html) via environment variables. Pipes clients (`PipesKubeRayJobClient`) additionally accept `headers`, `cookies`, and `verify` parameters for HTTP-level authentication.
+
+!!! tip "Custom host resolution"
+    Override [`BaseKubeRayResource.resolve_hostname`][dagster_ray.kuberay.resources.base.BaseKubeRayResource.resolve_hostname] to customize how the Ray head service address is constructed (e.g. `name.namespace.company.com` instead of the default in-cluster FQDN).
+
 ---
 
 ## Client Mode Resources
