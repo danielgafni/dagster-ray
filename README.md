@@ -28,7 +28,7 @@ Learn more in the [docs](https://danielgafni.github.io/dagster-ray)
 - **🏭 Production Ready**: Tested against a matrix of core dependencies, integrated with Dagster+
 - **⚡ Instant Startup**: Leverage `RayCluster` with [Cluster Sharing](https://danielgafni.github.io/dagster-ray/tutorial/kuberay/#cluster-sharing) for lightning-fast development cycles with zero cold start times (intended for development environments)
 
-## Installation
+## 📦 Installation
 
 ```shell
 pip install dagster-ray
@@ -41,6 +41,12 @@ pip install dagster-ray
 - **[Tutorial](https://danielgafni.github.io/dagster-ray/tutorial/)**: Step-by-step guide with examples
 - **[API Reference](https://danielgafni.github.io/dagster-ray/api/)**: Complete API reference
 - **[Changelog](https://danielgafni.github.io/dagster-ray/changelog)**: History of changes and links to docs for older `dagster-ray` releases.
+
+## 👥 Who is using `dagster-ray`?
+
+These happy users are running `dagster-ray` in production:
+
+- [Anam](https://anam.ai)
 
 ## 🤝 Contributing
 

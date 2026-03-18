@@ -151,6 +151,12 @@ Learn more by reading the [tutorials](tutorial/index.md).
     !!! tip
         See [KubeRay tutorial](tutorial/kuberay.md)
 
+## 👥 Who is using `dagster-ray`?
+
+These happy users are running `dagster-ray` in production:
+
+- [Anam](https://anam.ai)
+
 ## 📚 What's Next?
 
 <div class="grid cards" markdown>
