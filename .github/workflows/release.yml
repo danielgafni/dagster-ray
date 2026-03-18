@@ -36,10 +36,8 @@ jobs:
         run: uv python install $PYTHON_VERSION && uv python pin $PYTHON_VERSION
         env:
           PYTHON_VERSION: 3.11.9
-      - name: Generate Version
-        run: export VERSION=$(uv run dunamai from any --style pep440) && echo "Version is $VERSION" && echo "VERSION=$VERSION" >> $GITHUB_ENV
-      - name: Replace version in code
-        run: uv run hatch version $VERSION
+      - name: Set Version
+        run: VERSION=$(uv version --short) && echo "Version is $VERSION" && echo "VERSION=$VERSION" >> $GITHUB_ENV
       - name: Publish to PyPI
         run: uv build && uv publish
       - name: Fetch gh-pages branch
