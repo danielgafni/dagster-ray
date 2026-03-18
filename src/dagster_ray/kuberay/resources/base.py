@@ -7,7 +7,7 @@ from pydantic import Field
 
 from dagster_ray._base.constants import DEFAULT_DEPLOYMENT_NAME
 from dagster_ray._base.resources import RayResource
-from dagster_ray.kuberay.utils import get_k8s_object_name
+from dagster_ray.kuberay.utils import get_k8s_object_name, k8s_service_fqdn
 from dagster_ray.types import AnyDagsterContext
 
 
@@ -30,6 +30,21 @@ class BaseKubeRayResource(RayResource, ABC):
     @abstractmethod
     def namespace(self) -> str:
         raise NotImplementedError
+
+    def resolve_hostname(self, service_name: str, namespace: str) -> str:
+        """Resolve the host address from a Kubernetes service name and namespace.
+
+        By default, returns the in-cluster FQDN (e.g. `my-svc.namespace.svc.cluster.local`).
+        Override this method to customize the host address, for example to use a custom domain:
+
+        Example:
+            ```python
+            class MyKubeRayCluster(KubeRayCluster):
+                def resolve_hostname(self, service_name: str, namespace: str) -> str:
+                    return f"{service_name}.{namespace}.company.com"
+            ```
+        """
+        return k8s_service_fqdn(service_name, namespace)
 
     def _get_step_name(self, context: AnyDagsterContext) -> str:
         assert isinstance(context.run_id, str)
