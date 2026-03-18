@@ -2,10 +2,10 @@ sync:
     uv sync --all-extras --all-groups
 
 docs-build:
-    uv run --group docs zensical build --clean --strict
+    uv run --all-extras --all-groups zensical build --clean --strict
 
 docs-serve:
-    uv run --group docs zensical serve
+    uv run --all-extras --all-groups zensical serve
 
 docs-publish:
     uv run --group docs --all-extras python scripts/deploy_docs.py --push --update-aliases $(git describe --tags --abbrev=0 | sed 's/^v//')

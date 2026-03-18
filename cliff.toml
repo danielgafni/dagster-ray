@@ -79,8 +79,14 @@ body = """
 {% if new_contribs_count > 0 %}
 ### :heart: New Contributors
 {% for contributor in new_contributors -%}
-{%- if not existing is containing(contributor.username) %}
-- [@{{ contributor.username }}](https://github.com/{{ contributor.username }}) made their first contribution in [#{{ contributor.pr_number }}](https://github.com/danielgafni/dagster-ray/pull/{{ contributor.pr_number }})
+{%- if not existing is containing(contributor.username) -%}
+{%- set_global first_pr = contributor.pr_number -%}
+{%- for commit in commits -%}
+{%- if commit.remote.username == contributor.username and commit.remote.pr_number -%}
+{%- set_global first_pr = commit.remote.pr_number -%}
+{%- endif -%}
+{%- endfor %}
+- [@{{ contributor.username }}](https://github.com/{{ contributor.username }}) made their first contribution in [#{{ first_pr }}](https://github.com/danielgafni/dagster-ray/pull/{{ first_pr }})
 {%- endif -%}
 {%- endfor %}
 {% endif %}

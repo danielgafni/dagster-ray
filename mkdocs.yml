@@ -62,7 +62,6 @@ plugins:
   - search
   - section-index
   - autorefs
-  - gh-admonitions
   # - awesome-nav
   - mkdocstrings:
       enable_inventory: true
@@ -118,6 +117,7 @@ plugins:
             - https://docs.dagster.io/objects.inv
             - https://docs.pydantic.dev/latest/objects.inv
             - https://docs.ray.io/en/latest/objects.inv
+  - gh-admonitions
 
 markdown_extensions:
   - abbr
