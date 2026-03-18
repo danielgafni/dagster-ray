@@ -1,1 +1,1 @@
-__version__ = "0.0.0"  # managed by hatch
+__version__ = "0.4.2"

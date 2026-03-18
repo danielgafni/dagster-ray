@@ -1,15 +1,6 @@
 sync:
     uv sync --all-extras --all-groups
 
-publish-dev:
-    echo '__version__ = "0.0.0"  # managed by hatch' > src/dagster_ray/_version.py
-    uv run --with dunamai --with hatch hatch version $(uv run dunamai from any --style pep440 --ignore-untracked --no-metadata)
-    uv run hatch clean
-    uv build
-    uv publish
-    uv run --with hatch hatch clean
-    echo '__version__ = "0.0.0"  # managed by hatch' > src/dagster_ray/_version.py
-
 docs-build:
     uv run --group docs zensical build --clean --strict
 
@@ -17,7 +8,7 @@ docs-serve:
     uv run --group docs zensical serve
 
 docs-publish:
-    uv run --group docs --all-extras python scripts/deploy_docs.py --push --update-aliases $(uv run dunamai from any --style pep440)
+    uv run --group docs --all-extras python scripts/deploy_docs.py --push --update-aliases $(git describe --tags --abbrev=0 | sed 's/^v//')
 
 ruff:
     uv run --no-sync ruff check --fix --exit-zero
@@ -31,7 +22,19 @@ changelog-preview:
 changelog:
     git cliff -o docs/changelog.md
 
-# Bump version: dev, rc, stable, patch, minor, major
-release bump:
-    uv version --bump {{bump}}
-    git cliff -o docs/changelog.md
+# Create a release (version auto-detected from commits, or manually specified)
+release bump="" message="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -n "{{bump}}" ]; then
+        uv version --bump {{bump}}
+    else
+        uv version "$(git cliff --bumped-version | sed 's/^v//')"
+    fi
+    version="v$(uv version --short)"
+    echo "__version__ = \"$(uv version --short)\"" > src/dagster_ray/_version.py
+    if [ -n "{{message}}" ]; then
+        git cliff --tag "$version" --with-tag-message "{{message}}" -o docs/changelog.md
+    else
+        git cliff --tag "$version" -o docs/changelog.md
+    fi

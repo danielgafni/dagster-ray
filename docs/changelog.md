@@ -5,21 +5,8 @@ All notable user-facing changes to `dagster-ray` will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
 
-### Added
-
-- Ray Job and `RayJob` submission now supports custom dashboard addresses and authentication (thanks @JosefNagelschmidt!)
-
-### Docs
-
-- The docs have been migrated to use [Zensical](https://zensical.org/).
-
-### Breaking
-
-- The constructor of [`PipesRayJobClient`][dagster_ray.PipesRayJobClient]'s has been changed to take parameters for [`JobSubmissionClient`][ray.job_submission.JobSubmissionClient]
-
-## [0.4.2](https://danielgafni.github.io/dagster-ray/0.4.2/)
+## 0.4.2 (20-02-2026)
 
 ### Added
 
@@ -34,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fixed duplicated startup log message for `LocalRay`
 - fixed the top-level `env_vars` Dagster config field not taking effect for `KubeRayInteractiveJob`
 
-## [0.4.1](https://danielgafni.github.io/dagster-ray/0.4.1/)
+## 0.4.1 (25-01-2026)
 
 ### Added
 
@@ -48,7 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `runtimeEnvYAML` now has all strings fully quoted which fixes passing values such as `1e-5` as `runtime_env` values. Thanks @JosefNagelschmidt!
 - `ray_address` is now optional for `RunLauncherConfig`. Thanks @cornettew!
 
-## [0.4.0](https://danielgafni.github.io/dagster-ray/0.4.0/)
+## 0.4.0 (10-10-2025)
 
 This release introduces a new feature that is very useful in dev environments: **Cluster Sharing**. Cluster sharing allows reusing existing `RayCluster` resources created by previous Dagster steps. It's implemented for `KubeRayCluster` Dagster resource. This feature enables faster iteration speed and reduced infrastructure costs (at the expense of job isolation). Therefore `KubeRayCluster` is now recommended over `KubeRayInteractiveJob` for use in **dev** environments.
 
@@ -62,7 +49,7 @@ Learn more in [Cluster Sharing docs](tutorial/kuberay.md/#cluster-sharing).
 ### Changed
 - [:bomb: breaking] - removed `cleanup_kuberay_clusters_op` and other associated definitions in favor of `dagster_ray.kuberay.sensors.cleanup_expired_kuberay_clusters` sensor that is more flexible.
 
-## [0.3.1](https://danielgafni.github.io/dagster-ray/0.3.1/)
+## 0.3.1 (02-10-2025)
 
 ### Added
 - `failure_tolerance_timeout` configuration parameter for `KubeRayInteractiveJob` and `KubeRayCluster`. It can be set to a positive value to give the cluster some time to transition out of `failed` state (which can be transient in some scenarios) before raising an error.
@@ -70,7 +57,7 @@ Learn more in [Cluster Sharing docs](tutorial/kuberay.md/#cluster-sharing).
 ### Fixes
 - ensure both `.head.serviceIP` and `.head.serviceName` are set on the `RayCluster` while waiting for cluster readiness.
 
-## [0.3.0](https://danielgafni.github.io/dagster-ray/0.3.0/)
+## 0.3.0 (19-09-2025)
 
 This release includes massive docs improvements and drops support for Python 3.9.
 
@@ -79,13 +66,13 @@ This release includes massive docs improvements and drops support for Python 3.9
 - [:bomb: breaking] dropped Python 3.9 support (EOL October 2025).
 - [internal] most of the general, backend-agnostic code has been moved to `dagster_ray.core` (top-level imports still work).
 
-## [0.2.1](https://danielgafni.github.io/dagster-ray/0.2.1/)
+## 0.2.1 (18-09-2025)
 
 ### Fixes
 
 - Fixed broken wheel on PyPI.
 
-## [0.2.0](https://danielgafni.github.io/dagster-ray/0.2.0/)
+## 0.2.0 (18-09-2025)
 
 ### Changed
 - `KubeRayInteractiveJob.deletion_strategy` now defaults to `DeleteCluster` for both successful and failed executions. This is a reasonable default for the use case.
@@ -101,7 +88,7 @@ This release includes massive docs improvements and drops support for Python 3.9
 ### Fixes
 - removed `ignore_reinit_error` from `RayResource` init options: it's potentially dangerous, for example in case the user has accidentally connected to another Ray cluster (including local ray) before initializing the resource.
 
-## [0.1.0](https://danielgafni.github.io/dagster-ray/0.1/)
+## 0.1.0 (05-09-2025)
 
 ### Changed
 - [:bomb: breaking] `RayResource`: top-level `skip_init` and `skip_setup` configuration parameters have been removed. The `lifecycle` field is the new way of configuring steps performed during resource initialization. `KubeRayCluster`'s `skip_cleanup` has been moved to `lifecycle` as well.

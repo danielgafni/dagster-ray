@@ -1,6 +1,7 @@
 
 [project]
 name = "dagster-ray"
+version = "0.4.2"
 description = "Dagster integration library for Ray"
 authors = [
     {name = "Daniel Gafni", email = "danielgafni16@gmail.com"},
@@ -29,8 +30,6 @@ dependencies = [
     "tenacity>=8.0.0",
 ]
 
-dynamic = ["version"]
-
 [project.urls]
 GitHub = "https://github.com/danielgafni/dagster-ray"
 Documentation = "https://danielgafni.github.io/dagster-ray/"
@@ -54,8 +53,8 @@ kuberay = [
 ]
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["uv_build>=0.10.11,<1.0"]
+build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
@@ -67,8 +66,6 @@ dev = [
     "pytest-kubernetes<1.0.0,>=0.3.1",
     "blacken-docs<2.0.0,>=1.16.0",
     "ray[default,data]>=2.7.0",
-    "hatch>=1.12.0",
-    "dunamai>=1.22.0",
     "pip>=24.2",
     "ipython>=8.12.3",
     "syrupy>=4.9.1",
@@ -94,11 +91,8 @@ docs = [
 ]
 
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/dagster_ray"]
-
-[tool.hatch.version]
-path = "src/dagster_ray/_version.py"
+[tool.uv.build-backend]
+module-root = "src"
 
 [tool.pytest.ini_options]
 addopts = "-vvv --capture=no --log-disable=faker -m 'not kuberay_auth'"

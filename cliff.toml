@@ -2,35 +2,45 @@
 owner = "danielgafni"
 repo = "dagster-ray"
 
+[bump]
+features_always_bump_minor = false
+breaking_always_bump_major = false
+
 [git]
-conventional_commits = true
-filter_unconventional = true
-split_commits = false
 commit_preprocessors = [
   { pattern = '^\((\w+)\)!:', replace = "($1):" },
   # Map legacy emoji-prefixed commits to conventional commits
   { pattern = '^:sparkles: ', replace = "feat: " },
   { pattern = '^:bug: ', replace = "fix: " },
   { pattern = '^:book: ', replace = "docs: " },
-  { pattern = '^:wrench: ', replace = "refactor: " },
+  { pattern = '^:art: ', replace = "refactor: " },
+  { pattern = '^:wrench: ', replace = "feat: " },
   { pattern = '^:zap: ', replace = "perf: " },
   { pattern = '^:robot: ', replace = "ci: " },
-  { pattern = '^:bomb: ', replace = "refactor!: " },
+  { pattern = '^:bomb: ', replace = "feat!: " },
+  # Map other legacy prefixes to conventional commits
+  { pattern = '^\[docs\] ', replace = "docs: " },
+  { pattern = '^add support for', replace = "feat: add support for" },
+  # Strip PR references from messages (handled in template with author links)
+  { pattern = ' \(#\d+\)', replace = "" },
 ]
 commit_parsers = [
-  { message = "^.*!:", group = "### :bomb: Breaking" },
-  { message = "^feat", group = "### :sparkles: Added" },
-  { message = "^fix", group = "### :bug: Fixes" },
-  { message = "^docs", group = "### :book: Docs" },
-  { message = "^refactor", group = "### :wrench: Changed" },
-  { message = "^perf", group = "### :zap: Performance" },
+  { message = "^.*!:", group = "<0>### :bomb: Breaking" },
+  { message = "^feat", group = "<1>### :sparkles: Features" },
+  { message = "^fix", group = "<2>### :bug: Bug Fixes" },
+  { message = "^docs", group = "<3>### :book: Docs" },
+  { message = "^perf", group = "<4>### :zap: Performance" },
+  { message = "^refactor", skip = true },
   { message = "^chore", skip = true },
   { message = "^ci", skip = true },
   { message = "^build", skip = true },
   { message = "^test", skip = true },
   { message = "^style", skip = true },
+  { message = "^.*", skip = true },
 ]
-tag_pattern = "v[0-9].*"
+ignore_tags = "v0\\.0\\."
+# Tags whose changelog entries are hardcoded in the footer; update regex when adding new footer entries
+skip_tags = "v0\\.[1-3]\\.|v0\\.4\\.[0-2]"
 sort_commits = "newest"
 
 [changelog]
@@ -44,28 +54,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 """
 body = """
+## {{ version | default(value="Unreleased") }}{% if timestamp %} ({{ timestamp | date(format="%d-%m-%Y") }}){% endif %}
+{% if message %}
+{{ message }}
+
+{% endif %}\
 {% for group, commits in commits | group_by(attribute="group") %}
 {{ group | striptags | trim }}
 {% for commit in commits %}
 - {{ commit.message | split(pat="\n") | first | trim }}\
-    {% if commit.remote.username %} by @{{ commit.remote.username }}{%- endif %}\
-    {% if commit.remote.pr_number %} in [#{{ commit.remote.pr_number }}](https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}/pull/{{ commit.remote.pr_number }}){%- endif %}
-{%- if commit.body and commit.body is containing("## Changelog") -%}
-{%- set changelog_section = commit.body | split(pat="## Changelog") | last -%}
-{%- set lines = changelog_section | split(pat="\n") -%}
-{%- for line in lines -%}
-{%- set trimmed = line | trim -%}
-{%- if trimmed | length > 0 and not trimmed is starting_with("<!--") %}
-  {{ trimmed }}
-{%- endif -%}
-{%- endfor -%}
+    {% if commit.remote.pr_number %} ([#{{ commit.remote.pr_number }}](https://github.com/danielgafni/dagster-ray/pull/{{ commit.remote.pr_number }}){% if commit.remote.username %} by [@{{ commit.remote.username }}](https://github.com/{{ commit.remote.username }}){% endif %})
+{%- elif commit.remote.username %} (by [@{{ commit.remote.username }}](https://github.com/{{ commit.remote.username }}))
 {%- endif %}
 {%- endfor %}
-{% endfor %}
+{% endfor %}\
+{%- set new_contributors = github.contributors | filter(attribute="is_first_time", value=true) -%}
+{%- set_global new_contribs_count = 0 -%}
+{%- set existing = "danielgafni,JosefNagelschmidt,cornettew,geoHeil,serriaguirregaray,dependabot[bot],github-actions[bot],renovate[bot]" -%}
+{%- for contributor in new_contributors -%}
+{%- if not existing is containing(contributor.username) -%}
+{%- set_global new_contribs_count = new_contribs_count + 1 -%}
+{%- endif -%}
+{%- endfor -%}
+{% if new_contribs_count > 0 %}
+### :heart: New Contributors
+{% for contributor in new_contributors -%}
+{%- if not existing is containing(contributor.username) %}
+- [@{{ contributor.username }}](https://github.com/{{ contributor.username }}) made their first contribution in [#{{ contributor.pr_number }}](https://github.com/danielgafni/dagster-ray/pull/{{ contributor.pr_number }})
+{%- endif -%}
+{%- endfor %}
+{% endif %}
 """
 footer = """
 
-## [0.4.2](https://danielgafni.github.io/dagster-ray/0.4.2/)
+## 0.4.2 (20-02-2026)
 
 ### Added
 
@@ -80,7 +102,7 @@ footer = """
 - fixed duplicated startup log message for `LocalRay`
 - fixed the top-level `env_vars` Dagster config field not taking effect for `KubeRayInteractiveJob`
 
-## [0.4.1](https://danielgafni.github.io/dagster-ray/0.4.1/)
+## 0.4.1 (25-01-2026)
 
 ### Added
 
@@ -94,7 +116,7 @@ footer = """
 - `runtimeEnvYAML` now has all strings fully quoted which fixes passing values such as `1e-5` as `runtime_env` values. Thanks @JosefNagelschmidt!
 - `ray_address` is now optional for `RunLauncherConfig`. Thanks @cornettew!
 
-## [0.4.0](https://danielgafni.github.io/dagster-ray/0.4.0/)
+## 0.4.0 (10-10-2025)
 
 This release introduces a new feature that is very useful in dev environments: **Cluster Sharing**. Cluster sharing allows reusing existing `RayCluster` resources created by previous Dagster steps. It's implemented for `KubeRayCluster` Dagster resource. This feature enables faster iteration speed and reduced infrastructure costs (at the expense of job isolation). Therefore `KubeRayCluster` is now recommended over `KubeRayInteractiveJob` for use in **dev** environments.
 
@@ -108,7 +130,7 @@ Learn more in [Cluster Sharing docs](tutorial/kuberay.md/#cluster-sharing).
 ### Changed
 - [:bomb: breaking] - removed `cleanup_kuberay_clusters_op` and other associated definitions in favor of `dagster_ray.kuberay.sensors.cleanup_expired_kuberay_clusters` sensor that is more flexible.
 
-## [0.3.1](https://danielgafni.github.io/dagster-ray/0.3.1/)
+## 0.3.1 (02-10-2025)
 
 ### Added
 - `failure_tolerance_timeout` configuration parameter for `KubeRayInteractiveJob` and `KubeRayCluster`. It can be set to a positive value to give the cluster some time to transition out of `failed` state (which can be transient in some scenarios) before raising an error.
@@ -116,7 +138,7 @@ Learn more in [Cluster Sharing docs](tutorial/kuberay.md/#cluster-sharing).
 ### Fixes
 - ensure both `.head.serviceIP` and `.head.serviceName` are set on the `RayCluster` while waiting for cluster readiness.
 
-## [0.3.0](https://danielgafni.github.io/dagster-ray/0.3.0/)
+## 0.3.0 (19-09-2025)
 
 This release includes massive docs improvements and drops support for Python 3.9.
 
@@ -125,13 +147,13 @@ This release includes massive docs improvements and drops support for Python 3.9
 - [:bomb: breaking] dropped Python 3.9 support (EOL October 2025).
 - [internal] most of the general, backend-agnostic code has been moved to `dagster_ray.core` (top-level imports still work).
 
-## [0.2.1](https://danielgafni.github.io/dagster-ray/0.2.1/)
+## 0.2.1 (18-09-2025)
 
 ### Fixes
 
 - Fixed broken wheel on PyPI.
 
-## [0.2.0](https://danielgafni.github.io/dagster-ray/0.2.0/)
+## 0.2.0 (18-09-2025)
 
 ### Changed
 - `KubeRayInteractiveJob.deletion_strategy` now defaults to `DeleteCluster` for both successful and failed executions. This is a reasonable default for the use case.
@@ -147,7 +169,7 @@ This release includes massive docs improvements and drops support for Python 3.9
 ### Fixes
 - removed `ignore_reinit_error` from `RayResource` init options: it's potentially dangerous, for example in case the user has accidentally connected to another Ray cluster (including local ray) before initializing the resource.
 
-## [0.1.0](https://danielgafni.github.io/dagster-ray/0.1/)
+## 0.1.0 (05-09-2025)
 
 ### Changed
 - [:bomb: breaking] `RayResource`: top-level `skip_init` and `skip_setup` configuration parameters have been removed. The `lifecycle` field is the new way of configuring steps performed during resource initialization. `KubeRayCluster`'s `skip_cleanup` has been moved to `lifecycle` as well.
@@ -159,4 +181,4 @@ This release includes massive docs improvements and drops support for Python 3.9
 - `KubeRayInteractiveJob` -- a resource that utilizes the new `InteractiveMode` for `RayJob`. It can be used to connect to Ray in Client mode -- like `KubeRayCluster` -- but gives access to `RayJob` features, such as automatic cleanup (`ttlSecondsAfterFinished`), retries (`backoffLimit`) and timeouts (`activeDeadlineSeconds`).
 - `RayResource` setup lifecycle has been overhauled: resources now has an `actions` parameter with 3 configuration options: `create`, `wait` and `connect`. The user can disable them and run `.create()`, `.wait()` and `.connect()` manually if needed.
 """
-trim = true
+trim = false
