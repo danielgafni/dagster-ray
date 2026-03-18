@@ -227,11 +227,10 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
     Args:
         address: Ray dashboard HTTP address.
             If unspecified, connects to a local Ray cluster or uses the ``RAY_ADDRESS`` environment variable.
-        headers: HTTP headers for dashboard requests, e.g. ``{"Authorization": "Bearer token"}``.
-        verify: TLS certificate verification. ``True`` uses system certs, ``False`` disables
-            verification, or a path to a CA bundle.
-        cookies: Cookies to send with dashboard requests.
-        metadata: Arbitrary metadata stored alongside all submitted jobs.
+        headers: HTTP headers for Ray Dashboard requests. Passed to [`JobSubmissionClient`][ray.job_submission.JobSubmissionClient].
+        verify: Whether to verify TLS certificate. Passed to [`JobSubmissionClient`][ray.job_submission.JobSubmissionClient].
+        cookies: HTTP cookies for Ray Dashboard requests. Passed to [`JobSubmissionClient`][ray.job_submission.JobSubmissionClient].
+        metadata: Ray Job metadata. Passed to [`JobSubmissionClient`][ray.job_submission.JobSubmissionClient].
         context_injector: A context injector to use to inject
             context into the Ray job. Defaults to [`PipesEnvContextInjector`][dagster.PipesEnvContextInjector].
         message_reader: A message reader to use when reading Pipes messages.
@@ -289,9 +288,9 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
         Execute a RayJob, enriched with the Pipes protocol.
 
         Args:
-            context (OpExecutionContext): Current Dagster op or asset context.
-            submit_job_params (Dict[str, Any]): Parameters for [`JobSubmissionClient.submit_job`][ray.job_submission.JobSubmissionClient.submit_job].
-            extras (Optional[Dict[str, Any]]): Additional information to pass to the Pipes session.
+            context: Current Dagster op or asset context.
+            submit_job_params: Parameters for [`JobSubmissionClient.submit_job`][ray.job_submission.JobSubmissionClient.submit_job].
+            extras: Additional information to pass to the Pipes session, retrievable via [`PipesContext.get_extras`](https://docs.dagster.io/integrations/libraries/pipes/dagster-pipes#dagster_pipes.PipesContext.get_extra).
         """
 
         with open_pipes_session(
