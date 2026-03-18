@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.25">
+      <meta name="generator" content="zensical-0.0.27">
     
     
       
@@ -797,6 +797,67 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#v043-18-03-2026" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v0.4.3 (18-03-2026)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="v0.4.3 (18-03-2026)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#new-contributors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        New Contributors
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#042-20-02-2026" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1133,6 +1194,67 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#v043-18-03-2026" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v0.4.3 (18-03-2026)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="v0.4.3 (18-03-2026)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#new-contributors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        New Contributors
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#042-20-02-2026" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1463,6 +1585,37 @@
 <p>All notable user-facing changes to <code>dagster-ray</code> will be documented in this file.</p>
 <p>The format is based on <a href="https://keepachangelog.com/en/1.1.0/">Keep a Changelog</a>,
 and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
+<h2 id="v043-18-03-2026">v0.4.3 (18-03-2026)<a class="headerlink" href="#v043-18-03-2026" title="Permanent link">&para;</a></h2>
+<p>This release is focused on improving support for authentication and cross-cluster KubeRay workloads.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you or your company are using <code>dagster-ray</code> in production, please consider adding yourself to the list <a href="https://github.com/danielgafni/dagster-ray/blob/master/README.md#-who-is-using-dagster-ray">here</a> :)</p>
+</div>
+<h3 id="features"><img alt="✨" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/2728.svg" title=":sparkles:" /> Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h3>
+<ul>
+<li>support <code>resolve_hostname</code> hook in <code>PipesKubeRayJobClient</code> (<a href="https://github.com/danielgafni/dagster-ray/pull/340">#340</a> by <a href="https://github.com/danielgafni">@danielgafni</a>)</li>
+<li>add resolve_hostname hook to <code>KubeRayResource</code> (<a href="https://github.com/danielgafni/dagster-ray/pull/335">#335</a> by <a href="https://github.com/danielgafni">@danielgafni</a>)</li>
+<li>support authOptions in RayClusterSpec (<a href="https://github.com/danielgafni/dagster-ray/pull/314">#314</a> by <a href="https://github.com/danielgafni">@danielgafni</a>)</li>
+<li>add support for custom Ray dashboard address with authentication (<a href="https://github.com/danielgafni/dagster-ray/pull/315">#315</a> by <a href="https://github.com/JosefNagelschmidt">@JosefNagelschmidt</a>)</li>
+<li>add missing fields to RayJobSpec (<a href="https://github.com/danielgafni/dagster-ray/pull/321">#321</a> by <a href="https://github.com/danielgafni">@danielgafni</a>)</li>
+</ul>
+<h3 id="bug-fixes"><img alt="🐛" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f41b.svg" title=":bug:" /> Bug Fixes<a class="headerlink" href="#bug-fixes" title="Permanent link">&para;</a></h3>
+<ul>
+<li>use serviceName FQDN instead of serviceIP for cross-cluster connectivity (<a href="https://github.com/danielgafni/dagster-ray/pull/319">#319</a> by <a href="https://github.com/pythonmonty">@pythonmonty</a>)</li>
+</ul>
+<h3 id="docs"><img alt="📖" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f4d6.svg" title=":book:" /> Docs<a class="headerlink" href="#docs" title="Permanent link">&para;</a></h3>
+<ul>
+<li>add kaiko to the list of users (<a href="https://github.com/danielgafni/dagster-ray/pull/338">#338</a> by <a href="https://github.com/pythonmonty">@pythonmonty</a>)</li>
+<li>add Sanas to the list of users (<a href="https://github.com/danielgafni/dagster-ray/pull/339">#339</a> by <a href="https://github.com/ashutosh1807">@ashutosh1807</a>)</li>
+<li>add cross-cluster &amp; authentication docs (<a href="https://github.com/danielgafni/dagster-ray/pull/336">#336</a> by <a href="https://github.com/danielgafni">@danielgafni</a>)</li>
+<li>update Pipes docs with better Ray API references (<a href="https://github.com/danielgafni/dagster-ray/pull/329">#329</a> by <a href="https://github.com/danielgafni">@danielgafni</a>)</li>
+<li>switch to Zensical (<a href="https://github.com/danielgafni/dagster-ray/pull/327">#327</a> by <a href="https://github.com/danielgafni">@danielgafni</a>)</li>
+</ul>
+<h3 id="new-contributors"><img alt="❤" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/2764.svg" title=":heart:" /> New Contributors<a class="headerlink" href="#new-contributors" title="Permanent link">&para;</a></h3>
+<ul>
+<li><a href="https://github.com/pythonmonty">@pythonmonty</a> made their first contribution in <a href="https://github.com/danielgafni/dagster-ray/pull/319">#319</a></li>
+<li><a href="https://github.com/ashutosh1807">@ashutosh1807</a> made their first contribution in <a href="https://github.com/danielgafni/dagster-ray/pull/339">#339</a></li>
+</ul>
 <h2 id="042-20-02-2026">0.4.2 (20-02-2026)<a class="headerlink" href="#042-20-02-2026" title="Permanent link">&para;</a></h2>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
