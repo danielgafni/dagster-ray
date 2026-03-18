@@ -114,6 +114,7 @@ These resources initialize Ray client connection with a remote cluster.
         - "image"
         - "deployment_name"
         - "poll_interval"
+        - "resolve_hostname"
 
 ---
 
