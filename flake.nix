@@ -10,7 +10,7 @@
         system = "x86_64-linux";
       };
       lib = pkgs.lib;
-      python = pkgs.python310;
+      python = pkgs.python311;
     in {
       default = pkgs.mkShell {
         buildInputs = [
@@ -24,17 +24,18 @@
           python
           minikube
           kubectl
+          git-cliff
         ];
         LD_LIBRARY_PATH = lib.makeLibraryPath [
           pkgs.stdenv.cc.cc.lib
           pkgs.gcc-unwrapped.lib
           pkgs.glibc
           pkgs.glib
-          pkgs.python310
+          pkgs.python311
         ];
         # UV_PYTHON = "${python}/bin/python";
         shellHook = ''
-          uv python pin 3.10
+          uv python pin 3.11
         '';
       };
     };

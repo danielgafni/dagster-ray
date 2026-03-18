@@ -22,3 +22,16 @@ docs-publish:
 ruff:
     uv run --no-sync ruff check --fix --exit-zero
     uv run --no-sync ruff format
+
+# Preview unreleased changelog entries
+changelog-preview:
+    git cliff --unreleased --strip all
+
+# Generate full CHANGELOG.md
+changelog:
+    git cliff -o docs/changelog.md
+
+# Bump version: dev, rc, stable, patch, minor, major
+release bump:
+    uv version --bump {{bump}}
+    git cliff -o docs/changelog.md
