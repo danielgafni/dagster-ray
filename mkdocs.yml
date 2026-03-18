@@ -10,6 +10,7 @@ nav:
     - Overview: tutorial/index.md
     - External Ray Clusters: tutorial/external.md
     - KubeRay: tutorial/kuberay.md
+    - Authentication: tutorial/auth.md
   - API Reference:
     - Overview: api.md
     - Core: api/core.md

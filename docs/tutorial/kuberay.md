@@ -288,3 +288,16 @@ definitions = dg.Definitions(
 1. :bulb: `dagster-pipes` has to be installed in the remote environment!
 
 When materializing the asset, `PipesKubeRayJobClient` will submit the script as a `RayJob` custom resource, monitor its status, and stream back logs and Dagster metadata.
+
+## Custom Host Resolution
+
+By default, KubeRay resources resolve the Ray head address as an in-cluster FQDN (`<service>.<namespace>.svc.cluster.local`). Override the [`resolve_hostname`][dagster_ray.kuberay.resources.base.BaseKubeRayResource.resolve_hostname] method to customize this, for example when connecting across clusters or through a custom DNS:
+
+```python
+from dagster_ray.kuberay import KubeRayInteractiveJob
+
+
+class MyKubeRayInteractiveJob(KubeRayInteractiveJob):
+    def resolve_hostname(self, service_name: str, namespace: str) -> str:
+        return f"{service_name}.{namespace}.company.com"
+```

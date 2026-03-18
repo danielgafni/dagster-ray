@@ -5,3 +5,6 @@ Check out [External Ray Clusters tutorial](./external.md) if you want to run Ray
 
 ## Dagster + KubeRay
 See [KubeRay tutorial](./kuberay.md) if you want to use KubeRay's `RayJob` and `RayCluster` managed from Dagster
+
+## Authentication
+See [Authentication](./auth.md) for setting up Ray authentication with `dagster-ray`
