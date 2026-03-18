@@ -6,6 +6,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## v0.4.3 (18-03-2026)
+
+This release is focused on improving support for authentication and cross-cluster KubeRay workloads.
+
+!!! note
+    If you or your company are using `dagster-ray` in production, please consider adding yourself to the list [here](https://github.com/danielgafni/dagster-ray/blob/master/README.md#-who-is-using-dagster-ray) :)
+
+### :sparkles: Features
+
+- support `resolve_hostname` hook in `PipesKubeRayJobClient` ([#340](https://github.com/danielgafni/dagster-ray/pull/340) by [@danielgafni](https://github.com/danielgafni))
+- add resolve_hostname hook to `KubeRayResource` ([#335](https://github.com/danielgafni/dagster-ray/pull/335) by [@danielgafni](https://github.com/danielgafni))
+- support authOptions in RayClusterSpec ([#314](https://github.com/danielgafni/dagster-ray/pull/314) by [@danielgafni](https://github.com/danielgafni))
+- add support for custom Ray dashboard address with authentication ([#315](https://github.com/danielgafni/dagster-ray/pull/315) by [@JosefNagelschmidt](https://github.com/JosefNagelschmidt))
+- add missing fields to RayJobSpec ([#321](https://github.com/danielgafni/dagster-ray/pull/321) by [@danielgafni](https://github.com/danielgafni))
+
+### :bug: Bug Fixes
+
+- use serviceName FQDN instead of serviceIP for cross-cluster connectivity ([#319](https://github.com/danielgafni/dagster-ray/pull/319) by [@pythonmonty](https://github.com/pythonmonty))
+
+### :book: Docs
+
+- add kaiko to the list of users ([#338](https://github.com/danielgafni/dagster-ray/pull/338) by [@pythonmonty](https://github.com/pythonmonty))
+- add Sanas to the list of users ([#339](https://github.com/danielgafni/dagster-ray/pull/339) by [@ashutosh1807](https://github.com/ashutosh1807))
+- add cross-cluster & authentication docs ([#336](https://github.com/danielgafni/dagster-ray/pull/336) by [@danielgafni](https://github.com/danielgafni))
+- update Pipes docs with better Ray API references ([#329](https://github.com/danielgafni/dagster-ray/pull/329) by [@danielgafni](https://github.com/danielgafni))
+- switch to Zensical ([#327](https://github.com/danielgafni/dagster-ray/pull/327) by [@danielgafni](https://github.com/danielgafni))
+
+### :heart: New Contributors
+
+- [@pythonmonty](https://github.com/pythonmonty) made their first contribution in [#319](https://github.com/danielgafni/dagster-ray/pull/319)
+- [@ashutosh1807](https://github.com/ashutosh1807) made their first contribution in [#339](https://github.com/danielgafni/dagster-ray/pull/339)
+
+
 ## 0.4.2 (20-02-2026)
 
 ### Added
