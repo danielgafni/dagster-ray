@@ -35,7 +35,17 @@ class BaseKubeRayResource(RayResource, ABC):
         """Resolve the host address from a Kubernetes service name and namespace.
 
         By default, returns the in-cluster FQDN (e.g. `my-svc.namespace.svc.cluster.local`).
-        Override this method to customize the host address, for example to use a custom domain:
+        Override this method to customize the host address, for example to use a custom domain.
+
+        The returned hostname is used to construct both the Ray Client address (`ray://<host>:<redis_port>`)
+        and the dashboard URL (`http://<host>:<dashboard_port>`).
+
+        Args:
+            service_name: The Kubernetes service name for the Ray head node.
+            namespace: The Kubernetes namespace.
+
+        Returns:
+            The hostname to use for connecting to the Ray cluster.
 
         Example:
             ```python
