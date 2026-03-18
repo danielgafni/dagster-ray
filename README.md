@@ -47,6 +47,7 @@ pip install dagster-ray
 These happy users are running `dagster-ray` in production:
 
 - [Anam](https://anam.ai)
+- [kaiko](https://kaiko.ai/)
 
 ## 🤝 Contributing
 
