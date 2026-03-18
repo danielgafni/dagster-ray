@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import copy
 import json
-import logging
 import time
+import warnings
 from typing import TYPE_CHECKING, Any, cast
 
 import dagster as dg
@@ -35,10 +35,12 @@ from dagster_ray.kuberay.configs import RayJobConfig, RayJobSpec
 from dagster_ray.kuberay.utils import k8s_service_fqdn, normalize_k8s_label_values
 from dagster_ray.types import OpOrAssetExecutionContext
 
-logger = logging.getLogger(__name__)
-
 if TYPE_CHECKING:
     from ray.job_submission import JobSubmissionClient
+
+
+def _build_ray_resources_param(resources: dict[str, float]) -> str:
+    return '"' + json.dumps(resources).replace('"', '\\"').replace("'", '\\"') + '"'
 
 
 def _ray_job_from_submit_params(
@@ -64,7 +66,7 @@ def _ray_job_from_submit_params(
             entrypoint_num_cpus=submit_job_params.get("entrypoint_num_cpus"),
             entrypoint_num_gpus=submit_job_params.get("entrypoint_num_gpus"),
             entrypoint_memory=submit_job_params.get("entrypoint_memory"),
-            entrypoint_resources=json.dumps(er)
+            entrypoint_resources=_build_ray_resources_param(er)
             if (er := submit_job_params.get("entrypoint_resources")) is not None
             else None,
             metadata=submit_job_params.get("metadata"),
@@ -89,11 +91,9 @@ def _merge_submit_params_into_ray_job(
 
     def _set(key: str, value: Any) -> None:
         if key in ray_job["spec"] and ray_job["spec"][key] != value:
-            logger.warning(
-                "[pipes] submit_job_params overwriting ray_job spec field '%s': %r -> %r",
-                key,
-                ray_job["spec"][key],
-                value,
+            warnings.warn(
+                f"submit_job_params overwriting ray_job spec field '{key}': {ray_job['spec'][key]!r} -> {value!r}",
+                stacklevel=3,
             )
         ray_job["spec"][key] = value
 
@@ -112,7 +112,7 @@ def _merge_submit_params_into_ray_job(
         _set("entrypointMemory", memory)
 
     if (resources := submit_job_params.get("entrypoint_resources")) is not None:
-        _set("entrypointResources", resources)
+        _set("entrypointResources", _build_ray_resources_param(resources))
 
     if (metadata := submit_job_params.get("metadata")) is not None:
         _set("metadata", metadata)
