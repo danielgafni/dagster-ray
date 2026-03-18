@@ -48,6 +48,7 @@ These happy users are running `dagster-ray` in production:
 
 - [Anam](https://anam.ai)
 - [kaiko](https://kaiko.ai/)
+- [Sanas](https://www.sanas.ai/)
 
 ## 🤝 Contributing
 
