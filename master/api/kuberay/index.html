@@ -495,6 +495,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorial/auth/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Authentication
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -3434,6 +3462,14 @@
 
 <h1 id="kuberay-api-reference">KubeRay API Reference<a class="headerlink" href="#kuberay-api-reference" title="Permanent link">&para;</a></h1>
 <p>KubeRay integration components for running Ray on Kubernetes.  Learn how to use it <a href="../../tutorial/kuberay/">here</a>.</p>
+<div class="admonition tip">
+<p class="admonition-title">Authentication</p>
+<p>For connecting to auth-protected Ray clusters, see <a href="../../tutorial/auth/">Authentication docs</a>. Client-mode resources support Ray's <a href="https://docs.ray.io/en/latest/ray-core/internals/token-authentication.html">token authentication</a> via environment variables. Pipes clients (<code>PipesKubeRayJobClient</code>) additionally accept <code>headers</code>, <code>cookies</code>, and <code>verify</code> parameters for HTTP-level authentication.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Custom host resolution</p>
+<p>Override <a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-function-name&quot;&gt;resolve_hostname&lt;/span&gt;" href="./#dagster_ray.kuberay.resources.base.BaseKubeRayResource.resolve_hostname"><code>BaseKubeRayResource.resolve_hostname</code></a> to customize how the Ray head service address is constructed (e.g. <code>name.namespace.company.com</code> instead of the default in-cluster FQDN).</p>
+</div>
 <hr />
 <h2 id="client-mode-resources">Client Mode Resources<a class="headerlink" href="#client-mode-resources" title="Permanent link">&para;</a></h2>
 <p>These resources initialize Ray client connection with a remote cluster.</p>
