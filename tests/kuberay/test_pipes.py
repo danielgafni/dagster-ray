@@ -153,11 +153,15 @@ def test_rayjob_pipes_submit_params_only(
 ):
     """submit_job_params without ray_job template -- manifest is auto-generated."""
 
+    # Default shutdownAfterJobFinishes=True tears down the cluster before the Pipes reader can tail logs.
+    ray_job = {"spec": {"shutdownAfterJobFinishes": False}}
+
     @dg.asset
     def my_asset(context: dg.AssetExecutionContext, pipes_kube_rayjob_client: PipesKubeRayJobClient):
         return pipes_kube_rayjob_client.run(
             context=context,
             submit_job_params=SUBMIT_JOB_PARAMS,
+            ray_job=ray_job,
             extras={"foo": "bar"},
         ).get_materialize_result()
 
