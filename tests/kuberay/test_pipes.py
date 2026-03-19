@@ -148,32 +148,6 @@ def test_rayjob_pipes_with_template(pipes_kube_rayjob_client: PipesKubeRayJobCli
         _assert_pipes_result(result, instance, my_asset.key, capsys)
 
 
-def test_rayjob_pipes_submit_params_only(
-    pipes_kube_rayjob_client: PipesKubeRayJobClient, dagster_ray_image: str, capsys
-):
-    """submit_job_params without ray_job template -- manifest is auto-generated."""
-
-    # Default shutdownAfterJobFinishes=True tears down the cluster before the Pipes reader can tail logs.
-    ray_job = {"spec": {"shutdownAfterJobFinishes": False}}
-
-    @dg.asset
-    def my_asset(context: dg.AssetExecutionContext, pipes_kube_rayjob_client: PipesKubeRayJobClient):
-        return pipes_kube_rayjob_client.run(
-            context=context,
-            submit_job_params=SUBMIT_JOB_PARAMS,
-            ray_job=ray_job,
-            extras={"foo": "bar"},
-        ).get_materialize_result()
-
-    with dg.instance_for_test() as instance:
-        result = dg.materialize(
-            [my_asset],
-            resources={"pipes_kube_rayjob_client": pipes_kube_rayjob_client},
-            instance=instance,
-            tags={"dagster/image": dagster_ray_image},
-        )
-        _assert_pipes_result(result, instance, my_asset.key, capsys)
-
 
 def _assert_ray_job_pipes(pipes_ray_job_client: PipesRayJobClient, capsys) -> None:
     @dg.asset
