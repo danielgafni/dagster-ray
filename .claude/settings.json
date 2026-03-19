@@ -1,0 +1,15 @@
+{
+  "plansDirectory": ".claude/plans",
+  "extraKnownMarketplaces": {
+    "dagster": {
+      "source": {
+        "source": "github",
+        "repo": "dagster-io/skills"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "dagster-expert@dagster": true,
+    "dignified-python@dagster": true
+  }
+}
