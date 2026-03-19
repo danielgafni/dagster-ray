@@ -148,7 +148,6 @@ def test_rayjob_pipes_with_template(pipes_kube_rayjob_client: PipesKubeRayJobCli
         _assert_pipes_result(result, instance, my_asset.key, capsys)
 
 
-
 def _assert_ray_job_pipes(pipes_ray_job_client: PipesRayJobClient, capsys) -> None:
     @dg.asset
     def my_asset(context: dg.AssetExecutionContext, pipes_ray_job_client: PipesRayJobClient):
