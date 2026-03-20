@@ -13,19 +13,21 @@ from typing import TYPE_CHECKING, Any, TypedDict, cast
 
 import dagster as dg
 import dagster._check as check
+from dagster import (
+    PipesContextInjector,
+    PipesEnvContextInjector,
+    PipesMessageHandler,
+    PipesMessageReader,
+    PipesSession,
+    open_pipes_session,
+)
 from dagster._core.definitions.resource_annotation import TreatAsResourceParam
 from dagster._core.errors import DagsterExecutionInterruptedError
-from dagster._core.pipes.client import (
-    PipesClientCompletedInvocation,
-    PipesContextInjector,
-    PipesMessageReader,
-)
-from dagster._core.pipes.context import PipesLaunchedData, PipesMessageHandler, PipesSession
+from dagster._core.pipes.client import PipesClientCompletedInvocation
+from dagster._core.pipes.context import PipesLaunchedData
 from dagster._core.pipes.utils import (
-    PipesEnvContextInjector,
     _join_thread,
     extract_message_or_forward_to_stdout,
-    open_pipes_session,
 )
 from dagster_pipes import PipesDefaultMessageWriter, PipesExtras, PipesParams
 from typing_extensions import NotRequired
@@ -188,6 +190,8 @@ class PipesRayJobMessageReader(PipesMessageReader):
 
 
 class SubmitJobParams(TypedDict):
+    """Parameters passed to [`JobSubmissionClient.submit_job`][ray.job_submission.JobSubmissionClient.submit_job]."""
+
     entrypoint: str
     runtime_env: NotRequired[dict[str, Any]]
     metadata: NotRequired[dict[str, str]]
@@ -200,6 +204,12 @@ class SubmitJobParams(TypedDict):
 
 
 class EnrichedSubmitJobParams(TypedDict):
+    """Parameters passed to [`JobSubmissionClient.submit_job`][ray.job_submission.JobSubmissionClient.submit_job].
+
+    This dictionary is typically constructed from [`SubmitJobParams`][dagster_ray.core.pipes.SubmitJobParams]
+        with additional parameters injected by `dagster-ray`.
+    """
+
     entrypoint: str
     runtime_env: dict[str, Any]
     metadata: dict[str, str]
@@ -290,7 +300,7 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
         Args:
             context: Current Dagster op or asset context.
             submit_job_params: Parameters for [`JobSubmissionClient.submit_job`][ray.job_submission.JobSubmissionClient.submit_job].
-            extras: Additional information to pass to the Pipes session, retrievable via [`PipesContext.get_extras`](https://docs.dagster.io/integrations/libraries/pipes/dagster-pipes#dagster_pipes.PipesContext.get_extra).
+            extras: Additional information to pass to the Pipes session, retrievable via [`PipesContext.get_extras`][dagster_pipes.PipesContext.get_extra].
         """
 
         with open_pipes_session(
