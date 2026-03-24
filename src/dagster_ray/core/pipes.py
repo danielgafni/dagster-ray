@@ -283,6 +283,7 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
     Args:
         address: Ray dashboard HTTP address.
             If unspecified, connects to a local Ray cluster or uses the ``RAY_ADDRESS`` environment variable.
+        create_cluster_if_needed: Whether to start a local Ray cluster automatically if one is not already running. Useful for local development and testing.
         headers: HTTP headers for Ray Dashboard requests. Passed to [`JobSubmissionClient`][ray.job_submission.JobSubmissionClient].
         verify: Whether to verify TLS certificate. Passed to [`JobSubmissionClient`][ray.job_submission.JobSubmissionClient].
         cookies: HTTP cookies for Ray Dashboard requests. Passed to [`JobSubmissionClient`][ray.job_submission.JobSubmissionClient].
@@ -300,6 +301,7 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
     def __init__(
         self,
         address: str | None = None,
+        create_cluster_if_needed: bool = False,
         headers: dict[str, Any] | None = None,
         verify: str | bool = True,
         cookies: dict[str, Any] | None = None,
@@ -310,15 +312,14 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
         timeout: float = 600,
         poll_interval: float = 1,
     ):
-        from ray.job_submission import JobSubmissionClient
+        self._address = address
+        self._create_cluster_if_needed = create_cluster_if_needed
+        self._headers = headers
+        self._verify = verify
+        self._cookies = cookies
+        self._metadata = metadata
+        self._client: JobSubmissionClient | None = None
 
-        self.client = JobSubmissionClient(
-            address=address,
-            headers=headers,
-            verify=verify,
-            cookies=cookies,
-            metadata=metadata,
-        )
         self._context_injector = context_injector or PipesEnvContextInjector()
         self._message_reader = message_reader or PipesRayJobMessageReader(
             job_submission_client_kwargs={
@@ -332,6 +333,21 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
         self.forward_termination = check.bool_param(forward_termination, "forward_termination")
         self.timeout = check.numeric_param(timeout, "timeout")
         self.poll_interval = check.numeric_param(poll_interval, "poll_interval")
+
+    @property
+    def client(self) -> JobSubmissionClient:
+        from ray.job_submission import JobSubmissionClient
+
+        if self._client is None:
+            self._client = JobSubmissionClient(
+                address=self._address,
+                create_cluster_if_needed=self._create_cluster_if_needed,
+                headers=self._headers,
+                verify=self._verify,
+                cookies=self._cookies,
+                metadata=self._metadata,
+            )
+        return self._client
 
     def run(  # type: ignore
         self,
