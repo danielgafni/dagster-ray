@@ -12,11 +12,11 @@ from queue import Queue
 from typing import TYPE_CHECKING, Any, TypedDict, cast
 
 import urllib3
-from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
+from tenacity import retry, retry_if_exception, retry_if_exception_type, stop_after_attempt, wait_fixed
 from typing_extensions import NotRequired
 
 from dagster_ray.kuberay.client.base import BaseKubeRayClient, load_kubeconfig
-from dagster_ray.kuberay.utils import k8s_service_fqdn
+from dagster_ray.kuberay.utils import is_retryable_k8s_api_exception, k8s_service_fqdn
 
 logger = logging.getLogger(__name__)
 
@@ -138,8 +138,11 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
         @retry(
             stop=stop_after_attempt(30),
             wait=wait_fixed(2),
-            # ignore a very specific error which happens rarely under certain conditions
-            retry=retry_if_exception_type(urllib3.exceptions.ProtocolError),
+            retry=(
+                retry_if_exception_type(urllib3.exceptions.ProtocolError)
+                # transient K8s API errors during cluster startup (e.g. 404 when the resource doesn't exist yet)
+                | retry_if_exception(is_retryable_k8s_api_exception)
+            ),
             reraise=True,
         )
         def get_status_with_retry() -> RayClusterStatus:

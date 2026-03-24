@@ -8,6 +8,24 @@ from typing import Any
 
 import dagster._check as check
 
+RETRYABLE_K8S_STATUSES = {
+    404,  # Not Found — resource not yet created (e.g. RayCluster during RayJob startup)
+    409,  # Conflict — concurrent update to the resource
+    429,  # Too Many Requests — API server rate limiting
+    500,  # Internal Server Error — transient etcd or apiserver issue
+    502,  # Bad Gateway — apiserver restarting behind a load balancer
+    503,  # Service Unavailable — apiserver overloaded or restarting
+    504,  # Gateway Timeout — apiserver didn't respond in time
+}
+
+
+def is_retryable_k8s_api_exception(e: BaseException) -> bool:
+    """Check if a Kubernetes API exception is transient and safe to retry."""
+    from kubernetes.client import ApiException
+
+    return isinstance(e, ApiException) and e.status in RETRYABLE_K8S_STATUSES
+
+
 _INVALID_CHARS_PATTERN = re.compile(r"[^a-zA-Z0-9\-_.]")
 _LEADING_TRAILING_NON_ALNUM_PATTERN = re.compile(r"^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$")
 
