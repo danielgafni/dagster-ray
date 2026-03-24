@@ -265,7 +265,7 @@ def distributed_computation(
     # Submit the external Ray script
     return ray_pipes_client.run(
         context=context,
-        ray_job={
+        submit_job_params={
             "entrypoint": "python ray_workload.py",
             "runtime_env": {
                 "pip": ["dagster-pipes", "torch"],  # (1)!

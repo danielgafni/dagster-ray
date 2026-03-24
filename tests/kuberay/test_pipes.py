@@ -13,6 +13,7 @@ from dagster._core.definitions.data_version import (
 from pytest_kubernetes.providers import AClusterManager
 
 from dagster_ray import PipesRayJobClient
+from dagster_ray.core.pipes import SubmitJobParams
 from dagster_ray.kuberay.client import RayJobClient
 from dagster_ray.kuberay.pipes import PipesKubeRayJobClient
 
@@ -90,16 +91,52 @@ def pipes_ray_job_client_with_auth(k8s_with_raycluster_with_auth: tuple[dict[str
     )
 
 
-def test_kube_rayjob_pipes(pipes_kube_rayjob_client: PipesKubeRayJobClient, dagster_ray_image: str, capsys):
+SUBMIT_JOB_PARAMS: SubmitJobParams = {
+    "entrypoint": ENTRYPOINT,
+    "runtime_env": {"env_vars": {"FOO": "1E-5"}},
+    "entrypoint_num_cpus": 0.1,
+}
+
+
+def _assert_pipes_result(
+    result: dg.ExecuteInProcessResult,
+    instance: dg.DagsterInstance,
+    asset_key: dg.AssetKey,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    captured = capsys.readouterr()
+    print(captured.out)
+    print(captured.err, file=sys.stderr)
+
+    mat_evts = result.get_asset_materialization_events()
+    mat = instance.get_latest_materialization_event(asset_key)
+    instance.get_event_records(event_records_filter=dg.EventRecordsFilter(event_type=dg.DagsterEventType.LOGS_CAPTURED))
+
+    assert len(mat_evts) == 1
+    assert result.success
+    assert mat
+    assert mat and mat.asset_materialization
+    assert mat.asset_materialization.metadata["some_metric"].value == 0
+    assert mat.asset_materialization.tags
+    assert mat.asset_materialization.tags[DATA_VERSION_TAG] == "alpha"
+    assert mat.asset_materialization.tags[DATA_VERSION_IS_USER_PROVIDED_TAG]
+
+    assert "Hello from stdout!" in captured.out
+    assert "Hello from stderr!" in captured.out
+    assert "Hello from Ray Pipes!" in captured.err
+
+
+def test_rayjob_pipes_with_template(pipes_kube_rayjob_client: PipesKubeRayJobClient, dagster_ray_image: str, capsys):
+    """submit_job_params merged into an explicit ray_job template."""
+
     @dg.asset
     def my_asset(context: dg.AssetExecutionContext, pipes_kube_rayjob_client: PipesKubeRayJobClient):
-        result = pipes_kube_rayjob_client.run(
+        return pipes_kube_rayjob_client.run(
             context=context,
+            submit_job_params=SUBMIT_JOB_PARAMS,
             ray_job=RAY_JOB,
             extras={"foo": "bar"},
         ).get_materialize_result()
-
-        return result
 
     with dg.instance_for_test() as instance:
         result = dg.materialize(
@@ -108,32 +145,7 @@ def test_kube_rayjob_pipes(pipes_kube_rayjob_client: PipesKubeRayJobClient, dags
             instance=instance,
             tags={"dagster/image": dagster_ray_image},
         )
-
-        captured = capsys.readouterr()
-
-        print(captured.out)
-        print(captured.err, file=sys.stderr)
-
-        mat_evts = result.get_asset_materialization_events()
-
-        mat = instance.get_latest_materialization_event(my_asset.key)
-        instance.get_event_records(
-            event_records_filter=dg.EventRecordsFilter(event_type=dg.DagsterEventType.LOGS_CAPTURED)
-        )
-
-        assert len(mat_evts) == 1
-
-        assert result.success
-        assert mat
-        assert mat and mat.asset_materialization
-        assert mat.asset_materialization.metadata["some_metric"].value == 0
-        assert mat.asset_materialization.tags
-        assert mat.asset_materialization.tags[DATA_VERSION_TAG] == "alpha"
-        assert mat.asset_materialization.tags[DATA_VERSION_IS_USER_PROVIDED_TAG]
-
-        assert "Hello from stdout!" in captured.out
-        assert "Hello from stderr!" in captured.out
-        assert "Hello from Ray Pipes!" in captured.err
+        _assert_pipes_result(result, instance, my_asset.key, capsys)
 
 
 def _assert_ray_job_pipes(pipes_ray_job_client: PipesRayJobClient, capsys) -> None:
@@ -250,9 +262,11 @@ def test_pipes_kube_rayjob_client_params_forwarded():
 
         pipes_client.run(
             context=mock_context,
+            submit_job_params={"entrypoint": "python test.py"},
             ray_job={
                 "metadata": {"name": "test-job", "namespace": "ray"},
                 "spec": {
+                    "entrypoint": "python test.py",
                     "rayClusterSpec": {
                         "headGroupSpec": {"template": {"spec": {"containers": []}}},
                         "workerGroupSpecs": [],
@@ -317,9 +331,11 @@ def test_pipes_kube_rayjob_client_params_forwarded_on_termination():
         with pytest.raises(DagsterExecutionInterruptedError):
             pipes_client.run(
                 context=mock_context,
+                submit_job_params={"entrypoint": "python test.py"},
                 ray_job={
                     "metadata": {"name": "test-job", "namespace": "ray"},
                     "spec": {
+                        "entrypoint": "python test.py",
                         "rayClusterSpec": {
                             "headGroupSpec": {"template": {"spec": {"containers": []}}},
                             "workerGroupSpecs": [],
@@ -332,3 +348,83 @@ def test_pipes_kube_rayjob_client_params_forwarded_on_termination():
     _, terminate_kwargs = mock_client.terminate.call_args
     assert terminate_kwargs["address"] == address
     assert terminate_kwargs["headers"] == headers
+
+
+BASE_RAY_JOB: dict = {
+    "apiVersion": "ray.io/v1",
+    "kind": "RayJob",
+    "metadata": {"name": "test-job", "namespace": "ray"},
+    "spec": {
+        "entrypoint": "python original.py",
+        "runtimeEnvYAML": yaml.dump({"env_vars": {"OLD": "value"}}, default_style='"'),
+        "entrypointNumCpus": 0.5,
+        "rayClusterSpec": {
+            "headGroupSpec": {"template": {"spec": {"containers": [{"name": "ray-head"}]}}},
+            "workerGroupSpecs": [],
+        },
+    },
+}
+
+
+@pytest.mark.parametrize(
+    "submit_job_params, expected_overrides",
+    [
+        pytest.param(
+            {"entrypoint": "python new.py"},
+            {"entrypoint": "python new.py"},
+            id="entrypoint_only",
+        ),
+        pytest.param(
+            {
+                "entrypoint": "python new.py",
+                "entrypoint_num_cpus": 2.0,
+                "entrypoint_num_gpus": 1.0,
+                "entrypoint_memory": 4_000_000_000,
+            },
+            {
+                "entrypoint": "python new.py",
+                "entrypointNumCpus": 2.0,
+                "entrypointNumGpus": 1.0,
+                "entrypointMemory": 4_000_000_000,
+            },
+            id="numeric_fields",
+        ),
+        pytest.param(
+            {
+                "entrypoint": "python new.py",
+                "entrypoint_resources": {"Custom1": 1, "Custom2": 5},
+            },
+            {
+                "entrypoint": "python new.py",
+                "entrypointResources": '"{\\"Custom1\\": 1, \\"Custom2\\": 5}"',
+            },
+            id="custom_resources",
+        ),
+        pytest.param(
+            {
+                "entrypoint": "python new.py",
+                "metadata": {"user": "test"},
+                "submission_id": "my-job-123",
+            },
+            {
+                "entrypoint": "python new.py",
+                "metadata": {"user": "test"},
+                "jobId": "my-job-123",
+            },
+            id="metadata_and_submission_id",
+        ),
+    ],
+)
+def test_merge_submit_params_into_ray_job(
+    submit_job_params: SubmitJobParams,
+    expected_overrides: dict,
+) -> None:
+    from dagster_ray.kuberay.pipes import _merge_submit_params_into_ray_job
+
+    result = _merge_submit_params_into_ray_job(BASE_RAY_JOB, submit_job_params)
+
+    for key, expected_value in expected_overrides.items():
+        assert result["spec"][key] == expected_value
+
+    assert result["metadata"] == BASE_RAY_JOB["metadata"]
+    assert result is not BASE_RAY_JOB
