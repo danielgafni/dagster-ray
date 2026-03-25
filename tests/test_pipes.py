@@ -67,12 +67,12 @@ def test_ray_job_pipes(pipes_ray_job_client: PipesRayJobClient, capsys):
 
 
 def test_pipes_ray_job_client_lazy_client():
-    client = PipesRayJobClient(create_cluster_if_needed=True)
+    pipes_client = PipesRayJobClient(create_cluster_if_needed=True)
 
-    assert client._client is None
+    assert "client" not in vars(pipes_client)
 
     with patch("ray.job_submission.JobSubmissionClient") as mock_cls:
-        _ = client.client
+        _ = pipes_client.client
         mock_cls.assert_called_once_with(
             address=None,
             create_cluster_if_needed=True,
@@ -83,5 +83,5 @@ def test_pipes_ray_job_client_lazy_client():
         )
 
         mock_cls.reset_mock()
-        _ = client.client
+        _ = pipes_client.client
         mock_cls.assert_not_called()

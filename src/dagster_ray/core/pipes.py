@@ -8,7 +8,7 @@ import threading
 import time
 from collections.abc import AsyncIterator, Generator, Iterator
 from contextlib import contextmanager
-from functools import partial
+from functools import cached_property, partial
 from typing import TYPE_CHECKING, Any, TypedDict, cast
 
 import dagster as dg
@@ -318,8 +318,6 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
         self._verify = verify
         self._cookies = cookies
         self._metadata = metadata
-        self._client: JobSubmissionClient | None = None
-
         self._context_injector = context_injector or PipesEnvContextInjector()
         self._message_reader = message_reader or PipesRayJobMessageReader(
             job_submission_client_kwargs={
@@ -334,20 +332,18 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
         self.timeout = check.numeric_param(timeout, "timeout")
         self.poll_interval = check.numeric_param(poll_interval, "poll_interval")
 
-    @property
+    @cached_property
     def client(self) -> JobSubmissionClient:
         from ray.job_submission import JobSubmissionClient
 
-        if self._client is None:
-            self._client = JobSubmissionClient(
-                address=self._address,
-                create_cluster_if_needed=self._create_cluster_if_needed,
-                headers=self._headers,
-                verify=self._verify,
-                cookies=self._cookies,
-                metadata=self._metadata,
-            )
-        return self._client
+        return JobSubmissionClient(
+            address=self._address,
+            create_cluster_if_needed=self._create_cluster_if_needed,
+            headers=self._headers,
+            verify=self._verify,
+            cookies=self._cookies,
+            metadata=self._metadata,
+        )
 
     def run(  # type: ignore
         self,
