@@ -200,9 +200,8 @@ def test_ray_job_pipes_fails_without_auth(
     k8s_with_raycluster_with_auth: tuple[dict[str, str], str, AClusterManager],
 ):
     hosts, _auth_token, _k8s = k8s_with_raycluster_with_auth
-    # JobSubmissionClient connects eagerly in __init__, so construction itself raises on 401
     with pytest.raises(Exception):
-        PipesRayJobClient(address=hosts["dashboard"])
+        PipesRayJobClient(address=hosts["dashboard"]).client
 
 
 @pytest.mark.kuberay_auth

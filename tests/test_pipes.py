@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+from unittest.mock import patch
 
 import dagster as dg
 import pytest
@@ -63,3 +64,24 @@ def test_ray_job_pipes(pipes_ray_job_client: PipesRayJobClient, capsys):
         assert "Hello from stdout!" in captured.out
         assert "Hello from stderr!" in captured.out
         assert "Hello from Ray Pipes!" in captured.err
+
+
+def test_pipes_ray_job_client_lazy_client():
+    pipes_client = PipesRayJobClient(create_cluster_if_needed=True)
+
+    assert "client" not in vars(pipes_client)
+
+    with patch("ray.job_submission.JobSubmissionClient") as mock_cls:
+        _ = pipes_client.client
+        mock_cls.assert_called_once_with(
+            address=None,
+            create_cluster_if_needed=True,
+            headers=None,
+            verify=True,
+            cookies=None,
+            metadata=None,
+        )
+
+        mock_cls.reset_mock()
+        _ = pipes_client.client
+        mock_cls.assert_not_called()
