@@ -296,6 +296,7 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
         timeout: Timeout for various internal interactions with the Ray job.
         poll_interval: Interval at which to poll Ray for status updates.
             Is useful when running in a local environment.
+        _force_create_local_cluster: Workaround for [ray-project/ray#62091](https://github.com/ray-project/ray/issues/62091): calls ``ray.init()`` before creating the ``JobSubmissionClient`` to ensure a local cluster exists.
     """
 
     def __init__(
@@ -311,9 +312,11 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
         forward_termination: bool = True,
         timeout: float = 600,
         poll_interval: float = 1,
+        _force_create_local_cluster: bool = False,
     ):
         self._address = address
         self._create_cluster_if_needed = create_cluster_if_needed
+        self.__force_create_local_cluster = _force_create_local_cluster
         self._headers = headers
         self._verify = verify
         self._cookies = cookies
@@ -335,6 +338,12 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
     @cached_property
     def client(self) -> JobSubmissionClient:
         from ray.job_submission import JobSubmissionClient
+
+        if self.__force_create_local_cluster:
+            import ray
+
+            if not ray.is_initialized():
+                ray.init()
 
         return JobSubmissionClient(
             address=self._address,

@@ -85,3 +85,16 @@ def test_pipes_ray_job_client_lazy_client():
         mock_cls.reset_mock()
         _ = pipes_client.client
         mock_cls.assert_not_called()
+
+
+def test_force_create_local_cluster():
+    pipes_client = PipesRayJobClient(_force_create_local_cluster=True)
+
+    with (
+        patch("ray.is_initialized", return_value=False) as mock_is_init,
+        patch("ray.init") as mock_init,
+        patch("ray.job_submission.JobSubmissionClient"),
+    ):
+        _ = pipes_client.client
+        mock_is_init.assert_called_once()
+        mock_init.assert_called_once()
