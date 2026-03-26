@@ -284,7 +284,6 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
         address: Ray dashboard HTTP address.
             If unspecified, connects to a local Ray cluster or uses the ``RAY_ADDRESS`` environment variable.
         create_cluster_if_needed: Whether to start a local Ray cluster automatically if one is not already running. Useful for local development and testing.
-        _force_create_local_cluster: Workaround for `ray-project/ray#62091 <https://github.com/ray-project/ray/issues/62091>`_: calls ``ray.init()`` before creating the ``JobSubmissionClient`` to ensure a local cluster exists.
         headers: HTTP headers for Ray Dashboard requests. Passed to [`JobSubmissionClient`][ray.job_submission.JobSubmissionClient].
         verify: Whether to verify TLS certificate. Passed to [`JobSubmissionClient`][ray.job_submission.JobSubmissionClient].
         cookies: HTTP cookies for Ray Dashboard requests. Passed to [`JobSubmissionClient`][ray.job_submission.JobSubmissionClient].
@@ -297,13 +296,13 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
         timeout: Timeout for various internal interactions with the Ray job.
         poll_interval: Interval at which to poll Ray for status updates.
             Is useful when running in a local environment.
+        _force_create_local_cluster: Workaround for [ray-project/ray#62091](https://github.com/ray-project/ray/issues/62091): calls ``ray.init()`` before creating the ``JobSubmissionClient`` to ensure a local cluster exists.
     """
 
     def __init__(
         self,
         address: str | None = None,
         create_cluster_if_needed: bool = False,
-        _force_create_local_cluster: bool = False,
         headers: dict[str, Any] | None = None,
         verify: str | bool = True,
         cookies: dict[str, Any] | None = None,
@@ -313,6 +312,7 @@ class PipesRayJobClient(dg.PipesClient, TreatAsResourceParam):
         forward_termination: bool = True,
         timeout: float = 600,
         poll_interval: float = 1,
+        _force_create_local_cluster: bool = False,
     ):
         self._address = address
         self._create_cluster_if_needed = create_cluster_if_needed
