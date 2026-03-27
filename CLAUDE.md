@@ -28,7 +28,7 @@ uv run basedpyright              # type check
 uv run --group docs mkdocs serve
 ```
 
-KubeRay tests require: docker, kubectl, helm, minikube. Nix users: `nix develop`.
+KubeRay tests require: docker, kubectl, helm, minikube. Nix users: `devenv shell`.
 
 ## Architecture
 
