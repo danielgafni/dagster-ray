@@ -797,15 +797,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#v043-18-03-2026" class="md-nav__link">
+  <a href="#v044-26-03-2026" class="md-nav__link">
     <span class="md-ellipsis">
       
-        v0.4.3 (18-03-2026)
+        v0.4.4 (26-03-2026)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="v0.4.3 (18-03-2026)">
+    <nav class="md-nav" aria-label="v0.4.4 (26-03-2026)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -831,6 +831,56 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#other-improvements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other Improvements
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v043-18-03-2026" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v0.4.3 (18-03-2026)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="v0.4.3 (18-03-2026)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#features_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#docs" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -842,7 +892,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#other-improvements" class="md-nav__link">
+  <a href="#other-improvements_1" class="md-nav__link">
     <span class="md-ellipsis">
       
         Other Improvements
@@ -1205,15 +1255,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#v043-18-03-2026" class="md-nav__link">
+  <a href="#v044-26-03-2026" class="md-nav__link">
     <span class="md-ellipsis">
       
-        v0.4.3 (18-03-2026)
+        v0.4.4 (26-03-2026)
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="v0.4.3 (18-03-2026)">
+    <nav class="md-nav" aria-label="v0.4.4 (26-03-2026)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1239,6 +1289,56 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#other-improvements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other Improvements
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v043-18-03-2026" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v0.4.3 (18-03-2026)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="v0.4.3 (18-03-2026)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#features_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#docs" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1250,7 +1350,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#other-improvements" class="md-nav__link">
+  <a href="#other-improvements_1" class="md-nav__link">
     <span class="md-ellipsis">
       
         Other Improvements
@@ -1607,13 +1707,31 @@
 <p>All notable user-facing changes to <code>dagster-ray</code> will be documented in this file.</p>
 <p>The format is based on <a href="https://keepachangelog.com/en/1.1.0/">Keep a Changelog</a>,
 and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
+<h2 id="v044-26-03-2026">v0.4.4 (26-03-2026)<a class="headerlink" href="#v044-26-03-2026" title="Permanent link">&para;</a></h2>
+<h3 id="features"><img alt="✨" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/2728.svg" title=":sparkles:" /> Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h3>
+<ul>
+<li>add <code>create_cluster_if_needed</code> constructor argument to <code>PipesRayJobClient</code> (<a href="https://github.com/danielgafni/dagster-ray/pull/324">#324</a> by <a href="https://github.com/ashutosh1807">@ashutosh1807</a>)</li>
+<li>add <code>submit_job_params</code> argument to <code>PipesKubeRayJobClient.run</code> (<a href="https://github.com/danielgafni/dagster-ray/pull/322">#322</a> by <a href="https://github.com/ashutosh1807">@ashutosh1807</a>)</li>
+</ul>
+<h3 id="bug-fixes"><img alt="🐛" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f41b.svg" title=":bug:" /> Bug Fixes<a class="headerlink" href="#bug-fixes" title="Permanent link">&para;</a></h3>
+<ul>
+<li>add _force_create_local_cluster workaround for broken create_cluster_if_needed (<a href="https://github.com/danielgafni/dagster-ray/pull/346">#346</a> by <a href="https://github.com/ashutosh1807">@ashutosh1807</a>)</li>
+<li>ignore more k8s errors during RayCluster startup (<a href="https://github.com/danielgafni/dagster-ray/pull/344">#344</a> by <a href="https://github.com/danielgafni">@danielgafni</a>)</li>
+</ul>
+<h3 id="other-improvements"><img alt="🛠" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f6e0.svg" title=":hammer_and_wrench:" /> Other Improvements<a class="headerlink" href="#other-improvements" title="Permanent link">&para;</a></h3>
+<ul>
+<li>add a section for other improvements to changelog</li>
+<li>improve Pipes imports and docs references (<a href="https://github.com/danielgafni/dagster-ray/pull/343">#343</a> by <a href="https://github.com/danielgafni">@danielgafni</a>)</li>
+<li>upgrade zensical to 0.0.28 (<a href="https://github.com/danielgafni/dagster-ray/pull/342">#342</a> by <a href="https://github.com/danielgafni">@danielgafni</a>)</li>
+<li>add minimal Claude Code config (<a href="https://github.com/danielgafni/dagster-ray/pull/341">#341</a> by <a href="https://github.com/danielgafni">@danielgafni</a>)</li>
+</ul>
 <h2 id="v043-18-03-2026">v0.4.3 (18-03-2026)<a class="headerlink" href="#v043-18-03-2026" title="Permanent link">&para;</a></h2>
 <p>This release is focused on improving support for authentication and cross-cluster KubeRay workloads.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>If you or your company are using <code>dagster-ray</code> in production, please consider adding yourself to the list <a href="https://github.com/danielgafni/dagster-ray/blob/master/README.md#-who-is-using-dagster-ray">here</a> :)</p>
 </div>
-<h3 id="features"><img alt="✨" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/2728.svg" title=":sparkles:" /> Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h3>
+<h3 id="features_1"><img alt="✨" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/2728.svg" title=":sparkles:" /> Features<a class="headerlink" href="#features_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li>support <code>resolve_hostname</code> hook in <code>PipesKubeRayJobClient</code> (<a href="https://github.com/danielgafni/dagster-ray/pull/340">#340</a> by <a href="https://github.com/danielgafni">@danielgafni</a>)</li>
 <li>add resolve_hostname hook to <code>KubeRayResource</code> (<a href="https://github.com/danielgafni/dagster-ray/pull/335">#335</a> by <a href="https://github.com/danielgafni">@danielgafni</a>)</li>
@@ -1621,7 +1739,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <li>add support for custom Ray dashboard address with authentication (<a href="https://github.com/danielgafni/dagster-ray/pull/315">#315</a> by <a href="https://github.com/JosefNagelschmidt">@JosefNagelschmidt</a>)</li>
 <li>add missing fields to RayJobSpec (<a href="https://github.com/danielgafni/dagster-ray/pull/321">#321</a> by <a href="https://github.com/danielgafni">@danielgafni</a>)</li>
 </ul>
-<h3 id="bug-fixes"><img alt="🐛" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f41b.svg" title=":bug:" /> Bug Fixes<a class="headerlink" href="#bug-fixes" title="Permanent link">&para;</a></h3>
+<h3 id="bug-fixes_1"><img alt="🐛" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f41b.svg" title=":bug:" /> Bug Fixes<a class="headerlink" href="#bug-fixes_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li>use serviceName FQDN instead of serviceIP for cross-cluster connectivity (<a href="https://github.com/danielgafni/dagster-ray/pull/319">#319</a> by <a href="https://github.com/pythonmonty">@pythonmonty</a>)</li>
 </ul>
@@ -1633,7 +1751,7 @@ and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semant
 <li>update Pipes docs with better Ray API references (<a href="https://github.com/danielgafni/dagster-ray/pull/329">#329</a> by <a href="https://github.com/danielgafni">@danielgafni</a>)</li>
 <li>switch to Zensical (<a href="https://github.com/danielgafni/dagster-ray/pull/327">#327</a> by <a href="https://github.com/danielgafni">@danielgafni</a>)</li>
 </ul>
-<h3 id="other-improvements"><img alt="🛠" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f6e0.svg" title=":hammer_and_wrench:" /> Other Improvements<a class="headerlink" href="#other-improvements" title="Permanent link">&para;</a></h3>
+<h3 id="other-improvements_1"><img alt="🛠" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/1f6e0.svg" title=":hammer_and_wrench:" /> Other Improvements<a class="headerlink" href="#other-improvements_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li>release 0.4.3 (<a href="https://github.com/danielgafni/dagster-ray/pull/337">#337</a> by <a href="https://github.com/danielgafni">@danielgafni</a>)</li>
 <li>add production users list (<a href="https://github.com/danielgafni/dagster-ray/pull/334">#334</a> by <a href="https://github.com/danielgafni">@danielgafni</a>)</li>
