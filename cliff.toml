@@ -187,4 +187,7 @@ This release includes massive docs improvements and drops support for Python 3.9
 - `KubeRayInteractiveJob` -- a resource that utilizes the new `InteractiveMode` for `RayJob`. It can be used to connect to Ray in Client mode -- like `KubeRayCluster` -- but gives access to `RayJob` features, such as automatic cleanup (`ttlSecondsAfterFinished`), retries (`backoffLimit`) and timeouts (`activeDeadlineSeconds`).
 - `RayResource` setup lifecycle has been overhauled: resources now has an `actions` parameter with 3 configuration options: `create`, `wait` and `connect`. The user can disable them and run `.create()`, `.wait()` and `.connect()` manually if needed.
 """
+postprocessors = [
+  { pattern = 'danielgafni/dagster-ray/blob/master/', replace = "danielgafni/dagster-ray/blob/main/" },
+]
 trim = false
