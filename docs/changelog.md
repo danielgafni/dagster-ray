@@ -5,8 +5,7 @@ All notable user-facing changes to `dagster-ray` will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-
-## v0.4.4 (26-03-2026)
+## v0.4.4 (27-03-2026)
 
 ### :sparkles: Features
 
@@ -20,7 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### :hammer_and_wrench: Other Improvements
 
-- add a section for other improvements to changelog
+- release 0.4.4 ([#348](https://github.com/danielgafni/dagster-ray/pull/348) by [@danielgafni](https://github.com/danielgafni))
+- add a section for other improvements to changelog ([#347](https://github.com/danielgafni/dagster-ray/pull/347) by [@danielgafni](https://github.com/danielgafni))
 - improve Pipes imports and docs references ([#343](https://github.com/danielgafni/dagster-ray/pull/343) by [@danielgafni](https://github.com/danielgafni))
 - upgrade zensical to 0.0.28 ([#342](https://github.com/danielgafni/dagster-ray/pull/342) by [@danielgafni](https://github.com/danielgafni))
 - add minimal Claude Code config ([#341](https://github.com/danielgafni/dagster-ray/pull/341) by [@danielgafni](https://github.com/danielgafni))
@@ -30,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 This release is focused on improving support for authentication and cross-cluster KubeRay workloads.
 
 !!! note
-    If you or your company are using `dagster-ray` in production, please consider adding yourself to the list [here](https://github.com/danielgafni/dagster-ray/blob/master/README.md#-who-is-using-dagster-ray) :)
+    If you or your company are using `dagster-ray` in production, please consider adding yourself to the list [here](https://github.com/danielgafni/dagster-ray/blob/main/README.md#-who-is-using-dagster-ray) :)
 
 
 ### :sparkles: Features
@@ -162,4 +162,3 @@ This release includes massive docs improvements and drops support for Python 3.9
 ### Added
 - `KubeRayInteractiveJob` -- a resource that utilizes the new `InteractiveMode` for `RayJob`. It can be used to connect to Ray in Client mode -- like `KubeRayCluster` -- but gives access to `RayJob` features, such as automatic cleanup (`ttlSecondsAfterFinished`), retries (`backoffLimit`) and timeouts (`activeDeadlineSeconds`).
 - `RayResource` setup lifecycle has been overhauled: resources now has an `actions` parameter with 3 configuration options: `create`, `wait` and `connect`. The user can disable them and run `.create()`, `.wait()` and `.connect()` manually if needed.
-

@@ -9,7 +9,7 @@ uv run prek install
 
 ## Commit Messages
 
-We use [Conventional Commits](https://www.conventionalcommits.org/). PRs are squash-merged, so the **PR title becomes the commit message** in `master`. This means the PR title must follow conventional commit format — individual commit messages on the branch don't matter. A CI check enforces this.
+We use [Conventional Commits](https://www.conventionalcommits.org/). PRs are squash-merged, so the **PR title becomes the commit message** in `main`. This means the PR title must follow conventional commit format — individual commit messages on the branch don't matter. A CI check enforces this.
 
 ```
 <type>(<optional scope>): <description>

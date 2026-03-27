@@ -1,10 +1,10 @@
-name: CD on master
+name: CD on main
 
 on:
   workflow_dispatch:
   push:
     branches:
-      - master
+      - main
     paths:
       - "docs/**"
       - "mkdocs.yml"
@@ -12,14 +12,14 @@ on:
       - "scripts/deploy_docs.py"
       - "pyproject.toml"
       - "uv.lock"
-      - ".github/workflows/CD-master.yml"
+      - ".github/workflows/CD-main.yml"
 
 env:
   UV_SYSTEM_PYTHON: "1"
 
 jobs:
-  publish-master-docs:
-    name: Publish Master Docs
+  publish-main-docs:
+    name: Publish Main Docs
     runs-on: ubuntu-latest
     environment:
       name: release
@@ -43,4 +43,4 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "actions@github.com"
-          uv run --group docs --all-extras python scripts/deploy_docs.py --push master
+          uv run --group docs --all-extras python scripts/deploy_docs.py --push main
