@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import warnings
 from collections.abc import Mapping
 from typing import Any, Literal
 
 import dagster as dg
+from packaging.version import Version
 from pydantic import Field, model_validator
 
 USER_DEFINED_RAY_KEY = "dagster-ray/config"
@@ -91,17 +91,18 @@ class RayDataExecutionOptions(dg.Config):
     @model_validator(mode="before")
     @classmethod
     def _forward_deprecated_use_polars(cls, data: Any) -> Any:
-        if not isinstance(data, dict) or data.get("use_polars") is None:
+        if not isinstance(data, dict):
             return data
-        warnings.warn(
-            "`use_polars` is deprecated; use `use_polars_sort` instead. "
-            "The value has been forwarded to `use_polars_sort`.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        # Prefer an explicit `use_polars_sort`; otherwise forward the deprecated value.
-        # Keep `use_polars` on the instance so existing read access keeps working.
-        data = {**data, "use_polars_sort": data.get("use_polars_sort", data["use_polars"])}
+        legacy = data.get("use_polars")
+        new = data.get("use_polars_sort")
+        if legacy is not None and new is not None and legacy != new:
+            raise ValueError(
+                "`use_polars` and `use_polars_sort` were set to contradicting values "
+                f"({legacy!r} vs {new!r}). `use_polars` is deprecated; set only "
+                "`use_polars_sort`."
+            )
+        if legacy is not None and new is None:
+            data = {**data, "use_polars_sort": legacy}
         return data
 
     def apply(self):
@@ -117,12 +118,14 @@ class RayDataExecutionOptions(dg.Config):
         )
 
         ctx.verbose_progress = self.verbose_progress
-        # Ray >=2.50 renamed `use_polars` to `use_polars_sort`; set the new name when
-        # available to avoid Ray's own DeprecationWarning, and fall back on older Ray.
-        if hasattr(ctx, "use_polars_sort"):
-            ctx.use_polars_sort = self.use_polars_sort
+        # Ray >=2.50 renamed the sort-time Polars toggle from `use_polars` to
+        # `use_polars_sort`; read the effective value (the legacy field wins when
+        # both are set only because the validator has already unified them).
+        effective = self.use_polars if self.use_polars is not None else self.use_polars_sort
+        if Version(ray.__version__) >= Version("2.50"):
+            ctx.use_polars_sort = effective
         else:
-            ctx.use_polars = self.use_polars_sort
+            ctx.use_polars = effective
 
     def apply_remote(self):
         import ray
