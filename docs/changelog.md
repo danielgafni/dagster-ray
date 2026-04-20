@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## Unreleased
+
+### :bug: Bug Fixes
+
+- avoid Ray 2.55 `DatasetContext.use_polars` DeprecationWarning on every `RayDataExecutionOptions.apply()` by writing to `use_polars_sort` ([#354](https://github.com/danielgafni/dagster-ray/issues/354))
+
+### :hammer_and_wrench: Other Improvements
+
+- add `RayDataExecutionOptions.use_polars_sort`; keep `use_polars` as a deprecated alias that forwards its value and emits a `DeprecationWarning`
+
 ## v0.4.4 (26-03-2026)
 
 ### :sparkles: Features

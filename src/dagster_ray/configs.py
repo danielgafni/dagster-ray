@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import warnings
 from collections.abc import Mapping
 from typing import Any, Literal
 
 import dagster as dg
-from pydantic import Field
+from pydantic import Field, model_validator
 
 USER_DEFINED_RAY_KEY = "dagster-ray/config"
 DAGSTER_RAY_NAMESPACES_ENV_VAR = "DAGSTER_RAY_NAMESPACES"
@@ -77,7 +78,31 @@ class RayDataExecutionOptions(dg.Config):
     cpu_limit: int = 5000
     gpu_limit: int = 0
     verbose_progress: bool = True
-    use_polars: bool = True
+    use_polars_sort: bool = Field(
+        default=True,
+        description="Whether to use Polars for sort operations in Ray Data. Forwarded to `ray.data.DatasetContext.use_polars_sort`.",
+    )
+    use_polars: bool | None = Field(
+        default=None,
+        description="Deprecated. Use `use_polars_sort` instead. Ray 2.55 renamed the underlying `DatasetContext` attribute to `use_polars_sort`.",
+        deprecated="`use_polars` is deprecated; use `use_polars_sort` instead.",
+    )
+
+    @model_validator(mode="before")
+    @classmethod
+    def _forward_deprecated_use_polars(cls, data: Any) -> Any:
+        if not isinstance(data, dict) or data.get("use_polars") is None:
+            return data
+        warnings.warn(
+            "`use_polars` is deprecated; use `use_polars_sort` instead. "
+            "The value has been forwarded to `use_polars_sort`.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        # Prefer an explicit `use_polars_sort`; otherwise forward the deprecated value.
+        # Keep `use_polars` on the instance so existing read access keeps working.
+        data = {**data, "use_polars_sort": data.get("use_polars_sort", data["use_polars"])}
+        return data
 
     def apply(self):
         import ray
@@ -92,7 +117,7 @@ class RayDataExecutionOptions(dg.Config):
         )
 
         ctx.verbose_progress = self.verbose_progress
-        ctx.use_polars = self.use_polars
+        ctx.use_polars_sort = self.use_polars_sort
 
     def apply_remote(self):
         import ray
