@@ -117,7 +117,12 @@ class RayDataExecutionOptions(dg.Config):
         )
 
         ctx.verbose_progress = self.verbose_progress
-        ctx.use_polars_sort = self.use_polars_sort
+        # Ray >=2.50 renamed `use_polars` to `use_polars_sort`; set the new name when
+        # available to avoid Ray's own DeprecationWarning, and fall back on older Ray.
+        if hasattr(ctx, "use_polars_sort"):
+            ctx.use_polars_sort = self.use_polars_sort
+        else:
+            ctx.use_polars = self.use_polars_sort
 
     def apply_remote(self):
         import ray
