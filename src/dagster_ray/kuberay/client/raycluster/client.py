@@ -139,7 +139,11 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
             stop=stop_after_attempt(30),
             wait=wait_fixed(2),
             retry=(
-                retry_if_exception_type(urllib3.exceptions.ProtocolError)
+                # ProtocolError: mid-response network drops (e.g. RemoteDisconnected).
+                # MaxRetryError: urllib3's pool-level retries exhausted — typically
+                # wraps NewConnectionError ("Connection refused") when the apiserver
+                # briefly goes away (common on minikube under load in CI).
+                retry_if_exception_type((urllib3.exceptions.ProtocolError, urllib3.exceptions.MaxRetryError))
                 # transient K8s API errors during cluster startup (e.g. 404 when the resource doesn't exist yet)
                 | retry_if_exception(is_retryable_k8s_api_exception)
             ),
