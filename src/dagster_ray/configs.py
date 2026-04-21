@@ -4,7 +4,8 @@ from collections.abc import Mapping
 from typing import Any, Literal
 
 import dagster as dg
-from pydantic import Field
+from packaging.version import Version
+from pydantic import Field, model_validator
 
 USER_DEFINED_RAY_KEY = "dagster-ray/config"
 DAGSTER_RAY_NAMESPACES_ENV_VAR = "DAGSTER_RAY_NAMESPACES"
@@ -77,7 +78,33 @@ class RayDataExecutionOptions(dg.Config):
     cpu_limit: int = 5000
     gpu_limit: int = 0
     verbose_progress: bool = True
-    use_polars: bool = True
+    use_polars_sort: bool = Field(
+        default=True,
+        description="Whether to use Polars for sort operations in Ray Data. Forwarded to `ray.data.DatasetContext.use_polars_sort`.",
+    )
+    use_polars: bool | None = Field(
+        default=None,
+        deprecated="`use_polars` is deprecated and will be removed in dagster-ray 0.5.0; use `use_polars_sort` instead.",
+    )
+
+    @model_validator(mode="before")
+    @classmethod
+    def _forward_deprecated_use_polars(cls, data: Any) -> Any:
+        if not isinstance(data, dict) or "use_polars" not in data:
+            return data
+        legacy = data["use_polars"]
+        if legacy is None:
+            return data
+        if "use_polars_sort" in data:
+            new = data["use_polars_sort"]
+            if new != legacy:
+                raise ValueError(
+                    "`use_polars` and `use_polars_sort` were set to contradicting values "
+                    f"({legacy!r} vs {new!r}). `use_polars` is deprecated; set only "
+                    "`use_polars_sort`."
+                )
+            return data
+        return {**data, "use_polars_sort": legacy}
 
     def apply(self):
         import ray
@@ -92,7 +119,10 @@ class RayDataExecutionOptions(dg.Config):
         )
 
         ctx.verbose_progress = self.verbose_progress
-        ctx.use_polars = self.use_polars
+        if Version(ray.__version__) >= Version("2.50"):
+            ctx.use_polars_sort = self.use_polars_sort
+        else:
+            ctx.use_polars = self.use_polars_sort
 
     def apply_remote(self):
         import ray
