@@ -90,19 +90,21 @@ class RayDataExecutionOptions(dg.Config):
     @model_validator(mode="before")
     @classmethod
     def _forward_deprecated_use_polars(cls, data: Any) -> Any:
-        if not isinstance(data, dict):
+        if not isinstance(data, dict) or "use_polars" not in data:
             return data
-        legacy = data.get("use_polars")
-        new = data.get("use_polars_sort")
-        if legacy is not None and new is not None and legacy != new:
-            raise ValueError(
-                "`use_polars` and `use_polars_sort` were set to contradicting values "
-                f"({legacy!r} vs {new!r}). `use_polars` is deprecated; set only "
-                "`use_polars_sort`."
-            )
-        if legacy is not None and new is None:
-            data = {**data, "use_polars_sort": legacy}
-        return data
+        legacy = data["use_polars"]
+        if legacy is None:
+            return data
+        if "use_polars_sort" in data:
+            new = data["use_polars_sort"]
+            if new != legacy:
+                raise ValueError(
+                    "`use_polars` and `use_polars_sort` were set to contradicting values "
+                    f"({legacy!r} vs {new!r}). `use_polars` is deprecated; set only "
+                    "`use_polars_sort`."
+                )
+            return data
+        return {**data, "use_polars_sort": legacy}
 
     def apply(self):
         import ray
