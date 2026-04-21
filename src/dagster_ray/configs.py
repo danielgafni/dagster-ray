@@ -84,8 +84,7 @@ class RayDataExecutionOptions(dg.Config):
     )
     use_polars: bool | None = Field(
         default=None,
-        description="Deprecated. Use `use_polars_sort` instead. Ray 2.55 renamed the underlying `DatasetContext` attribute to `use_polars_sort`.",
-        deprecated="`use_polars` is deprecated; use `use_polars_sort` instead.",
+        deprecated="`use_polars` is deprecated and will be removed in dagster-ray 0.5.0; use `use_polars_sort` instead.",
     )
 
     @model_validator(mode="before")
@@ -118,14 +117,10 @@ class RayDataExecutionOptions(dg.Config):
         )
 
         ctx.verbose_progress = self.verbose_progress
-        # Ray >=2.50 renamed the sort-time Polars toggle from `use_polars` to
-        # `use_polars_sort`; read the effective value (the legacy field wins when
-        # both are set only because the validator has already unified them).
-        effective = self.use_polars if self.use_polars is not None else self.use_polars_sort
         if Version(ray.__version__) >= Version("2.50"):
-            ctx.use_polars_sort = effective
+            ctx.use_polars_sort = self.use_polars_sort
         else:
-            ctx.use_polars = effective
+            ctx.use_polars = self.use_polars_sort
 
     def apply_remote(self):
         import ray
