@@ -26,14 +26,24 @@ def is_retryable_k8s_api_exception(e: BaseException) -> bool:
     return isinstance(e, ApiException) and e.status in RETRYABLE_K8S_STATUSES
 
 
+# K8s label-value character set and regex are defined at:
+# https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set
+# Allowed interior characters: alphanumerics, `-`, `_`, `.`.
 _INVALID_CHARS_PATTERN = re.compile(r"[^a-zA-Z0-9\-_.]")
-_LEADING_TRAILING_NON_ALNUM_PATTERN = re.compile(r"^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$")
+# Leading/trailing characters must be alphanumeric; these patterns strip
+# anything else on each end.
+_LEADING_NON_ALNUM_PATTERN = re.compile(r"^[^a-zA-Z0-9]+")
+_TRAILING_NON_ALNUM_PATTERN = re.compile(r"[^a-zA-Z0-9]+$")
+# Full K8s label-value regex (must also satisfy <=63 chars).
+_K8S_LABEL_VALUE_PATTERN = re.compile(r"^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$")
 
 
 def normalize_k8s_label_values(labels: dict[str, str]) -> dict[str, str]:
     """Normalize label values to comply with Kubernetes requirements.
 
-    K8s label values must match: (([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?
+    Per the K8s label spec
+    (https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set),
+    label values must match: ``(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?``
     - Start and end with alphanumeric
     - Middle can contain alphanumeric, -, _, .
     - Max 63 characters
@@ -58,11 +68,24 @@ def normalize_k8s_label_values(labels: dict[str, str]) -> dict[str, str]:
         # Collapse multiple consecutive hyphens into a single hyphen
         value = re.sub(r"-+", "-", value)
 
-        # Remove leading/trailing non-alphanumeric characters
-        value = _LEADING_TRAILING_NON_ALNUM_PATTERN.sub("", value)
+        # Strip leading non-alphanumerics first so the 63-char budget is
+        # spent on useful content (e.g. `___useful-tail` keeps `useful-tail`
+        # rather than truncating into a run of `_`).
+        value = _LEADING_NON_ALNUM_PATTERN.sub("", value)
+        # Truncate to 63 characters.
+        value = value[:63]
+        # Strip trailing non-alphanumerics — the character at position 63 may
+        # be `_`, `-`, or `.`, which would violate the K8s label-value regex.
+        value = _TRAILING_NON_ALNUM_PATTERN.sub("", value)
 
-        # Truncate to 63 characters
-        normalized[key] = value[:63]
+        if not _K8S_LABEL_VALUE_PATTERN.match(value):
+            raise ValueError(
+                f"Normalized label value for key {key!r} does not match the "
+                f"K8s label-value regex {_K8S_LABEL_VALUE_PATTERN.pattern!r}: "
+                f"{value!r}"
+            )
+
+        normalized[key] = value
 
     # replace keys starting with `dagster.io/` with `dagster/`
     normalized_with_fixed_dagster_keys = {}
