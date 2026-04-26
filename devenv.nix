@@ -1,4 +1,15 @@
-{pkgs, lib, ...}: {
+{
+  pkgs,
+  lib,
+  ...
+}: let
+  pythonVersion = builtins.getEnv "PYTHON_VERSION";
+  version =
+    if pythonVersion != ""
+    then pythonVersion
+    else "3.11";
+  pythonPkg = builtins.getAttr "python${builtins.replaceStrings ["."] [""] version}" pkgs;
+in {
   packages = [
     pkgs.stdenv.cc
     pkgs.uv
@@ -9,7 +20,7 @@
 
   languages.python = {
     enable = true;
-    version = "3.11";
+    package = pythonPkg;
   };
 
   env.LD_LIBRARY_PATH = lib.makeLibraryPath [
@@ -17,10 +28,10 @@
     pkgs.gcc-unwrapped.lib
     pkgs.glibc
     pkgs.glib
-    pkgs.python311
+    pythonPkg
   ];
 
   enterShell = ''
-    uv python pin 3.11
+    uv python pin ${version}
   '';
 }

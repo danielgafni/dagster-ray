@@ -7,7 +7,7 @@ authors = [
     {name = "Daniel Gafni", email = "danielgafni16@gmail.com"},
 ]
 license = {text = "Apache-2.0"}
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.10"
 readme = "README.md"
 keywords = [
     "dagster",
@@ -19,17 +19,16 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-
 dependencies = [
     "dagster>=1.10.0",
     "eval-type-backport>=0.2.2 ; python_full_version < '3.10'",
     "tenacity>=8.0.0",
 ]
-
 [project.urls]
 GitHub = "https://github.com/danielgafni/dagster-ray"
 Documentation = "https://danielgafni.github.io/dagster-ray/"
@@ -50,6 +49,12 @@ kuberay = [
     "kubernetes>=20.0.0",
     "dagster-k8s>=0.19.0",
     "pyyaml>=4.0.0",
+]
+pyarrow = [
+    "pyarrow>=8.0.0 ; python_full_version >= '3.13'",
+]
+grpcio = [
+    "grpcio>=1.66.2 ; python_full_version >= '3.13'",
 ]
 
 [build-system]
