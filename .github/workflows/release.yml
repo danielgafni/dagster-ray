@@ -58,7 +58,7 @@ jobs:
       - uses: actions/checkout@v6
       - name: Extract release notes from changelog
         run: awk '/^## /{if(found) exit; found=1; next} found' docs/changelog.md > CHANGES.md
-      - uses: softprops/action-gh-release@v2.5.0
+      - uses: softprops/action-gh-release@v2.6.2
         with:
           body_path: CHANGES.md
           tag_name: ${{ github.ref_name }}
