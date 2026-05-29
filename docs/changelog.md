@@ -5,6 +5,31 @@ All notable user-facing changes to `dagster-ray` will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## v0.4.5 (29-05-2026)
+
+### :bug: Bug Fixes
+
+- preserve useful characters when truncating K8s label values ([#356](https://github.com/danielgafni/dagster-ray/pull/356) by [@peterroelants](https://github.com/peterroelants))
+
+### :book: Docs
+
+- add IPRally to happy users in README ([#351](https://github.com/danielgafni/dagster-ray/pull/351) by [@jrosti](https://github.com/jrosti))
+
+### :hammer_and_wrench: Other Improvements
+
+- update dependency astral-sh/uv to v0.11.16 ([#352](https://github.com/danielgafni/dagster-ray/pull/352) by [@renovate[bot]](https://github.com/renovate[bot]))
+- update ghcr.io/astral-sh/uv docker tag to v0.11.8 ([#357](https://github.com/danielgafni/dagster-ray/pull/357) by [@renovate[bot]](https://github.com/renovate[bot]))
+- update softprops/action-gh-release action to v2.6.2 ([#358](https://github.com/danielgafni/dagster-ray/pull/358) by [@renovate[bot]](https://github.com/renovate[bot]))
+- update ghcr.io/astral-sh/uv docker tag to v0.11.6 ([#353](https://github.com/danielgafni/dagster-ray/pull/353) by [@renovate[bot]](https://github.com/renovate[bot]))
+- switch to devenv ([#350](https://github.com/danielgafni/dagster-ray/pull/350) by [@danielgafni](https://github.com/danielgafni))
+- change default branch to `main` (by [@danielgafni](https://github.com/danielgafni))
+
+### :heart: New Contributors
+
+- [@peterroelants](https://github.com/peterroelants) made their first contribution in [#356](https://github.com/danielgafni/dagster-ray/pull/356)
+- [@jrosti](https://github.com/jrosti) made their first contribution in [#351](https://github.com/danielgafni/dagster-ray/pull/351)
+
 ## v0.4.4 (27-03-2026)
 
 ### :sparkles: Features
@@ -162,3 +187,4 @@ This release includes massive docs improvements and drops support for Python 3.9
 ### Added
 - `KubeRayInteractiveJob` -- a resource that utilizes the new `InteractiveMode` for `RayJob`. It can be used to connect to Ray in Client mode -- like `KubeRayCluster` -- but gives access to `RayJob` features, such as automatic cleanup (`ttlSecondsAfterFinished`), retries (`backoffLimit`) and timeouts (`activeDeadlineSeconds`).
 - `RayResource` setup lifecycle has been overhauled: resources now has an `actions` parameter with 3 configuration options: `create`, `wait` and `connect`. The user can disable them and run `.create()`, `.wait()` and `.connect()` manually if needed.
+

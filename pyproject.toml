@@ -1,7 +1,7 @@
 
 [project]
 name = "dagster-ray"
-version = "0.4.4"
+version = "0.4.5"
 description = "Dagster integration library for Ray"
 authors = [
     {name = "Daniel Gafni", email = "danielgafni16@gmail.com"},
