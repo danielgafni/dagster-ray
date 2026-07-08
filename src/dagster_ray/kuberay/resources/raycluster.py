@@ -3,10 +3,10 @@ from datetime import datetime
 from typing import cast
 
 import dagster as dg
-from pydantic import Field
+from pydantic import Field, PrivateAttr
 from typing_extensions import override
 
-from dagster_ray._base.cluster_sharing_lock import ClusterSharingLock
+from dagster_ray._base.cluster_sharing_lock import ClusterSharingLock, ClusterSharingLockHeartbeat
 from dagster_ray.configs import Lifecycle
 from dagster_ray.kuberay.client import RayClusterClient
 from dagster_ray.kuberay.configs import ClusterSharing, RayClusterConfig
@@ -64,6 +64,9 @@ class KubeRayCluster(BaseKubeRayResource):
         description="Whether to log RayCluster conditions while waiting for the RayCluster to become ready. Learn more: [KubeRay docs](https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/observability.html#raycluster-status-conditions).",
     )
 
+    _sharing_lock: ClusterSharingLock | None = PrivateAttr(default=None)
+    _sharing_lock_heartbeat: ClusterSharingLockHeartbeat | None = PrivateAttr(default=None)
+
     @property
     def host(self) -> str:
         if self._host is None:
@@ -114,8 +117,14 @@ class KubeRayCluster(BaseKubeRayResource):
         """Mark an existing cluster as being used by this step."""
         self._name = cluster_name
         self._creation_verb = "Using"
+        self._place_sharing_lock(context)
 
-        # Place a lock on the cluster using JSON patch to avoid overwriting existing annotations
+    def _place_sharing_lock(self, context: AnyDagsterContext) -> None:
+        """Stamp this step's sharing lock annotation on the cluster.
+
+        Uses a JSON patch so other annotations (including other steps' locks) are preserved,
+        while repeated calls overwrite this step's own lock in place.
+        """
         lock_annotations = self.get_sharing_lock_annotations(context)
         patch_operations = [
             {
@@ -127,7 +136,7 @@ class KubeRayCluster(BaseKubeRayResource):
         ]
 
         self.client.update_json_patch(
-            name=cluster_name,
+            name=self.name,
             namespace=self.namespace,
             body=patch_operations,
         )
@@ -254,6 +263,31 @@ class KubeRayCluster(BaseKubeRayResource):
                     context.log.debug(f"Failed to release leader election lease: {e}")
 
     @override
+    def on_create(self, context: AnyDagsterContext):
+        super().on_create(context)
+        if self.cluster_sharing.enabled and self.cluster_sharing.heartbeat.enabled:
+            self._start_sharing_lock_heartbeat(context)
+
+    def _start_sharing_lock_heartbeat(self, context: AnyDagsterContext) -> None:
+        assert context.log is not None
+        self._sharing_lock_heartbeat = ClusterSharingLockHeartbeat(
+            renew=lambda: self._renew_sharing_lock(context),
+            interval_seconds=self.cluster_sharing.heartbeat.refresh_seconds,
+            logger=context.log,
+        )
+        self._sharing_lock_heartbeat.start()
+
+    def _renew_sharing_lock(self, context: AnyDagsterContext) -> None:
+        """Re-stamp this step's lock annotation with a fresh `heartbeat_at`, preserving `created_at`."""
+        self._sharing_lock = self.get_sharing_lock(context).renewed()
+        self._place_sharing_lock(context)
+
+    def _stop_sharing_lock_heartbeat(self) -> None:
+        if self._sharing_lock_heartbeat is not None:
+            self._sharing_lock_heartbeat.stop()
+            self._sharing_lock_heartbeat = None
+
+    @override
     def wait(self, context: AnyDagsterContext):
         assert context.log is not None
         assert context.dagster_run is not None
@@ -289,6 +323,8 @@ class KubeRayCluster(BaseKubeRayResource):
     def cleanup(self, context: AnyDagsterContext, exception: BaseException | None):
         assert context.log is not None
         assert context.run_id is not None
+        # stop renewing the sharing lock so it can expire once this step is done
+        self._stop_sharing_lock_heartbeat()
         # we don't want to perform cleanup if:
         # - cluster sharing is enabled
         # - cluster has at least one lock that hasn't expired yet
@@ -336,14 +372,22 @@ class KubeRayCluster(BaseKubeRayResource):
 
         return ",".join([f"{key}={value}" for key, value in combined_match_labels.items()])
 
+    def get_sharing_lock(self, context: AnyDagsterContext) -> ClusterSharingLock:
+        """This step's sharing lock. Created once: `created_at` always points at the initial lock placement."""
+        lock = self._sharing_lock
+        if lock is None:
+            run = get_dagster_run(context)
+            lock = ClusterSharingLock(
+                run_id=run.run_id,
+                key=self.resource_uid,
+                ttl_seconds=self.cluster_sharing.ttl_seconds,
+                created_at=datetime.now(),
+            )
+            self._sharing_lock = lock
+        return lock
+
     def get_sharing_lock_annotations(self, context: AnyDagsterContext) -> dict[str, str]:
-        run = get_dagster_run(context)
-        lock = ClusterSharingLock(
-            run_id=run.run_id,
-            key=self.resource_uid,
-            ttl_seconds=self.cluster_sharing.ttl_seconds,
-            created_at=datetime.now(),
-        )
+        lock = self.get_sharing_lock(context)
         return {lock.tag: lock.model_dump_json()}
 
     def get_cluster_sharing_alive_locks(self, context: AnyDagsterContext) -> Sequence[ClusterSharingLock]:

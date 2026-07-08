@@ -21,11 +21,16 @@ def cleanup_expired_kuberay_clusters(
     context: dg.SensorEvaluationContext,
     raycluster_client: dg.ResourceParam[RayClusterClient],
 ) -> Generator[dg.RunRequest | dg.SkipReason, None, None]:
-    f"""A Dagster sensor that monitors shared `RayCluster` resources created by the current code location and submits jobs to delete clusters that either:
-        - use [Cluster Sharing](../tutorial/#cluster-sharing) (`dagster/cluster-sharing=true`) and have expired
-        - are older than `DAGSTER_RAY_CLUSTER_EXPIRATION_SECONDS` (defaults to 4 hours)
+    """A Dagster sensor that monitors shared `RayCluster` resources created by the current code location and submits jobs to delete clusters that either:
 
-    By default it monitors the `ray` namespace. This can be configured by setting `{DAGSTER_RAY_NAMESPACES_ENV_VAR}` (accepts a comma-separated list of namespaces)."""
+    - use [Cluster Sharing](../tutorial/kuberay.md#cluster-sharing) (`dagster/cluster-sharing=true`) and have expired
+    - are older than `DAGSTER_RAY_CLUSTER_EXPIRATION_SECONDS` (defaults to 4 hours)
+
+    A sharing lock expires `ttl_seconds` after its last heartbeat, so clusters with actively heartbeating locks are never deleted.
+    Set the `dagster/max_runtime` tag on runs to prevent hanging steps from renewing their lock forever.
+
+    By default it monitors the `ray` namespace. This can be configured by setting `DAGSTER_RAY_NAMESPACES` (accepts a comma-separated list of namespaces).
+    """
     assert context.code_location_origin is not None
 
     found_any = False
