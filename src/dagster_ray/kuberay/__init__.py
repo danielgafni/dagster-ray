@@ -1,4 +1,11 @@
-from dagster_ray.kuberay.configs import ClusterSharing, RayClusterConfig, RayClusterSpec, RayJobConfig, RayJobSpec
+from dagster_ray.kuberay.configs import (
+    ClusterSharing,
+    ClusterSharingHeartbeat,
+    RayClusterConfig,
+    RayClusterSpec,
+    RayJobConfig,
+    RayJobSpec,
+)
 from dagster_ray.kuberay.jobs import delete_kuberay_clusters
 from dagster_ray.kuberay.ops import delete_kuberay_clusters_op
 from dagster_ray.kuberay.pipes import PipesKubeRayJobClient
@@ -24,4 +31,5 @@ __all__ = [
     "KubeRayInteractiveJob",
     "KubeRayJobClientResource",
     "ClusterSharing",
+    "ClusterSharingHeartbeat",
 ]
