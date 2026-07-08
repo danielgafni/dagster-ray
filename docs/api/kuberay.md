@@ -112,6 +112,11 @@ These resources initialize Ray client connection with a remote cluster.
       inherited_members: true
       members: null
 
+::: dagster_ray.kuberay.configs.ClusterSharingHeartbeat
+    options:
+      inherited_members: true
+      members: null
+
 ---
 
 ::: dagster_ray.kuberay.resources.base.BaseKubeRayResource

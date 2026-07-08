@@ -171,7 +171,8 @@ When enabled, `dagster-ray` will use configured user-provided and dagster-genera
 - `dagster/git-sha`
 - `dagster/resource-key`
 
-Each time a cluster is chosen for a step, `dagster-ray` will apply an annotation to the selected cluster to indicate that it's being used by the current step. This annotation effectively extends the cluster sharing TTL by the configured `ttl_seconds` amount. Note that the countdown for the TTL starts from the time the annotation is applied, not from the time when the Ray job starts.
+Each time a cluster is chosen for a step, `dagster-ray` will apply and continuously update a heartbeat lock annotation to the selected cluster to indicate that it's currently in use by the step.
+The lock is considered expired once `ttl_seconds` has passed since its last heartbeat and may be deleted by [garbage collection](#raycluster-garbage-collection).
 
 Configuration options for cluster sharing can be found [here](../api/kuberay.md#dagster_ray.kuberay.KubeRayCluster.cluster_sharing).
 
@@ -181,18 +182,23 @@ A `RayCluster` created by `dagster-ray` may become dangling for two reasons:
 - the Dagster step process exits unexpectedly (e.g. OOM), missing the change to run cleanup
 - if [Cluster Sharing](#cluster-sharing) is used **and** the cluster did not expire at the time of the Dagster step completion
 
+
 Since `RayCluster` doesn't support native garbage collection yet (see [TTL](https://github.com/ray-project/kuberay/issues/4033) and [idle termination](https://github.com/ray-project/kuberay/issues/2998) feature requests), `dagster-ray` provides a custom garbage collection Dagster sensor.
 
 ```py
 import dagster as dg
-from dagster_ray.kuberay import cleanup_expired_rayclusters
+from dagster_ray.kuberay import cleanup_expired_kuberay_clusters
 
 defs = dg.Definitions(
-    sensors=[cleanup_expired_rayclusters],
+    sensors=[cleanup_expired_kuberay_clusters],
 )
 ```
 
-It's not recommended for production environments as it will interrupt active long-running jobs and is not safe by any means. It's intended to be used with short-running development environments where job interruption is acceptable.
+The sensor deletes shared clusters once all of their locks have expired — a lock expires when the time since its last heartbeat exceeds the TTL.
+
+!!! tip
+
+    You can configure [run timeouts](https://docs.dagster.io/deployment/execution/run-monitoring#general-run-timeouts) to prevent Dagster steps from hanging indefinitely.
 
 ## PipesKubeRayJobClient
 

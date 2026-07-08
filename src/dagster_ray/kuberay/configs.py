@@ -322,6 +322,28 @@ class MatchDagsterLabels(dg.Config):
 DEFAULT_CLUSTER_SHARING_TTL_SECONDS = 30 * 60.0
 
 
+class ClusterSharingHeartbeat(dg.Config):
+    """Controls background renewal of the cluster sharing lock while the Dagster step is running.
+
+    Without renewal, the lock expires `ttl_seconds` after step start and the garbage collection
+    sensor may delete the cluster while the step is still using it. With renewal, `ttl_seconds`
+    can stay short: idle clusters are reaped promptly, active steps survive.
+
+    Each renewal updates the lock's `heartbeat_at` timestamp; `created_at` always points at the
+    initial lock placement. A hanging step renews its lock indefinitely — set the
+    `dagster/max_runtime` tag on runs to bound step runtime.
+    """
+
+    enabled: bool = Field(
+        default=True,
+        description="Whether to renew the cluster sharing lock in the background while the Dagster step is running.",
+    )
+    refresh_seconds: float = Field(
+        default=10.0,
+        description="How often to renew the lock.",
+    )
+
+
 class ClusterSharing(dg.Config):
     """Defines the strategy for sharing `RayCluster` resources with other Dagster steps.
 
@@ -343,5 +365,9 @@ class ClusterSharing(dg.Config):
     )
     ttl_seconds: float = Field(
         default=DEFAULT_CLUSTER_SHARING_TTL_SECONDS,
-        description="Time to live for the lock placed on the `RayCluster` resource, marking it as in use by the current Dagster step.",
+        description="Time to live for the lock placed on the `RayCluster` resource, marking it as in use by the current Dagster step. The lock is renewed periodically while the step is running (see `heartbeat`), so this only needs to cover the gap between renewals.",
+    )
+    heartbeat: ClusterSharingHeartbeat = Field(
+        default_factory=ClusterSharingHeartbeat,
+        description="Configuration for background renewal of the cluster sharing lock while the Dagster step is running.",
     )
