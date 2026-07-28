@@ -581,6 +581,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#extra-spec-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Extra Spec Fields
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1012,6 +1023,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#extra-spec-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Extra Spec Fields
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1276,6 +1298,10 @@
 </span><span id="__span-2-52"><a id="__codelineno-2-52" name="__codelineno-2-52" href="#__codelineno-2-52"></a>    <span class="n">timeout</span><span class="o">=</span><span class="mf">600.0</span><span class="p">,</span>
 </span><span id="__span-2-53"><a id="__codelineno-2-53" name="__codelineno-2-53" href="#__codelineno-2-53"></a><span class="p">)</span>
 </span></code></pre></div>
+<h3 id="extra-spec-fields">Extra Spec Fields<a class="headerlink" href="#extra-spec-fields" title="Permanent link">&para;</a></h3>
+<p><code>RayJobSpec</code> and <code>RayClusterSpec</code> aim to declare every field their <code>CRD</code>s support as a typed field.</p>
+<p>However, they are also <a href="https://docs.dagster.io/guides/operate/configuration/advanced-config-types#permissive-schemas">permissive Dagster configs</a>, so extra keys will be passed through (useful for setting keys that are not supported by <code>dagster-ray</code> yet).</p>
+<p>Field names are accepted in either <code>snake_case</code> or <code>camelCase</code>: for example, setting either <code>pre_running_deadline_seconds</code> and <code>preRunningDeadlineSeconds</code> will both produce <code>preRunningDeadlineSeconds</code> in the manifest.</p>
 <h2 id="kuberaycluster">KubeRayCluster<a class="headerlink" href="#kuberaycluster" title="Permanent link">&para;</a></h2>
 <p>While <a href="../../api/kuberay/#dagster_ray.kuberay.KubeRayInteractiveJob"><code>KubeRayInteractiveJob</code></a> is recommended for production environments, <a href="../../api/kuberay/#dagster_ray.kuberay.KubeRayCluster"><code>KubeRayCluster</code></a> might be a better alternative for dev environments.</p>
 <p>Unlike <code>KubeRayInteractiveJob</code>, which can outsource garbage collection to the KubeRay controller, <code>KubeRayCluster</code> is entirely responsible for cluster management. This is bad for production environments (may result in dangling <code>RayCluster</code> instances if the Dagster step pod fails unexpectedly), but good for dev environments, because it allows <code>dagster-ray</code> to implement <strong>cluster sharing</strong>.</p>
