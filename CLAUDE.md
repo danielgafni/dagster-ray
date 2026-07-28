@@ -29,6 +29,8 @@ uv run --group docs mkdocs serve
 ```
 
 KubeRay tests require: docker, kubectl, helm, minikube. Nix users: `devenv shell`.
+The shell defaults to Python 3.11; `devenv shell -P python-3.13` (or `-P python-3.10`/`3.12`)
+switches versions, each with its own venv under `.devenv/profiles/`.
 
 ## Architecture
 
