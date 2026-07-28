@@ -1,9 +1,15 @@
-{pkgs, lib, ...}: {
+{
+  pkgs,
+  lib,
+  inputs,
+  ...
+}: {
   packages = [
     pkgs.stdenv.cc
     pkgs.minikube
     pkgs.kubectl
     pkgs.git-cliff
+    inputs.dagger.packages.${pkgs.stdenv.system}.dagger
   ];
 
   languages.python = {
