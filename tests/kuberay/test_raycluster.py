@@ -1,5 +1,7 @@
 import socket
+import threading
 import time
+import warnings
 from datetime import datetime, timedelta
 from typing import Any, cast
 from unittest.mock import MagicMock, patch
@@ -20,7 +22,7 @@ from dagster_ray.kuberay import (
     cleanup_expired_kuberay_clusters,
 )
 from dagster_ray.kuberay.client import RayClusterClient
-from dagster_ray.kuberay.configs import ClusterSharing, RayClusterSpec
+from dagster_ray.kuberay.configs import ClusterSharing, ClusterSharingHeartbeat, RayClusterSpec
 from dagster_ray.kuberay.jobs import delete_kuberay_clusters
 from dagster_ray.kuberay.ops import DeleteKubeRayClustersConfig, RayClusterRef
 from dagster_ray.kuberay.utils import k8s_service_fqdn
@@ -667,3 +669,119 @@ def test_job_submission_client_uses_fqdn():
         cookies=None,
         metadata=None,
     )
+
+
+def test_place_sharing_lock_patches_annotation_in_place():
+    """Lock renewal re-stamps this step's own annotation via a JSON patch on the same key,
+    so it overwrites the lock in place (fresh `created_at`) without touching other steps' locks."""
+    resource = MagicMock()
+    resource.name = "dg-test-cluster"
+    resource.namespace = "ray"
+    lock_key = "dagster/lock-run123-abcd1234"
+    lock_value = '{"run_id": "run123"}'
+    resource.get_sharing_lock_annotations.return_value = {lock_key: lock_value}
+
+    KubeRayCluster._place_sharing_lock(resource, MagicMock())
+
+    resource.client.update_json_patch.assert_called_once_with(
+        name="dg-test-cluster",
+        namespace="ray",
+        body=[
+            {
+                "op": "add",
+                # '/' in the annotation key is escaped as '~1' per JSON Pointer
+                "path": "/metadata/annotations/dagster~1lock-run123-abcd1234",
+                "value": lock_value,
+            }
+        ],
+    )
+
+
+def test_renew_sharing_lock_preserves_created_at():
+    """Renewals update `heartbeat_at` only: `created_at` always points at the initial lock
+    placement, and the annotation key stays the same, so the lock is overwritten in place."""
+    resource = KubeRayCluster(cluster_sharing=ClusterSharing(enabled=True))
+    context = MagicMock()
+    context.run.run_id = "run123"
+
+    with patch.object(KubeRayCluster, "_place_sharing_lock"):
+        original = resource.get_sharing_lock(context)
+        assert original.heartbeat_at is None
+
+        resource._renew_sharing_lock(context)
+
+        renewed = resource.get_sharing_lock(context)
+        assert renewed.heartbeat_at is not None
+        assert renewed.created_at == original.created_at
+        assert renewed.tag == original.tag
+
+
+def test_sharing_lock_heartbeat_lifecycle():
+    """`on_create` starts the heartbeat (with an immediate renewal) when cluster sharing is
+    enabled; `cleanup` stops it."""
+    resource = KubeRayCluster(cluster_sharing=ClusterSharing(enabled=True))
+    context = MagicMock()
+
+    renewed = threading.Event()
+    with (
+        patch.object(KubeRayCluster, "_renew_sharing_lock", side_effect=lambda _ctx: renewed.set()),
+        patch.object(KubeRayCluster, "get_cluster_sharing_alive_locks", return_value=[]),
+    ):
+        resource.on_create(context)
+
+        heartbeat = resource._sharing_lock_heartbeat
+        assert heartbeat is not None
+        assert heartbeat.is_running
+        assert renewed.wait(timeout=2), "expected an immediate lock renewal on heartbeat start"
+
+        resource.cleanup(context, None)
+
+        assert resource._sharing_lock_heartbeat is None
+        assert not heartbeat.is_running
+
+
+def test_sharing_lock_heartbeat_can_be_disabled():
+    resource = KubeRayCluster(
+        cluster_sharing=ClusterSharing(enabled=True, heartbeat=ClusterSharingHeartbeat(enabled=False))
+    )
+    resource.on_create(MagicMock())
+    assert resource._sharing_lock_heartbeat is None
+
+
+def test_no_sharing_lock_heartbeat_without_cluster_sharing():
+    resource = KubeRayCluster()
+    resource.on_create(MagicMock())
+    assert resource._sharing_lock_heartbeat is None
+
+
+def _refresh_warnings(**kwargs) -> list[str]:
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        ClusterSharing(**kwargs)
+    return [str(w.message) for w in caught if "refresh_seconds" in str(w.message)]
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        # default refresh (10) is well below the default ttl (1800)
+        dict(enabled=True),
+        # exactly 2x headroom is allowed
+        dict(enabled=True, ttl_seconds=20, heartbeat=ClusterSharingHeartbeat(refresh_seconds=10)),
+        # cluster sharing disabled: the heartbeat never runs, so the ratio is irrelevant
+        dict(enabled=False, ttl_seconds=5, heartbeat=ClusterSharingHeartbeat(refresh_seconds=10)),
+        # heartbeat disabled: the lock is never renewed, so the ratio is irrelevant
+        dict(enabled=True, ttl_seconds=5, heartbeat=ClusterSharingHeartbeat(enabled=False, refresh_seconds=10)),
+    ],
+)
+def test_cluster_sharing_no_warning_with_enough_heartbeat_headroom(kwargs):
+    assert _refresh_warnings(**kwargs) == []
+
+
+def test_cluster_sharing_warns_on_low_heartbeat_headroom():
+    """Less than 2x headroom means a single missed renewal can let the lock expire mid-step."""
+    warnings_raised = _refresh_warnings(
+        enabled=True, ttl_seconds=15, heartbeat=ClusterSharingHeartbeat(refresh_seconds=10)
+    )
+    assert len(warnings_raised) == 1
+    assert "ttl_seconds" in warnings_raised[0]
