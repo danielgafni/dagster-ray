@@ -30,7 +30,7 @@ from dagster_ray.core.pipes import (
     generate_job_id,
 )
 from dagster_ray.kuberay.client import RayJobClient
-from dagster_ray.kuberay.client.rayjob.client import RayJobStatus
+from dagster_ray.kuberay.client.rayjob.client import RayJobStatus, format_job_deployment_failure
 from dagster_ray.kuberay.configs import RayJobConfig, RayJobSpec
 from dagster_ray.kuberay.utils import k8s_service_fqdn, normalize_k8s_label_values
 from dagster_ray.types import OpOrAssetExecutionContext
@@ -441,6 +441,12 @@ class PipesKubeRayJobClient(dg.PipesClient, TreatAsResourceParam):
                     raise RuntimeError(
                         f"RayJob {namespace}/{name} has an unknown status: {job_status}. Message:\n{status.get('message')}"
                     )
+            elif status.get("jobDeploymentStatus") == "Failed":
+                # A job that fails before reaching Running never sets `jobStatus` — e.g. when
+                # `preRunningDeadlineSeconds` or `activeDeadlineSeconds` expires while the
+                # RayCluster is still starting. Without this, the loop never terminates and the
+                # step hangs until Dagster's own timeout.
+                raise RuntimeError(format_job_deployment_failure(name, namespace, status))
 
             time.sleep(self.poll_interval)
 

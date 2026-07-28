@@ -211,6 +211,10 @@ class RayJobSpec(dg.PermissiveConfig):
     """
 
     active_deadline_seconds: int = 60 * 60 * 24  # 24 hours
+    pre_running_deadline_seconds: int | None = Field(
+        default=None,
+        description="Deadline for the `RayJob` to reach the `Running` state, measured from `.status.startTime`. If it doesn't, KubeRay fails the job with reason `PreRunningDeadlineExceeded`. Useful for reaping jobs stuck in `Initializing` or `Waiting` — for example when the `RayCluster` can never be scheduled. Unset means no deadline. Requires KubeRay 1.6.0: older operators prune the field without an error.",
+    )
     backoff_limit: int = 0
     ray_cluster_spec: RayClusterSpec | None = Field(default_factory=RayClusterSpec)
     submitter_pod_template: dict[str, Any] | None = None
@@ -243,6 +247,7 @@ class RayJobSpec(dg.PermissiveConfig):
             remove_none_from_dict(
                 {
                     "activeDeadlineSeconds": self.active_deadline_seconds,
+                    "preRunningDeadlineSeconds": self.pre_running_deadline_seconds,
                     "backoffLimit": self.backoff_limit,
                     "submitterPodTemplate": self.submitter_pod_template,
                     "submitterConfig": self.submitter_config,
