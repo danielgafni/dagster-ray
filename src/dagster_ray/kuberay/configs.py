@@ -93,7 +93,7 @@ class AuthOptions(dg.Config):
 class RayClusterSpec(dg.PermissiveConfig):
     """[RayCluster spec](https://ray-project.github.io/kuberay/reference/api/#rayclusterspec) configuration options. A few sensible defaults are provided for convenience.
 
-    Every field the CRD supports is meant to be declared here. As an escape hatch for any that is missing, undeclared fields are passed through to the Kubernetes manifest, in either `snake_case` or `camelCase`. See [Extra Spec Fields](../../tutorial/kuberay.md#extra-spec-fields).
+    Every field the CRD supports is meant to be declared here. As an escape hatch for any that is missing, undeclared fields are passed through to the Kubernetes manifest, in either `snake_case` or `camelCase`. See [Extra Spec Fields](../tutorial/kuberay.md#extra-spec-fields).
     """
 
     suspend: bool | None = None
@@ -207,7 +207,7 @@ class RayClusterConfig(dg.Config):
 class RayJobSpec(dg.PermissiveConfig):
     """[RayJob spec](https://ray-project.github.io/kuberay/reference/api/#rayjobspec) configuration options. A few sensible defaults are provided for convenience.
 
-    Every field the CRD supports is meant to be declared here. As an escape hatch for any that is missing, undeclared fields are passed through to the Kubernetes manifest, in either `snake_case` or `camelCase`. See [Extra Spec Fields](../../tutorial/kuberay.md#extra-spec-fields).
+    Every field the CRD supports is meant to be declared here. As an escape hatch for any that is missing, undeclared fields are passed through to the Kubernetes manifest, in either `snake_case` or `camelCase`. See [Extra Spec Fields](../tutorial/kuberay.md#extra-spec-fields).
     """
 
     active_deadline_seconds: int = 60 * 60 * 24  # 24 hours
@@ -223,7 +223,8 @@ class RayJobSpec(dg.PermissiveConfig):
     cluster_selector: dict[str, str] | None = None
     managed_by: str | None = None
     deletion_strategy: dict[str, Any] | None = Field(
-        default_factory=lambda: {"onFailure": {"policy": "DeleteCluster"}, "onSuccess": {"policy": "DeleteCluster"}}
+        default=None,
+        description="`RayJob` cleanup policy. Unset by default: cleanup is governed by `shutdown_after_job_finishes`, which deletes the `RayCluster` once the job succeeds or fails. Requires KubeRay 1.5.0 (the field was named `deletionPolicy` before that) **and** the `RayJobDeletionPolicy` feature gate — the KubeRay controller fails the `RayJob` with `ValidationFailed` if the gate is off. The gate is alpha in 1.5.x (off by default) and beta in 1.6.x (on by default). See [Deletion Strategy](../tutorial/kuberay.md#deletion-strategy).",
     )
     runtime_env_yaml: str | None = None
     job_id: str | None = None

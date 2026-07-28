@@ -34,8 +34,8 @@ class RayJobStatus(TypedDict):
     endTime: NotRequired[str]
     jobStatus: NotRequired[Literal["PENDING", "RUNNING", "SUCCEEDED", "FAILED", "STOPPED"]]
     message: NotRequired[str]
-    # Set by KubeRay when jobDeploymentStatus is Failed, e.g. `DeadlineExceeded`,
-    # `PreRunningDeadlineExceeded`, `SubmissionFailed`, `AppFailed`.
+    # Set by KubeRay when the job fails, e.g. `DeadlineExceeded`,
+    # `PreRunningDeadlineExceeded`, `SubmissionFailed`, `AppFailed`, `ValidationFailed`.
     reason: NotRequired[str]
     failed: NotRequired[int]
     succeeded: NotRequired[int]

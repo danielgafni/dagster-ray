@@ -149,6 +149,71 @@ spec = InteractiveRayJobSpec(
 
 Pick a value above the worst-case cluster startup time. A job waiting on autoscaling or scarce GPU capacity can legitimately take a long time to reach `Running`, and the deadline can't tell that apart from being stuck.
 
+### Deletion Strategy
+
+By default `deletion_strategy` is unset and cleanup is governed by `shutdown_after_job_finishes` (`True`), which deletes the `RayCluster` once the job succeeds or fails. This works on every supported KubeRay version.
+
+`deletion_strategy` gives finer control — deleting only workers, keeping a failed cluster around for debugging, or deleting the `RayJob` itself — but it is version- and feature-gate-dependent.
+
+!!! warning
+
+    `deletion_strategy` requires the `RayJobDeletionPolicy` feature gate. If it is disabled, the KubeRay controller does not reject the request — it creates the `RayJob` and then moves it to `jobDeploymentStatus: ValidationFailed`. `dagster-ray` surfaces this as a step failure rather than waiting indefinitely.
+
+=== "KubeRay 1.6.x"
+
+    The feature gate is beta and **enabled by default**, so no operator configuration is needed.
+
+    Prefer `deletionRules` — the legacy `onSuccess`/`onFailure` fields are deprecated and scheduled for removal:
+
+    ```python
+    from dagster_ray.kuberay.resources.rayjob import InteractiveRayJobSpec
+
+    spec = InteractiveRayJobSpec(
+        # deletionRules is mutually exclusive with both of these
+        shutdown_after_job_finishes=False,
+        ttl_seconds_after_finished=None,
+        deletion_strategy={
+            "deletionRules": [
+                # keep a failed cluster's head around briefly for debugging
+                {
+                    "policy": "DeleteWorkers",
+                    "condition": {"jobStatus": "FAILED", "ttlSeconds": 100},
+                },
+                {
+                    "policy": "DeleteCluster",
+                    "condition": {"jobStatus": "FAILED", "ttlSeconds": 600},
+                },
+                {
+                    "policy": "DeleteCluster",
+                    "condition": {"jobStatus": "SUCCEEDED", "ttlSeconds": 0},
+                },
+            ]
+        },
+    )
+    ```
+
+    Both companion settings are required: `deletionRules` conflicts with `shutdown_after_job_finishes=True`, and `ttl_seconds_after_finished` must be unset whenever `shutdown_after_job_finishes` is `False`.
+
+    Within a single condition, TTLs must be non-decreasing in the order `DeleteWorkers` → `DeleteCluster` → `DeleteSelf`, and each (condition, policy) pair may appear only once. `DeleteWorkers` is not supported when in-tree autoscaling is enabled.
+
+=== "KubeRay 1.5.x"
+
+    The feature gate is alpha and **disabled by default**. Enable it on the operator first, or any `deletion_strategy` you set will fail validation:
+
+    ```bash
+    helm upgrade --install kuberay-operator kuberay/kuberay-operator \
+      --set featureGates[0].name=RayJobDeletionPolicy \
+      --set featureGates[0].enabled=true
+    ```
+
+    `deletionRules` is available here too and takes the same form as the 1.6.x example above. If you would rather not enable the gate, leave `deletion_strategy` unset and rely on `shutdown_after_job_finishes`.
+
+=== "KubeRay ≤ 1.4.x"
+
+    Not supported. The field was named `deletionPolicy` and took a different shape before 1.5.0, so anything set via `deletion_strategy` is dropped by the CRD without an error.
+
+    Leave it unset and use `shutdown_after_job_finishes` with `ttl_seconds_after_finished`.
+
 ## KubeRayCluster
 
 While [`KubeRayInteractiveJob`](../api/kuberay.md#dagster_ray.kuberay.KubeRayInteractiveJob) is recommended for production environments, [`KubeRayCluster`](../api/kuberay.md#dagster_ray.kuberay.KubeRayCluster) might be a better alternative for dev environments.
