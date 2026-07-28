@@ -53,7 +53,15 @@ Running KubeRay tests requires the following tools to be present:
 Nix users will find them provided in the dev shell:
 
 ```bash
-nix develop
+devenv shell
+```
+
+The shell defaults to Python 3.11. To test against another supported version, activate the
+matching profile — each profile keeps its own venv under `.devenv/profiles/`, so switching
+between them does not rebuild anything:
+
+```bash
+devenv shell -P python-3.13
 ```
 
 ## Documentation
