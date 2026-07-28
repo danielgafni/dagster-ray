@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.37">
+      <meta name="generator" content="zensical-0.0.51">
     
     
       
@@ -34,7 +34,7 @@
       
         
       
-      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.1e981d71.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.62c9b9cc.min.css">
       
         
           
@@ -60,7 +60,7 @@
     
       <link rel="stylesheet" href="../../assets/stylesheets/extra.css">
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,a=__md_scope)=>JSON.parse(t.getItem(a.pathname+"."+e)),__md_set=(e,t,a=localStorage,_=__md_scope)=>{try{a.setItem(_.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    <script>__md_scope=new URL("../..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
     
       
 
@@ -229,6 +229,9 @@
   
   
     
+      
+    
+    
     
       <li class="md-tabs__item">
         <a href="../../tutorial/" class="md-tabs__link">
@@ -249,6 +252,9 @@
     
   
   
+    
+      
+    
     
     
       <li class="md-tabs__item md-tabs__item--active">
@@ -344,8 +350,7 @@
   <span class="md-ellipsis">
     
   
-    Home
-  
+  Home
 
     
   </span>
@@ -389,8 +394,7 @@
   <span class="md-ellipsis">
     
   
-    Tutorial
-  
+  Tutorial
 
     
   </span>
@@ -405,8 +409,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Tutorial
-  
+  Tutorial
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
@@ -425,8 +428,7 @@
   <span class="md-ellipsis">
     
   
-    Overview
-  
+  Overview
 
     
   </span>
@@ -453,8 +455,7 @@
   <span class="md-ellipsis">
     
   
-    External Ray Clusters
-  
+  External Ray Clusters
 
     
   </span>
@@ -481,8 +482,7 @@
   <span class="md-ellipsis">
     
   
-    KubeRay
-  
+  KubeRay
 
     
   </span>
@@ -509,8 +509,7 @@
   <span class="md-ellipsis">
     
   
-    Authentication
-  
+  Authentication
 
     
   </span>
@@ -565,8 +564,7 @@
   <span class="md-ellipsis">
     
   
-    API Reference
-  
+  API Reference
 
     
   </span>
@@ -581,8 +579,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    API Reference
-  
+  API Reference
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
@@ -601,8 +598,7 @@
   <span class="md-ellipsis">
     
   
-    Overview
-  
+  Overview
 
     
   </span>
@@ -638,8 +634,7 @@
   <span class="md-ellipsis">
     
   
-    Core
-  
+  Core
 
     
   </span>
@@ -656,8 +651,7 @@
   <span class="md-ellipsis">
     
   
-    Core
-  
+  Core
 
     
   </span>
@@ -1179,8 +1173,7 @@
   <span class="md-ellipsis">
     
   
-    KubeRay
-  
+  KubeRay
 
     
   </span>
@@ -1207,8 +1200,7 @@
   <span class="md-ellipsis">
     
   
-    Configs
-  
+  Configs
 
     
   </span>
@@ -1235,8 +1227,7 @@
   <span class="md-ellipsis">
     
   
-    Types
-  
+  Types
 
     
   </span>
@@ -1270,8 +1261,7 @@
   <span class="md-ellipsis">
     
   
-    Changelog
-  
+  Changelog
 
     
   </span>
@@ -1824,6 +1814,7 @@
     <li class="md-path__item">
       <a href="../.." class="md-path__link">
         
+  
   <span class="md-ellipsis">
     Home
   </span>
@@ -1839,9 +1830,13 @@
   
     
     
+    
+    
+    
       <li class="md-path__item">
         <a href="../" class="md-path__link">
           
+  
   <span class="md-ellipsis">
     API Reference
   </span>
@@ -3433,7 +3428,7 @@ This behavior can be disabled by setting <code>inherit_job_submission_client_fro
 
         <p>A <a href="https://docs.dagster.io/guides/build/external-pipelines">Pipes</a> client for running Ray jobs on remote clusters.</p>
 <p>Starts the job directly on the Ray cluster and reads the logs from the job.</p>
-<p>Uses <a class="autorefs autorefs-external" href="https://docs.ray.io/en/latest/cluster/running-applications/job-submission/doc/ray.job_submission.JobSubmissionClient.html#ray.job_submission.JobSubmissionClient"><code>JobSubmissionClient</code></a> to run and monitor the job. Learn more about it <a href="https://docs.ray.io/en/latest/cluster/running-applications/job-submission/sdk.html#python-sdk-overview">here</a>.</p>
+<p>Uses [<code>JobSubmissionClient</code>][ray.job_submission.JobSubmissionClient] to run and monitor the job. Learn more about it <a href="https://docs.ray.io/en/latest/cluster/running-applications/job-submission/sdk.html#python-sdk-overview">here</a>.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -3466,7 +3461,7 @@ If unspecified, connects to a local Ray cluster or uses the <code>RAY_ADDRESS</c
 )
           –
           <div class="doc-md-description">
-            <p>HTTP headers for Ray Dashboard requests. Passed to <a class="autorefs autorefs-external" href="https://docs.ray.io/en/latest/cluster/running-applications/job-submission/doc/ray.job_submission.JobSubmissionClient.html#ray.job_submission.JobSubmissionClient"><code>JobSubmissionClient</code></a>.</p>
+            <p>HTTP headers for Ray Dashboard requests. Passed to [<code>JobSubmissionClient</code>][ray.job_submission.JobSubmissionClient].</p>
           </div>
         </li>
         <li class="doc-section-item field-body">
@@ -3476,7 +3471,7 @@ If unspecified, connects to a local Ray cluster or uses the <code>RAY_ADDRESS</c
 )
           –
           <div class="doc-md-description">
-            <p>Whether to verify TLS certificate. Passed to <a class="autorefs autorefs-external" href="https://docs.ray.io/en/latest/cluster/running-applications/job-submission/doc/ray.job_submission.JobSubmissionClient.html#ray.job_submission.JobSubmissionClient"><code>JobSubmissionClient</code></a>.</p>
+            <p>Whether to verify TLS certificate. Passed to [<code>JobSubmissionClient</code>][ray.job_submission.JobSubmissionClient].</p>
           </div>
         </li>
         <li class="doc-section-item field-body">
@@ -3486,7 +3481,7 @@ If unspecified, connects to a local Ray cluster or uses the <code>RAY_ADDRESS</c
 )
           –
           <div class="doc-md-description">
-            <p>HTTP cookies for Ray Dashboard requests. Passed to <a class="autorefs autorefs-external" href="https://docs.ray.io/en/latest/cluster/running-applications/job-submission/doc/ray.job_submission.JobSubmissionClient.html#ray.job_submission.JobSubmissionClient"><code>JobSubmissionClient</code></a>.</p>
+            <p>HTTP cookies for Ray Dashboard requests. Passed to [<code>JobSubmissionClient</code>][ray.job_submission.JobSubmissionClient].</p>
           </div>
         </li>
         <li class="doc-section-item field-body">
@@ -3496,7 +3491,7 @@ If unspecified, connects to a local Ray cluster or uses the <code>RAY_ADDRESS</c
 )
           –
           <div class="doc-md-description">
-            <p>Ray Job metadata. Passed to <a class="autorefs autorefs-external" href="https://docs.ray.io/en/latest/cluster/running-applications/job-submission/doc/ray.job_submission.JobSubmissionClient.html#ray.job_submission.JobSubmissionClient"><code>JobSubmissionClient</code></a>.</p>
+            <p>Ray Job metadata. Passed to [<code>JobSubmissionClient</code>][ray.job_submission.JobSubmissionClient].</p>
           </div>
         </li>
         <li class="doc-section-item field-body">
@@ -3701,7 +3696,7 @@ Is useful when running in a local environment.</p>
               (<code><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;dagster_ray.core.pipes.SubmitJobParams&lt;/span&gt;" href="../types/#dagster_ray.core.pipes.SubmitJobParams">SubmitJobParams</a></code>)
           –
           <div class="doc-md-description">
-            <p>Parameters for <a class="autorefs autorefs-external" href="https://docs.ray.io/en/latest/cluster/running-applications/job-submission/doc/ray.job_submission.JobSubmissionClient.submit_job.html#ray.job_submission.JobSubmissionClient.submit_job"><code>JobSubmissionClient.submit_job</code></a>.</p>
+            <p>Parameters for [<code>JobSubmissionClient.submit_job</code>][ray.job_submission.JobSubmissionClient.submit_job].</p>
           </div>
         </li>
         <li class="doc-section-item field-body">
@@ -4049,10 +4044,10 @@ If None, assumes Ray is already initialized.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.code.copy","content.code.select","content.tabs.link","navigation.tabs","navigation.tabs.sticky","navigation.sections","navigation.expand","navigation.path","navigation.top","search.highlight","search.share","search.suggest","content.code.annotate","content.tooltips"],"search":"../../assets/javascripts/workers/search.e2d2d235.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
+      <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.code.copy","content.code.select","content.tabs.link","navigation.tabs","navigation.tabs.sticky","navigation.sections","navigation.expand","navigation.path","navigation.top","search.highlight","search.share","search.suggest","content.code.annotate","content.tooltips"],"search":"../../assets/javascripts/workers/search.b6b7e04f.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.dbc0afdc.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7f30b55.min.js"></script>
       
     
   </body>
