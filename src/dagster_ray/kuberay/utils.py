@@ -4,6 +4,7 @@ import hashlib
 import random
 import re
 import string
+from collections.abc import Mapping
 from typing import Any
 
 import dagster._check as check
@@ -99,6 +100,66 @@ def normalize_k8s_label_values(labels: dict[str, str]) -> dict[str, str]:
 
 def remove_none_from_dict(d: dict[str, Any]) -> dict[str, Any]:
     return {k: v for k, v in d.items() if v is not None}
+
+
+def to_camel_case(name: str) -> str:
+    """Convert a snake_case field name to the camelCase used by Kubernetes manifests.
+
+    Names without underscores are returned unchanged, so already-camelCase keys pass through.
+    Interior capitalization is preserved: `runtime_env_YAML` becomes `runtimeEnvYAML`, not
+    `runtimeEnvYaml`.
+    """
+    head, *rest = name.split("_")
+    return head + "".join(part[:1].upper() + part[1:] for part in rest)
+
+
+def merge_extra_k8s_fields(manifest: dict[str, Any], extras: Mapping[str, Any] | None) -> dict[str, Any]:
+    """Merge extra fields from a `PermissiveConfig` into an already-built manifest dict.
+
+    `RayClusterSpec` and `RayJobSpec` are permissive, so Pydantic accepts fields they don't
+    declare. Those land in `model_extra` and would otherwise be silently dropped, letting a
+    config validate and run while never reaching Kubernetes.
+
+    Keys are converted from snake_case to camelCase so extras behave like declared fields.
+    Values are passed through untouched — only the top-level key is converted, matching how
+    declared dict fields already work.
+
+    `None` values are dropped, consistent with `remove_none_from_dict`.
+
+    Raises:
+        ValueError: if an extra resolves to a key `manifest` already contains, or if two
+            extras resolve to the same key. Both spellings of one field is ambiguous config,
+            and Pydantic doesn't catch it: without an alias generator, `activeDeadlineSeconds`
+            is just a different key from `active_deadline_seconds` and is kept alongside it.
+    """
+    if not extras:
+        return manifest
+
+    merged = dict(manifest)
+    # Maps a resolved manifest key back to the extra that produced it, to detect two extras
+    # converging on one key (e.g. `pre_running_deadline_seconds` and `preRunningDeadlineSeconds`).
+    resolved_by_extra: dict[str, str] = {}
+
+    for name, value in extras.items():
+        key = to_camel_case(name)
+
+        if key in manifest:
+            raise ValueError(
+                f"extra field {name!r} collides with the {key!r} key already set by this spec. "
+                f"Set the declared field instead of passing {name!r} as an extra field."
+            )
+
+        if key in resolved_by_extra:
+            raise ValueError(
+                f"extra fields {resolved_by_extra[key]!r} and {name!r} both resolve to {key!r}. Pass only one of them."
+            )
+
+        resolved_by_extra[key] = name
+
+        if value is not None:
+            merged[key] = value
+
+    return merged
 
 
 def k8s_service_fqdn(service_name: str, namespace: str) -> str:
