@@ -23,6 +23,8 @@ from dagster_ray.kuberay.configs import (
 )
 
 IMAGE = "test-image"
+RAY_VERSION_WITH_AUTH = "2.54.0"
+RAY_VERSION_WITH_K8S_AUTH = "2.55.0"
 
 
 @pytest.fixture
@@ -165,11 +167,59 @@ def test_auth_options_is_serialized_as_a_dict(context) -> None:
     unserializable: `AttributeError: 'AuthOptions' object has no attribute 'openapi_types'`."""
     from kubernetes.client import ApiClient
 
-    manifest = to_k8s(RayClusterSpec(auth_options=AuthOptions()), context)
+    manifest = to_k8s(RayClusterSpec(ray_version=RAY_VERSION_WITH_AUTH, auth_options=AuthOptions()), context)
 
     assert manifest["authOptions"] == {"mode": "token"}
     json.dumps(manifest)
     ApiClient().sanitize_for_serialization(manifest)
+
+
+def test_auth_options_declared_fields_all_reach_the_manifest(context) -> None:
+    """`secretName` and `enableK8sTokenAuth` were accepted by AuthOptions but silently dropped
+    on the way to the manifest, and being a strict Config it had no escape hatch either — so
+    token auth via a Secret was unreachable.
+
+    The two are checked separately because KubeRay treats them as mutually exclusive.
+    """
+    with_secret = RayClusterSpec(
+        ray_version=RAY_VERSION_WITH_AUTH,
+        auth_options=AuthOptions(mode="token", secret_name="my-secret"),
+    )
+    assert to_k8s(with_secret, context)["authOptions"] == {"mode": "token", "secretName": "my-secret"}
+
+    with_k8s_auth = RayClusterSpec(
+        ray_version=RAY_VERSION_WITH_K8S_AUTH,
+        auth_options=AuthOptions(mode="token", enable_k8s_token_auth=True),
+    )
+    assert to_k8s(with_k8s_auth, context)["authOptions"] == {"mode": "token", "enableK8sTokenAuth": True}
+
+    assert set(AuthOptions.model_fields) == {"mode", "secret_name", "enable_k8s_token_auth"}
+
+
+def test_auth_options_omits_unset_fields(context) -> None:
+    manifest = to_k8s(RayClusterSpec(auth_options=AuthOptions(mode="disabled")), context)
+    assert manifest["authOptions"] == {"mode": "disabled"}
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "expected"),
+    [
+        ({"someFutureCrdField": 1}, "someFutureCrdField"),
+        ({"some_future_crd_field": 1}, "someFutureCrdField"),
+    ],
+)
+def test_auth_options_passes_extras_through(context, kwargs, expected) -> None:
+    auth_options = AuthOptions(**kwargs)
+    spec = RayClusterSpec(ray_version=RAY_VERSION_WITH_AUTH, auth_options=auth_options)
+    assert to_k8s(spec, context)["authOptions"][expected] == 1
+
+
+def test_upgrade_strategy_passes_extras_through(context) -> None:
+    strategy = RayClusterUpgradeStrategy(type="Recreate", some_future_crd_field=1)  # type: ignore[call-arg]
+    assert to_k8s(RayClusterSpec(upgrade_strategy=strategy), context)["upgradeStrategy"] == {
+        "type": "Recreate",
+        "someFutureCrdField": 1,
+    }
 
 
 # Without KubeRay's `reason`, a deadline failure is indistinguishable from any other
@@ -384,8 +434,101 @@ def test_raycluster_declared_fields_all_reach_the_manifest(context) -> None:
 
     for name, value in sentinels.items():
         # sub-configs are dumped to dicts on the way out
-        expected = value.model_dump(mode="json", exclude_none=True) if isinstance(value, dg.Config) else value
+        expected = value.to_k8s() if isinstance(value, AuthOptions | RayClusterUpgradeStrategy) else value
         assert expected in emitted, f"{name!r} (={expected!r}) is missing from the RayCluster manifest"
+
+
+# KubeRay validates the RayCluster in its controller, not an admission webhook, so an invalid
+# auth_options combination produces a RayCluster that is created and then never reconciled — no
+# `.status` is ever written. Verified against KubeRay 1.6.2: a spec with `authOptions.mode: token`
+# and no `rayVersion` gets an `InvalidRayClusterSpec` warning event and an empty status, which
+# dagster-ray previously surfaced as a 600s "timed out waiting for status" naming the wrong
+# problem. These mirror `ValidateRayClusterSpec` so the real reason surfaces immediately.
+
+
+def test_token_auth_requires_ray_version() -> None:
+    with pytest.raises(ValidationError, match="requires ray_version"):
+        RayClusterSpec(auth_options=AuthOptions(mode="token"))
+
+
+def test_token_auth_accepts_a_supported_ray_version(context) -> None:
+    spec = RayClusterSpec(ray_version=RAY_VERSION_WITH_AUTH, auth_options=AuthOptions(mode="token"))
+    manifest = to_k8s(spec, context)
+    assert manifest["authOptions"] == {"mode": "token"}
+    assert manifest["rayVersion"] == RAY_VERSION_WITH_AUTH
+
+
+def test_token_auth_rejects_an_old_ray_version() -> None:
+    with pytest.raises(ValidationError, match="requires Ray 2.52.0 or later"):
+        RayClusterSpec(ray_version="2.51.0", auth_options=AuthOptions(mode="token"))
+
+
+def test_token_auth_rejects_an_unparseable_ray_version() -> None:
+    with pytest.raises(ValidationError, match="not a valid version"):
+        RayClusterSpec(ray_version="not-a-version", auth_options=AuthOptions(mode="token"))
+
+
+def test_disabled_auth_does_not_require_ray_version(context) -> None:
+    """`mode='disabled'` is not auth-enabled, so KubeRay imposes no version requirement."""
+    spec = RayClusterSpec(auth_options=AuthOptions(mode="disabled"))
+    assert to_k8s(spec, context)["authOptions"] == {"mode": "disabled"}
+
+
+def test_no_auth_options_does_not_require_ray_version(context) -> None:
+    assert "rayVersion" not in to_k8s(RayClusterSpec(), context)
+
+
+def test_k8s_token_auth_requires_token_mode() -> None:
+    with pytest.raises(ValidationError, match="requires auth_options.mode='token'"):
+        RayClusterSpec(
+            ray_version=RAY_VERSION_WITH_K8S_AUTH,
+            auth_options=AuthOptions(mode="disabled", enable_k8s_token_auth=True),
+        )
+
+
+def test_k8s_token_auth_requires_newer_ray() -> None:
+    with pytest.raises(ValidationError, match="requires Ray 2.55.0 or later"):
+        RayClusterSpec(
+            ray_version=RAY_VERSION_WITH_AUTH,
+            auth_options=AuthOptions(mode="token", enable_k8s_token_auth=True),
+        )
+
+
+def test_k8s_token_auth_conflicts_with_secret_name() -> None:
+    with pytest.raises(ValidationError, match="mutually exclusive"):
+        RayClusterSpec(
+            ray_version=RAY_VERSION_WITH_K8S_AUTH,
+            auth_options=AuthOptions(mode="token", enable_k8s_token_auth=True, secret_name="s"),
+        )
+
+
+def test_k8s_token_auth_is_accepted_when_valid(context) -> None:
+    spec = RayClusterSpec(
+        ray_version=RAY_VERSION_WITH_K8S_AUTH,
+        auth_options=AuthOptions(mode="token", enable_k8s_token_auth=True),
+    )
+    assert to_k8s(spec, context)["authOptions"] == {"mode": "token", "enableK8sTokenAuth": True}
+
+
+def test_k8s_token_auth_is_rejected_for_rayjob() -> None:
+    """KubeRay marks the RayJob spec invalid rather than ignoring the field."""
+    with pytest.raises(ValidationError, match="does not support .* for RayJob"):
+        RayJobSpec(
+            ray_cluster_spec=RayClusterSpec(
+                ray_version=RAY_VERSION_WITH_K8S_AUTH,
+                auth_options=AuthOptions(mode="token", enable_k8s_token_auth=True),
+            )
+        )
+
+
+def test_token_auth_without_k8s_auth_is_allowed_for_rayjob() -> None:
+    spec = RayJobSpec(
+        ray_cluster_spec=RayClusterSpec(
+            ray_version=RAY_VERSION_WITH_AUTH,
+            auth_options=AuthOptions(mode="token", secret_name="s"),
+        )
+    )
+    assert spec.ray_cluster_spec is not None
 
 
 # A failure before the job reaches Running is invisible in the RayCluster status: the cluster may
