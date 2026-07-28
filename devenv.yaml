@@ -6,3 +6,5 @@ inputs:
     inputs:
       nixpkgs:
         follows: nixpkgs
+  dagger:
+    url: github:dagger/nix
