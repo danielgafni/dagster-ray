@@ -90,6 +90,14 @@ class AuthOptions(dg.Config):
     mode: Literal["token", "disabled"] = "token"
 
 
+class RayClusterUpgradeStrategy(dg.Config):
+    """[RayClusterUpgradeStrategy](https://ray-project.github.io/kuberay/reference/api/#rayclusterupgradestrategy) for the Ray cluster."""
+
+    type: Literal["Recreate", "None"] = Field(
+        description='Strategy used when upgrading the `RayCluster` pods. `Recreate` deletes all existing pods before creating new ones; the string `"None"` creates no new pods. Note that `"None"` is a KubeRay strategy name, distinct from leaving `upgrade_strategy` itself unset.',
+    )
+
+
 class RayClusterSpec(dg.PermissiveConfig):
     """[RayCluster spec](https://ray-project.github.io/kuberay/reference/api/#rayclusterspec) configuration options. A few sensible defaults are provided for convenience.
 
@@ -106,6 +114,10 @@ class RayClusterSpec(dg.PermissiveConfig):
     ray_version: str | None = None
     worker_group_specs: list[dict[str, Any]] = DEFAULT_WORKER_GROUP_SPECS
     auth_options: AuthOptions | None = None
+    upgrade_strategy: RayClusterUpgradeStrategy | None = Field(
+        default=None,
+        description="Scaling policy used when upgrading the `RayCluster`. See [RayClusterUpgradeStrategy](https://ray-project.github.io/kuberay/reference/api/#rayclusterupgradestrategy). Requires KubeRay 1.6.0: older operators prune the field without an error.",
+    )
 
     def to_k8s(
         self,
@@ -157,6 +169,9 @@ class RayClusterSpec(dg.PermissiveConfig):
                     "gcsFaultToleranceOptions": self.gcs_fault_tolerance_options,
                     "rayVersion": self.ray_version,
                     "authOptions": self.auth_options.model_dump(mode="json") if self.auth_options is not None else None,
+                    "upgradeStrategy": self.upgrade_strategy.model_dump(mode="json")
+                    if self.upgrade_strategy is not None
+                    else None,
                 }
             ),
             self.model_extra,
