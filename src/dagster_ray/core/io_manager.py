@@ -120,7 +120,7 @@ class RayIOManager(dg.ConfigurableIOManager):
         # TODO: understand if Ray will automatically move the object from dying nodes
         # what if not?
 
-        ref = ray.put(obj, _owner=object_map)
+        ref = ray.put(obj)
 
         object_map.set.remote(storage_key, ref)  # type: ignore
 

@@ -58,10 +58,10 @@ class TestConfig(NamedTuple):
 
 # Component versions
 OS_VERSIONS = ["Ubuntu"]
-PYTHON_VERSIONS = ["3.12", "3.11", "3.10"]
-RAY_VERSIONS = ["2.53.0", "2.46.0"]
-DAGSTER_VERSIONS = ["1.12.12", "1.11.16", "1.10.21"]
-KUBERAY_VERSIONS = ["1.5.1", "1.4.2", "1.3.0", "1.2.2"]
+PYTHON_VERSIONS = ["3.13", "3.12", "3.11", "3.10"]
+RAY_VERSIONS = ["2.56.1", "2.53.0", "2.46.0"]
+DAGSTER_VERSIONS = ["1.13.15", "1.12.12", "1.11.16", "1.10.21"]
+KUBERAY_VERSIONS = ["1.6.2", "1.5.2", "1.4.2", "1.3.0", "1.2.2"]
 
 # Component registry for DRY iteration
 COMPONENTS = {
