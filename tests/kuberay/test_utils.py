@@ -2,7 +2,11 @@ import re
 
 import pytest
 
-from dagster_ray.kuberay.utils import normalize_k8s_label_values
+from dagster_ray.kuberay.utils import (
+    merge_extra_k8s_fields,
+    normalize_k8s_label_values,
+    to_camel_case,
+)
 
 # From the K8s label-value spec:
 # https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set
@@ -96,3 +100,63 @@ def test_normalize_k8s_label_values_rejects_unexpectedly_invalid_output(monkeypa
     monkeypatch.setattr(utils_mod, "_TRAILING_NON_ALNUM_PATTERN", re.compile(r"(?!)"))
     with pytest.raises(ValueError, match="K8s label-value regex"):
         utils_mod.normalize_k8s_label_values({"k": "a" * 62 + "_" + "b" * 10})
+
+
+def test_to_camel_case() -> None:
+    assert to_camel_case("pre_running_deadline_seconds") == "preRunningDeadlineSeconds"
+    assert to_camel_case("entrypoint_num_cpus") == "entrypointNumCpus"
+    # already camelCase -> unchanged, so specs copy-pasted from the KubeRay docs work as-is
+    assert to_camel_case("preRunningDeadlineSeconds") == "preRunningDeadlineSeconds"
+    assert to_camel_case("suspend") == "suspend"
+    # interior capitalization is preserved (`str.capitalize` would give `runtimeEnvYaml`)
+    assert to_camel_case("runtime_env_YAML") == "runtimeEnvYAML"
+
+
+def test_merge_extra_k8s_fields_merges_and_converts_case() -> None:
+    merged = merge_extra_k8s_fields(
+        {"suspend": False},
+        {"pre_running_deadline_seconds": 300, "someBrandNewField": "hello"},
+    )
+    assert merged == {
+        "suspend": False,
+        "preRunningDeadlineSeconds": 300,
+        "someBrandNewField": "hello",
+    }
+
+
+def test_merge_extra_k8s_fields_passes_values_through_untouched() -> None:
+    """Only the top-level key is converted; values are never recursed into. Declared dict
+    fields already work this way (DEFAULT_HEAD_GROUP_SPEC holds raw camelCase)."""
+    merged = merge_extra_k8s_fields({}, {"some_new_field": {"nested_key": 1}})
+    assert merged == {"someNewField": {"nested_key": 1}}
+
+
+def test_merge_extra_k8s_fields_is_a_noop_without_extras() -> None:
+    manifest = {"suspend": False}
+    assert merge_extra_k8s_fields(manifest, None) == manifest
+    assert merge_extra_k8s_fields(manifest, {}) == manifest
+
+
+def test_merge_extra_k8s_fields_does_not_mutate_input() -> None:
+    manifest = {"suspend": False}
+    merge_extra_k8s_fields(manifest, {"new_field": 1})
+    assert manifest == {"suspend": False}
+
+
+def test_merge_extra_k8s_fields_drops_none_values() -> None:
+    """Consistent with remove_none_from_dict, which already prunes None declared fields."""
+    assert merge_extra_k8s_fields({}, {"new_field": None}) == {}
+
+
+def test_merge_extra_k8s_fields_raises_on_collision_with_manifest_key() -> None:
+    with pytest.raises(ValueError, match="collides with the 'activeDeadlineSeconds' key"):
+        merge_extra_k8s_fields({"activeDeadlineSeconds": 86400}, {"activeDeadlineSeconds": 5})
+
+
+def test_merge_extra_k8s_fields_raises_when_two_extras_converge() -> None:
+    """Both spellings resolve to one key; dict ordering must not silently decide."""
+    with pytest.raises(ValueError, match="both resolve to 'preRunningDeadlineSeconds'"):
+        merge_extra_k8s_fields(
+            {},
+            {"pre_running_deadline_seconds": 1, "preRunningDeadlineSeconds": 2},
+        )

@@ -124,6 +124,14 @@ ray_cluster = KubeRayInteractiveJob(
 )
 ```
 
+### Extra Spec Fields
+
+`RayJobSpec` and `RayClusterSpec` aim to declare every field their `CRD`s support as a typed field.
+
+However, they are also [permissive Dagster configs](https://docs.dagster.io/guides/operate/configuration/advanced-config-types#permissive-schemas), so extra keys will be passed through (useful for setting keys that are not supported by `dagster-ray` yet).
+
+Field names are accepted in either `snake_case` or `camelCase`: for example, setting either `pre_running_deadline_seconds` and `preRunningDeadlineSeconds` will both produce `preRunningDeadlineSeconds` in the manifest.
+
 ## KubeRayCluster
 
 While [`KubeRayInteractiveJob`](../api/kuberay.md#dagster_ray.kuberay.KubeRayInteractiveJob) is recommended for production environments, [`KubeRayCluster`](../api/kuberay.md#dagster_ray.kuberay.KubeRayCluster) might be a better alternative for dev environments.

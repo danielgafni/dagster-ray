@@ -7,7 +7,7 @@ import dagster as dg
 from pydantic import Field, model_validator
 from typing_extensions import Self
 
-from dagster_ray.kuberay.utils import remove_none_from_dict
+from dagster_ray.kuberay.utils import merge_extra_k8s_fields, remove_none_from_dict
 from dagster_ray.types import AnyDagsterContext
 
 in_k8s = os.environ.get("KUBERNETES_SERVICE_HOST") is not None
@@ -91,7 +91,10 @@ class AuthOptions(dg.Config):
 
 
 class RayClusterSpec(dg.PermissiveConfig):
-    """[RayCluster spec](https://ray-project.github.io/kuberay/reference/api/#rayclusterspec) configuration options. A few sensible defaults are provided for convenience."""
+    """[RayCluster spec](https://ray-project.github.io/kuberay/reference/api/#rayclusterspec) configuration options. A few sensible defaults are provided for convenience.
+
+    Every field the CRD supports is meant to be declared here. As an escape hatch for any that is missing, undeclared fields are passed through to the Kubernetes manifest, in either `snake_case` or `camelCase`. See [Extra Spec Fields](../../tutorial/kuberay.md#extra-spec-fields).
+    """
 
     suspend: bool | None = None
     managed_by: str | None = None
@@ -141,19 +144,22 @@ class RayClusterSpec(dg.PermissiveConfig):
         for worker_group_spec in worker_group_specs:
             update_group_spec(worker_group_spec)
 
-        return remove_none_from_dict(
-            {
-                "enableInTreeAutoscaling": self.enable_in_tree_autoscaling,
-                "autoscalerOptions": self.autoscaler_options,
-                "headGroupSpec": head_group_spec,
-                "workerGroupSpecs": worker_group_specs,
-                "suspend": self.suspend,
-                "managedBy": self.managed_by,
-                "headServiceAnnotations": self.head_service_annotations,
-                "gcsFaultToleranceOptions": self.gcs_fault_tolerance_options,
-                "rayVersion": self.ray_version,
-                "authOptions": self.auth_options,
-            }
+        return merge_extra_k8s_fields(
+            remove_none_from_dict(
+                {
+                    "enableInTreeAutoscaling": self.enable_in_tree_autoscaling,
+                    "autoscalerOptions": self.autoscaler_options,
+                    "headGroupSpec": head_group_spec,
+                    "workerGroupSpecs": worker_group_specs,
+                    "suspend": self.suspend,
+                    "managedBy": self.managed_by,
+                    "headServiceAnnotations": self.head_service_annotations,
+                    "gcsFaultToleranceOptions": self.gcs_fault_tolerance_options,
+                    "rayVersion": self.ray_version,
+                    "authOptions": self.auth_options.model_dump(mode="json") if self.auth_options is not None else None,
+                }
+            ),
+            self.model_extra,
         )
 
 
@@ -199,7 +205,10 @@ class RayClusterConfig(dg.Config):
 
 
 class RayJobSpec(dg.PermissiveConfig):
-    """[RayJob spec](https://ray-project.github.io/kuberay/reference/api/#rayjobspec) configuration options. A few sensible defaults are provided for convenience."""
+    """[RayJob spec](https://ray-project.github.io/kuberay/reference/api/#rayjobspec) configuration options. A few sensible defaults are provided for convenience.
+
+    Every field the CRD supports is meant to be declared here. As an escape hatch for any that is missing, undeclared fields are passed through to the Kubernetes manifest, in either `snake_case` or `camelCase`. See [Extra Spec Fields](../../tutorial/kuberay.md#extra-spec-fields).
+    """
 
     active_deadline_seconds: int = 60 * 60 * 24  # 24 hours
     backoff_limit: int = 0
@@ -230,30 +239,33 @@ class RayJobSpec(dg.PermissiveConfig):
         env_vars: Mapping[str, str] | None = None,
     ) -> dict[str, Any]:
         """Convert into Kubernetes manifests in camelCase format and inject additional information"""
-        return remove_none_from_dict(
-            {
-                "activeDeadlineSeconds": self.active_deadline_seconds,
-                "backoffLimit": self.backoff_limit,
-                "submitterPodTemplate": self.submitter_pod_template,
-                "submitterConfig": self.submitter_config,
-                "metadata": self.metadata,
-                "clusterSelector": self.cluster_selector,
-                "managedBy": self.managed_by,
-                "deletionStrategy": self.deletion_strategy,
-                "runtimeEnvYAML": self.runtime_env_yaml,
-                "jobId": self.job_id,
-                "submissionMode": self.submission_mode,
-                "entrypointResources": self.entrypoint_resources,
-                "entrypointNumCpus": self.entrypoint_num_cpus,
-                "entrypointMemory": self.entrypoint_memory,
-                "entrypointNumGpus": self.entrypoint_num_gpus,
-                "ttlSecondsAfterFinished": self.ttl_seconds_after_finished,
-                "shutdownAfterJobFinishes": self.shutdown_after_job_finishes,
-                "suspend": self.suspend,
-                "rayClusterSpec": self.ray_cluster_spec.to_k8s(context=context, image=image, env_vars=env_vars)
-                if self.ray_cluster_spec is not None
-                else None,
-            }
+        return merge_extra_k8s_fields(
+            remove_none_from_dict(
+                {
+                    "activeDeadlineSeconds": self.active_deadline_seconds,
+                    "backoffLimit": self.backoff_limit,
+                    "submitterPodTemplate": self.submitter_pod_template,
+                    "submitterConfig": self.submitter_config,
+                    "metadata": self.metadata,
+                    "clusterSelector": self.cluster_selector,
+                    "managedBy": self.managed_by,
+                    "deletionStrategy": self.deletion_strategy,
+                    "runtimeEnvYAML": self.runtime_env_yaml,
+                    "jobId": self.job_id,
+                    "submissionMode": self.submission_mode,
+                    "entrypointResources": self.entrypoint_resources,
+                    "entrypointNumCpus": self.entrypoint_num_cpus,
+                    "entrypointMemory": self.entrypoint_memory,
+                    "entrypointNumGpus": self.entrypoint_num_gpus,
+                    "ttlSecondsAfterFinished": self.ttl_seconds_after_finished,
+                    "shutdownAfterJobFinishes": self.shutdown_after_job_finishes,
+                    "suspend": self.suspend,
+                    "rayClusterSpec": self.ray_cluster_spec.to_k8s(context=context, image=image, env_vars=env_vars)
+                    if self.ray_cluster_spec is not None
+                    else None,
+                }
+            ),
+            self.model_extra,
         )
 
 
