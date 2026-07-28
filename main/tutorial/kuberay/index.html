@@ -1317,7 +1317,8 @@
 <li><code>dagster/git-sha</code></li>
 <li><code>dagster/resource-key</code></li>
 </ul>
-<p>Each time a cluster is chosen for a step, <code>dagster-ray</code> will apply an annotation to the selected cluster to indicate that it's being used by the current step. This annotation effectively extends the cluster sharing TTL by the configured <code>ttl_seconds</code> amount. Note that the countdown for the TTL starts from the time the annotation is applied, not from the time when the Ray job starts.</p>
+<p>Each time a cluster is chosen for a step, <code>dagster-ray</code> will apply and continuously update a heartbeat lock annotation to the selected cluster to indicate that it's currently in use by the step.
+The lock is considered expired once <code>ttl_seconds</code> has passed since its last heartbeat and may be deleted by <a href="#raycluster-garbage-collection">garbage collection</a>.</p>
 <p>Configuration options for cluster sharing can be found <a href="../../api/kuberay/#dagster_ray.kuberay.KubeRayCluster.cluster_sharing">here</a>.</p>
 <h3 id="raycluster-garbage-collection"><code>RayCluster</code> Garbage Collection<a class="headerlink" href="#raycluster-garbage-collection" title="Permanent link">&para;</a></h3>
 <p>A <code>RayCluster</code> created by <code>dagster-ray</code> may become dangling for two reasons:
@@ -1325,13 +1326,17 @@
 - if <a href="#cluster-sharing">Cluster Sharing</a> is used <strong>and</strong> the cluster did not expire at the time of the Dagster step completion</p>
 <p>Since <code>RayCluster</code> doesn't support native garbage collection yet (see <a href="https://github.com/ray-project/kuberay/issues/4033">TTL</a> and <a href="https://github.com/ray-project/kuberay/issues/2998">idle termination</a> feature requests), <code>dagster-ray</code> provides a custom garbage collection Dagster sensor.</p>
 <div class="language-py highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">dagster</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dg</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dagster_ray.kuberay</span><span class="w"> </span><span class="kn">import</span> <span class="n">cleanup_expired_rayclusters</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dagster_ray.kuberay</span><span class="w"> </span><span class="kn">import</span> <span class="n">cleanup_expired_kuberay_clusters</span>
 </span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
 </span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">defs</span> <span class="o">=</span> <span class="n">dg</span><span class="o">.</span><span class="n">Definitions</span><span class="p">(</span>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>    <span class="n">sensors</span><span class="o">=</span><span class="p">[</span><span class="n">cleanup_expired_rayclusters</span><span class="p">],</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>    <span class="n">sensors</span><span class="o">=</span><span class="p">[</span><span class="n">cleanup_expired_kuberay_clusters</span><span class="p">],</span>
 </span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="p">)</span>
 </span></code></pre></div>
-<p>It's not recommended for production environments as it will interrupt active long-running jobs and is not safe by any means. It's intended to be used with short-running development environments where job interruption is acceptable.</p>
+<p>The sensor deletes shared clusters once all of their locks have expired — a lock expires when the time since its last heartbeat exceeds the TTL.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>You can configure <a href="https://docs.dagster.io/deployment/execution/run-monitoring#general-run-timeouts">run timeouts</a> to prevent Dagster steps from hanging indefinitely.</p>
+</div>
 <h2 id="pipeskuberayjobclient">PipesKubeRayJobClient<a class="headerlink" href="#pipeskuberayjobclient" title="Permanent link">&para;</a></h2>
 <p><a href="../../api/kuberay/#dagster_ray.kuberay.PipesKubeRayJobClient"><code>PipesKubeRayJobClient</code></a> allows you to submit external Python scripts as Ray jobs with automatic cluster management. This is ideal when you want to decouple your Ray workload from your Dagster orchestration code or Python environment.</p>
 <h3 id="basic-pipes-example">Basic Pipes Example<a class="headerlink" href="#basic-pipes-example" title="Permanent link">&para;</a></h3>
