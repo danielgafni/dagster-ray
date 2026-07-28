@@ -127,7 +127,7 @@ This release is focused on improving support for authentication and cross-cluste
 
 This release introduces a new feature that is very useful in dev environments: **Cluster Sharing**. Cluster sharing allows reusing existing `RayCluster` resources created by previous Dagster steps. It's implemented for `KubeRayCluster` Dagster resource. This feature enables faster iteration speed and reduced infrastructure costs (at the expense of job isolation). Therefore `KubeRayCluster` is now recommended over `KubeRayInteractiveJob` for use in **dev** environments.
 
-Learn more in [Cluster Sharing docs](tutorial/kuberay.md/#cluster-sharing).
+Learn more in [Cluster Sharing docs](tutorial/kuberay.md#cluster-sharing).
 
 ### Added
 - `KubeRayCluster.cluster_sharing` parameter that controls cluster sharing behavior.
