@@ -4,6 +4,7 @@ from collections.abc import Mapping
 from typing import Any, Literal
 
 import dagster as dg
+from packaging.version import InvalidVersion, Version
 from pydantic import Field, model_validator
 from typing_extensions import Self
 
@@ -84,18 +85,62 @@ DEFAULT_WORKER_GROUP_SPECS = [
 MISSING_IMAGE_MESSAGE = "Image is missing from the `RayCluster` spec, from the top-level Dagster resource config, and the Dagster run does not have a `dagster/image` tag. Please use one of these options to specify the image."
 
 
-class AuthOptions(dg.Config):
-    """[AuthOptions](https://ray-project.github.io/kuberay/reference/api/#authoptions) for the Ray cluster."""
+# Minimum Ray versions KubeRay enforces for `authOptions`, from `ValidateRayClusterSpec`.
+MIN_RAY_VERSION_FOR_TOKEN_AUTH = "2.52.0"
+MIN_RAY_VERSION_FOR_K8S_TOKEN_AUTH = "2.55.0"
+
+
+class AuthOptions(dg.PermissiveConfig):
+    """[AuthOptions](https://ray-project.github.io/kuberay/reference/api/#authoptions) for the Ray cluster.
+
+    Every field the CRD supports is meant to be declared here. As an escape hatch for any that is missing, undeclared fields are passed through to the Kubernetes manifest, in either `snake_case` or `camelCase`. See [Extra Spec Fields](../tutorial/kuberay.md#extra-spec-fields).
+    """
 
     mode: Literal["token", "disabled"] = "token"
+    secret_name: str | None = Field(
+        default=None,
+        description="Name of the `Secret` holding the authentication token. The `Secret` must have an `auth_token` data key. If set, KubeRay skips generating a per-`RayCluster` token `Secret`. Requires KubeRay 1.6.0.",
+    )
+    enable_k8s_token_auth: bool | None = Field(
+        default=None,
+        description=(
+            "Delegate authentication to the Kubernetes API server. Sets `RAY_ENABLE_K8S_TOKEN_AUTH=true` on all Ray pods; "
+            "the ServiceAccount token mounted into Raylets must be granted the `ray:write` custom verb via RBAC. "
+            f"Requires `mode='token'`, Ray {MIN_RAY_VERSION_FOR_K8S_TOKEN_AUTH} or later, and KubeRay 1.6.0, and cannot be "
+            "combined with `secret_name` — the token comes from the mounted ServiceAccount rather than a `Secret`. "
+            "KubeRay rejects it for `RayJob` and `RayService`, so it cannot be used with "
+            "[`KubeRayInteractiveJob`][dagster_ray.kuberay.KubeRayInteractiveJob] — use "
+            "[`KubeRayCluster`][dagster_ray.kuberay.KubeRayCluster]."
+        ),
+    )
+
+    def to_k8s(self) -> dict[str, Any]:
+        """Convert into Kubernetes manifests in camelCase format"""
+        return merge_extra_k8s_fields(
+            remove_none_from_dict(
+                {
+                    "mode": self.mode,
+                    "secretName": self.secret_name,
+                    "enableK8sTokenAuth": self.enable_k8s_token_auth,
+                }
+            ),
+            self.model_extra,
+        )
 
 
-class RayClusterUpgradeStrategy(dg.Config):
-    """[RayClusterUpgradeStrategy](https://ray-project.github.io/kuberay/reference/api/#rayclusterupgradestrategy) for the Ray cluster."""
+class RayClusterUpgradeStrategy(dg.PermissiveConfig):
+    """[RayClusterUpgradeStrategy](https://ray-project.github.io/kuberay/reference/api/#rayclusterupgradestrategy) for the Ray cluster.
+
+    Every field the CRD supports is meant to be declared here. As an escape hatch for any that is missing, undeclared fields are passed through to the Kubernetes manifest, in either `snake_case` or `camelCase`. See [Extra Spec Fields](../tutorial/kuberay.md#extra-spec-fields).
+    """
 
     type: Literal["Recreate", "None"] = Field(
         description='Strategy used when upgrading the `RayCluster` pods. `Recreate` deletes all existing pods before creating new ones; the string `"None"` creates no new pods. Note that `"None"` is a KubeRay strategy name, distinct from leaving `upgrade_strategy` itself unset.',
     )
+
+    def to_k8s(self) -> dict[str, Any]:
+        """Convert into Kubernetes manifests in camelCase format"""
+        return merge_extra_k8s_fields(remove_none_from_dict({"type": self.type}), self.model_extra)
 
 
 class RayClusterSpec(dg.PermissiveConfig):
@@ -118,6 +163,64 @@ class RayClusterSpec(dg.PermissiveConfig):
         default=None,
         description="Scaling policy used when upgrading the `RayCluster`. See [RayClusterUpgradeStrategy](https://ray-project.github.io/kuberay/reference/api/#rayclusterupgradestrategy). Requires KubeRay 1.6.0: older operators prune the field without an error.",
     )
+
+    @model_validator(mode="after")
+    def _validate_auth_options(self) -> Self:
+        """Reject `auth_options` combinations KubeRay refuses, at config time.
+
+        KubeRay validates the `RayCluster` in its controller rather than an admission webhook, so an
+        invalid spec is created successfully and then never reconciled — no `.status` is written at
+        all. Waiting on such a cluster burns the full timeout and then reports "timed out waiting for
+        status", naming the wrong problem entirely. These mirror `ValidateRayClusterSpec` so the real
+        reason surfaces immediately.
+        """
+        if self.auth_options is None:
+            return self
+
+        k8s_token_auth = bool(self.auth_options.enable_k8s_token_auth)
+
+        if self.auth_options.mode != "token":
+            if k8s_token_auth:
+                raise ValueError(
+                    "auth_options.enable_k8s_token_auth requires auth_options.mode='token', got "
+                    f"mode={self.auth_options.mode!r}."
+                )
+            return self
+
+        if self.ray_version is None:
+            raise ValueError(
+                "auth_options.mode='token' requires ray_version to be set (Ray "
+                f"{MIN_RAY_VERSION_FOR_TOKEN_AUTH} or later). Without it KubeRay marks the RayCluster "
+                "spec invalid and never reconciles it, so it never reports a status."
+            )
+
+        try:
+            ray_version = Version(self.ray_version)
+        except InvalidVersion:
+            raise ValueError(
+                f"ray_version {self.ray_version!r} is not a valid version, and auth_options.mode='token' "
+                "requires KubeRay to parse it."
+            ) from None
+
+        if ray_version < Version(MIN_RAY_VERSION_FOR_TOKEN_AUTH):
+            raise ValueError(
+                f"auth_options.mode='token' requires Ray {MIN_RAY_VERSION_FOR_TOKEN_AUTH} or later, got "
+                f"ray_version={self.ray_version!r}."
+            )
+
+        if k8s_token_auth:
+            if self.auth_options.secret_name is not None:
+                raise ValueError(
+                    "auth_options.enable_k8s_token_auth and auth_options.secret_name are mutually "
+                    "exclusive — the token comes from the mounted ServiceAccount, not a Secret."
+                )
+            if ray_version < Version(MIN_RAY_VERSION_FOR_K8S_TOKEN_AUTH):
+                raise ValueError(
+                    "auth_options.enable_k8s_token_auth requires Ray "
+                    f"{MIN_RAY_VERSION_FOR_K8S_TOKEN_AUTH} or later, got ray_version={self.ray_version!r}."
+                )
+
+        return self
 
     def to_k8s(
         self,
@@ -168,10 +271,8 @@ class RayClusterSpec(dg.PermissiveConfig):
                     "headServiceAnnotations": self.head_service_annotations,
                     "gcsFaultToleranceOptions": self.gcs_fault_tolerance_options,
                     "rayVersion": self.ray_version,
-                    "authOptions": self.auth_options.model_dump(mode="json") if self.auth_options is not None else None,
-                    "upgradeStrategy": self.upgrade_strategy.model_dump(mode="json")
-                    if self.upgrade_strategy is not None
-                    else None,
+                    "authOptions": self.auth_options.to_k8s() if self.auth_options is not None else None,
+                    "upgradeStrategy": self.upgrade_strategy.to_k8s() if self.upgrade_strategy is not None else None,
                 }
             ),
             self.model_extra,
@@ -251,6 +352,23 @@ class RayJobSpec(dg.PermissiveConfig):
     ttl_seconds_after_finished: int | None = 5 * 60  # 5 minutes
     shutdown_after_job_finishes: bool = True
     suspend: bool | None = None
+
+    @model_validator(mode="after")
+    def _reject_k8s_token_auth(self) -> Self:
+        """KubeRay rejects `enableK8sTokenAuth` for `RayJob` outright rather than ignoring it.
+
+        As with the `RayCluster` checks, the rejection happens in the controller, so without this the
+        `RayJob` is created and then parked in `ValidationFailed`.
+        """
+        auth_options = self.ray_cluster_spec.auth_options if self.ray_cluster_spec is not None else None
+
+        if auth_options is not None and auth_options.enable_k8s_token_auth:
+            raise ValueError(
+                "KubeRay does not support auth_options.enable_k8s_token_auth for RayJob and marks the "
+                "spec invalid. Use KubeRayCluster for Kubernetes-delegated token auth."
+            )
+
+        return self
 
     def to_k8s(
         self,

@@ -18,7 +18,7 @@ from pytest_kubernetes.providers import AClusterManager, select_provider_manager
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 from dagster_ray.kuberay.client import RayClusterClient
-from dagster_ray.kuberay.configs import DEFAULT_HEAD_GROUP_SPEC, DEFAULT_WORKER_GROUP_SPECS
+from dagster_ray.kuberay.configs import DEFAULT_HEAD_GROUP_SPEC, DEFAULT_WORKER_GROUP_SPECS, AuthOptions
 from tests import ROOT_DIR
 from tests.kuberay.utils import NAMESPACE
 
@@ -150,7 +150,9 @@ def k8s_with_kuberay(
             ]
         )
 
-    if Version(kuberay_version) >= Version("1.5.0"):
+    # RayJobDeletionPolicy is alpha and off by default in 1.5.x, and beta and on by default from
+    # 1.6.0. Setting it on 1.6+ would test a configuration no real user runs.
+    if Version("1.5.0") <= Version(kuberay_version) < Version("1.6.0"):
         args.extend(
             [
                 "--set",
@@ -208,6 +210,10 @@ AUTH_RAY_CLUSTER_NAME = "persistent-ray-cluster-with-auth"
 AUTH_TOKEN = "test-auth-token-12345"
 AUTH_SECRET_NAME = "ray-auth-token-secret"
 MIN_RAY_VERSION_FOR_AUTH = "2.52.0"  # Ray token auth requires 2.52.0+
+# `authOptions` appeared in KubeRay 1.5.2 with only `mode`, and gained `secretName` in 1.6.0.
+# Without `secretName` KubeRay generates its own token Secret, whose value the test can't know,
+# so below 1.6.0 the auth env vars have to be injected by hand instead.
+MIN_KUBERAY_VERSION_FOR_AUTH_OPTIONS = "1.6.0"
 
 
 @contextmanager
@@ -275,11 +281,17 @@ def k8s_with_raycluster_with_auth(
     k8s_with_kuberay: AClusterManager,
     head_group_spec: dict[str, Any],
     ray_version: str,
+    kuberay_version: str,
 ) -> Iterator[tuple[dict[str, str], str, AClusterManager]]:
     """Create a RayCluster with token authentication enabled.
 
     Requires Ray 2.52.0+ for token authentication support.
     Uses no workers to minimize resource usage alongside other test clusters.
+
+    From KubeRay 1.6.0 the auth env vars come from `spec.authOptions`, built by
+    [`AuthOptions`][dagster_ray.kuberay.configs.AuthOptions], so this exercises the config class
+    users actually configure. On older operators they are injected into the head container
+    directly, which is what KubeRay does for us otherwise.
 
     Returns:
         tuple: (addresses_dict, auth_token, cluster_manager)
@@ -293,24 +305,32 @@ def k8s_with_raycluster_with_auth(
 
     head_spec = copy.deepcopy(head_group_spec)
 
-    # Add auth env vars to head container
-    head_container = head_spec["template"]["spec"]["containers"][0]
-    if "env" not in head_container:
-        head_container["env"] = []
-    head_container["env"].extend(
-        [
-            {"name": "RAY_AUTH_MODE", "value": "token"},
-            {
-                "name": "RAY_AUTH_TOKEN",
-                "valueFrom": {"secretKeyRef": {"name": AUTH_SECRET_NAME, "key": "auth_token"}},
-            },
-        ]
-    )
-
-    cluster_spec = {
+    cluster_spec: dict[str, Any] = {
         "headGroupSpec": head_spec,
         "workerGroupSpecs": [],
     }
+
+    if Version(kuberay_version) >= Version(MIN_KUBERAY_VERSION_FOR_AUTH_OPTIONS):
+        # KubeRay injects RAY_AUTH_MODE and RAY_AUTH_TOKEN (from our Secret's `auth_token` key)
+        # into the Ray container itself once authOptions.mode is `token`.
+        #
+        # `rayVersion` is mandatory with token auth: without it KubeRay marks the RayCluster spec
+        # invalid and never reconciles it, so the cluster never reports a status at all.
+        cluster_spec["rayVersion"] = ray_version
+        cluster_spec["authOptions"] = AuthOptions(mode="token", secret_name=AUTH_SECRET_NAME).to_k8s()
+    else:
+        head_container = head_spec["template"]["spec"]["containers"][0]
+        if "env" not in head_container:
+            head_container["env"] = []
+        head_container["env"].extend(
+            [
+                {"name": "RAY_AUTH_MODE", "value": "token"},
+                {
+                    "name": "RAY_AUTH_TOKEN",
+                    "valueFrom": {"secretKeyRef": {"name": AUTH_SECRET_NAME, "key": "auth_token"}},
+                },
+            ]
+        )
 
     manifest = {
         "kind": "RayCluster",
