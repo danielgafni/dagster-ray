@@ -34,8 +34,52 @@ class RayJobStatus(TypedDict):
     endTime: NotRequired[str]
     jobStatus: NotRequired[Literal["PENDING", "RUNNING", "SUCCEEDED", "FAILED", "STOPPED"]]
     message: NotRequired[str]
+    # Set by KubeRay when jobDeploymentStatus is Failed, e.g. `DeadlineExceeded`,
+    # `PreRunningDeadlineExceeded`, `SubmissionFailed`, `AppFailed`.
+    reason: NotRequired[str]
     failed: NotRequired[int]
     succeeded: NotRequired[int]
+
+
+# `ValidationFailed` means the KubeRay controller rejected the spec — for example a
+# `deletionStrategy` set while the `RayJobDeletionPolicy` feature gate is disabled. It is a
+# distinct `jobDeploymentStatus` from `Failed` and KubeRay deliberately excludes it from
+# `IsJobDeploymentTerminal`, but the RayJob never leaves it, so we must treat it as terminal or
+# callers wait forever.
+FAILED_JOB_DEPLOYMENT_STATUSES = ("Failed", "ValidationFailed")
+
+# `jobDeploymentStatus` values that imply the `RayCluster` is up and accepting connections. The
+# controller only leaves `Initializing` once `RayCluster.Status.State` is `Ready` and it has fetched
+# the dashboard URL, so reaching any of these means the cluster is usable.
+READY_JOB_DEPLOYMENT_STATUSES = ("Waiting", "Running", "Complete")
+
+
+def format_job_deployment_failure(name: str, namespace: str, status: RayJobStatus) -> str:
+    """Build an error message for a `RayJob` whose deployment has failed.
+
+    Includes KubeRay's `reason`, without which a deadline failure is indistinguishable from any
+    other deployment failure.
+    """
+    if status.get("jobDeploymentStatus") == "ValidationFailed":
+        message = f"RayJob {namespace}/{name} was rejected by the KubeRay controller as invalid"
+    else:
+        message = f"RayJob {namespace}/{name} deployment failed"
+
+    if reason := status.get("reason"):
+        message += f" with reason {reason}"
+
+        if reason == "PreRunningDeadlineExceeded":
+            message += (
+                " — the job did not reach the Running state within "
+                "`spec.preRunningDeadlineSeconds`, so its RayCluster likely never became ready"
+            )
+        elif reason == "DeadlineExceeded":
+            message += " — the job did not complete within `spec.activeDeadlineSeconds`"
+
+    if status_message := status.get("message"):
+        message += f".\nMessage: {status_message}"
+
+    return message
 
 
 class RayJobClient(BaseKubeRayClient[RayJobStatus]):
@@ -63,6 +107,10 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
             if ray_cluster_name := status.get("rayClusterName"):
                 return ray_cluster_name
 
+            # A spec the controller rejects never gets a RayCluster at all, so without this we
+            # would poll until the timeout and report a missing `rayClusterName` instead of why.
+            self.raise_if_deployment_failed(name, namespace, status)
+
             logger.debug(
                 f"RayJob {namespace}/{name} status does not yet contain rayClusterName. "
                 f"Current status: {status}. Waiting..."
@@ -80,6 +128,61 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
     ) -> str | None:
         """Returns the ray job submission ID. It may be missing for mode: InteractiveMode."""
         return self.get_status(name, namespace, timeout=timeout, poll_interval=poll_interval).get("jobId")
+
+    def raise_if_deployment_failed(self, name: str, namespace: str, status: RayJobStatus | None = None) -> None:
+        """Raise if the `RayJob` deployment has failed or its spec was rejected.
+
+        `jobDeploymentStatus` is the only place a pre-`Running` failure shows up — the `RayCluster`
+        itself may look healthy, or may never be created at all.
+        """
+        if status is None:
+            status = self.get_status(name, namespace)
+
+        if status.get("jobDeploymentStatus") in FAILED_JOB_DEPLOYMENT_STATUSES:
+            raise RuntimeError(format_job_deployment_failure(name, namespace, status))
+
+    def wait_until_deployment_ready(
+        self,
+        name: str,
+        namespace: str,
+        timeout: float = 600,
+        poll_interval: float = 1.0,
+    ) -> RayJobStatus:
+        """Wait until the `RayJob` reports that its `RayCluster` is up, or fail with the reason why.
+
+        This watches `jobDeploymentStatus` only. It is the sole place a pre-`Running` failure shows
+        up — an expired `preRunningDeadlineSeconds` or a spec the controller rejected — none of which
+        the `RayCluster` status can express. The `RayCluster` may even look perfectly healthy, or
+        never be created at all.
+
+        Parameters:
+            name (str): The name of the `RayJob` resource
+            namespace (str): The namespace of the `RayJob` resource
+            timeout (float): The timeout in seconds to wait for the deployment to become ready.
+            poll_interval (float): The interval in seconds to poll the status.
+
+        Returns:
+            RayJobStatus: The status once the `RayCluster` is reported ready.
+        """
+        start_time = time.time()
+        status = None
+
+        while time.time() - start_time < timeout:
+            status = self.get_status(name, namespace, timeout=timeout, poll_interval=poll_interval)
+            self.raise_if_deployment_failed(name, namespace, status)
+
+            if status.get("jobDeploymentStatus") in READY_JOB_DEPLOYMENT_STATUSES:
+                return status
+
+            logger.debug(
+                f"RayJob {namespace}/{name} deployment status is {status.get('jobDeploymentStatus')}, waiting..."
+            )
+            time.sleep(poll_interval)
+
+        raise TimeoutError(
+            f"Timed out ({timeout:.1f}s) waiting for RayJob {namespace}/{name} to report a ready RayCluster. "
+            f"Last status: {status}"
+        )
 
     @property
     def ray_cluster_client(self) -> RayClusterClient:
@@ -101,6 +204,12 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
 
         This doesn't necessarily mean that the cluster has already taken a job, just that it is ready to accept connections.
 
+        Waits on the `RayJob` first via
+        [`wait_until_deployment_ready`][dagster_ray.kuberay.client.RayJobClient.wait_until_deployment_ready],
+        so a failure before the job reaches `Running` surfaces with its reason instead of stalling in
+        a `RayCluster` wait that can't see it. The `RayCluster` wait that follows then only resolves
+        the head service and endpoints, and returns promptly because the job already reported ready.
+
         Parameters:
             name (str): The name of the `RayJob` resource
             namespace (str): The namespace of the `RayJob` resource
@@ -112,6 +221,8 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
         Returns:
             tuple[str, RayClusterEndpoints]: The service name (FQDN-ready) and a dictionary of ports.
         """
+        self.wait_until_deployment_ready(name, namespace, timeout=timeout, poll_interval=poll_interval)
+
         ray_cluster_name = self.get_ray_cluster_name(name, namespace, timeout=timeout, poll_interval=poll_interval)
         ray_cluster_client = self.ray_cluster_client
         ray_cluster_client.wait_until_exists(
@@ -139,12 +250,13 @@ class RayJobClient(BaseKubeRayClient[RayJobStatus]):
         start_time = time.time()
 
         while True:
-            status = self.get_status(name, namespace, timeout, poll_interval).get("jobDeploymentStatus")
+            job_status = self.get_status(name, namespace, timeout, poll_interval)
+            status = job_status.get("jobDeploymentStatus")
 
             if status in ["Running", "Complete"]:
                 break
-            elif status == "Failed":
-                raise RuntimeError(f"RayJob {namespace}/{name} deployment failed. Status:\n{status}")
+
+            self.raise_if_deployment_failed(name, namespace, job_status)
 
             if time.time() - start_time > timeout:
                 if terminate_on_timeout:

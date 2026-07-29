@@ -333,9 +333,16 @@ def ensure_interactive_rayjob_correctness(
         rayjob.connect(context)  # normally this would happen automatically during resource setup
         assert rayjob.context is not None
 
-        time.sleep(1)
+        # Setting `jobId` doesn't make the RayJob Running synchronously: KubeRay needs a reconcile
+        # cycle to observe it, another to move the RayJob out of `Waiting`, and only then does it
+        # populate `jobStatus` from the dashboard. Sleeping a fixed second races that, so poll.
+        job_status = None
+        for _ in range(RAYJOB_TIMEOUT):
+            job_status = rayjob.client.get_status(rayjob.name, rayjob.namespace).get("jobStatus")
+            if job_status == "RUNNING":
+                break
+            time.sleep(1)
 
-        job_status = rayjob.client.get_status(rayjob.name, rayjob.namespace).get("jobStatus")
         assert job_status == "RUNNING", job_status
 
         # make sure a @remote function runs inside the cluster

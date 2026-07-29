@@ -9,6 +9,10 @@ from typing import Any
 import dagster as dg
 import pytest
 
+from dagster_ray.kuberay.client.rayjob.client import (
+    FAILED_JOB_DEPLOYMENT_STATUSES,
+    format_job_deployment_failure,
+)
 from dagster_ray.kuberay.configs import (
     AuthOptions,
     RayClusterSpec,
@@ -34,25 +38,25 @@ def to_k8s(spec: RayJobSpec | RayClusterSpec, context: dg.InitResourceContext) -
 
 
 def test_rayjob_spec_passes_camel_case_extra_through(context) -> None:
-    spec = RayJobSpec(preRunningDeadlineSeconds=300)  # type: ignore[call-arg]
-    assert to_k8s(spec, context)["preRunningDeadlineSeconds"] == 300
+    spec = RayJobSpec(someFutureCrdField=300)  # type: ignore[call-arg]
+    assert to_k8s(spec, context)["someFutureCrdField"] == 300
 
 
 def test_rayjob_spec_converts_snake_case_extra_to_camel_case(context) -> None:
-    spec = RayJobSpec(pre_running_deadline_seconds=300)  # type: ignore[call-arg]
+    spec = RayJobSpec(some_future_crd_field=300)  # type: ignore[call-arg]
     manifest = to_k8s(spec, context)
-    assert manifest["preRunningDeadlineSeconds"] == 300
-    assert "pre_running_deadline_seconds" not in manifest
+    assert manifest["someFutureCrdField"] == 300
+    assert "some_future_crd_field" not in manifest
 
 
 def test_raycluster_spec_passes_extra_through(context) -> None:
-    spec = RayClusterSpec(someBrandNewField="hello")  # type: ignore[call-arg]
-    assert to_k8s(spec, context)["someBrandNewField"] == "hello"
+    spec = RayClusterSpec(someFutureCrdField="hello")  # type: ignore[call-arg]
+    assert to_k8s(spec, context)["someFutureCrdField"] == "hello"
 
 
 def test_extra_on_nested_ray_cluster_spec_reaches_manifest(context) -> None:
-    spec = RayJobSpec(ray_cluster_spec=RayClusterSpec(someBrandNewField="hello"))  # type: ignore[call-arg]
-    assert to_k8s(spec, context)["rayClusterSpec"]["someBrandNewField"] == "hello"
+    spec = RayJobSpec(ray_cluster_spec=RayClusterSpec(someFutureCrdField="hello"))  # type: ignore[call-arg]
+    assert to_k8s(spec, context)["rayClusterSpec"]["someFutureCrdField"] == "hello"
 
 
 def test_extra_from_dagster_run_config_reaches_manifest() -> None:
@@ -80,8 +84,8 @@ def test_extra_from_dagster_run_config_reaches_manifest() -> None:
                     "config": {
                         "ray_job": {
                             "spec": {
-                                "preRunningDeadlineSeconds": 77,
-                                "some_brand_new_field": "hello",
+                                "someFutureCrdField": 77,
+                                "another_future_crd_field": "hello",
                             }
                         }
                     }
@@ -91,8 +95,8 @@ def test_extra_from_dagster_run_config_reaches_manifest() -> None:
     )
 
     assert result.success
-    assert captured["preRunningDeadlineSeconds"] == 77
-    assert captured["someBrandNewField"] == "hello"
+    assert captured["someFutureCrdField"] == 77
+    assert captured["anotherFutureCrdField"] == "hello"
 
 
 def test_extra_colliding_with_declared_field_raises(context) -> None:
@@ -114,6 +118,7 @@ def test_declared_fields_all_reach_the_manifest(context) -> None:
     """
     sentinels: dict[str, Any] = {
         "active_deadline_seconds": 11,
+        "pre_running_deadline_seconds": 27,
         "backoff_limit": 12,
         "submitter_pod_template": {"sentinel": 13},
         "submitter_config": {"sentinel": 14},
@@ -142,6 +147,17 @@ def test_declared_fields_all_reach_the_manifest(context) -> None:
         assert value in emitted, f"{name!r} (={value!r}) is missing from the RayJob manifest"
 
 
+def test_pre_running_deadline_seconds_is_omitted_by_default(context) -> None:
+    """The field only exists in KubeRay 1.6.0+. Omitting it keeps the manifest valid for the
+    older operator versions in the test matrix, which would otherwise prune it silently."""
+    assert "preRunningDeadlineSeconds" not in to_k8s(RayJobSpec(), context)
+
+
+def test_pre_running_deadline_seconds_reaches_manifest(context) -> None:
+    spec = RayJobSpec(pre_running_deadline_seconds=600)
+    assert to_k8s(spec, context)["preRunningDeadlineSeconds"] == 600
+
+
 def test_auth_options_is_serialized_as_a_dict(context) -> None:
     """`authOptions` used to emit the AuthOptions model object, making the manifest
     unserializable: `AttributeError: 'AuthOptions' object has no attribute 'openapi_types'`."""
@@ -152,3 +168,134 @@ def test_auth_options_is_serialized_as_a_dict(context) -> None:
     assert manifest["authOptions"] == {"mode": "token"}
     json.dumps(manifest)
     ApiClient().sanitize_for_serialization(manifest)
+
+
+# Without KubeRay's `reason`, a deadline failure is indistinguishable from any other
+# deployment failure — the message used to interpolate only the bare status string.
+
+
+def test_format_job_deployment_failure_names_the_pre_running_deadline() -> None:
+    message = format_job_deployment_failure(
+        "my-job",
+        "my-ns",
+        {"jobDeploymentStatus": "Failed", "reason": "PreRunningDeadlineExceeded"},
+    )
+    assert "my-ns/my-job" in message
+    assert "PreRunningDeadlineExceeded" in message
+    assert "preRunningDeadlineSeconds" in message
+
+
+def test_format_job_deployment_failure_includes_reason_and_message() -> None:
+    message = format_job_deployment_failure(
+        "my-job",
+        "my-ns",
+        {"jobDeploymentStatus": "Failed", "reason": "AppFailed", "message": "boom"},
+    )
+    assert "AppFailed" in message
+    assert "boom" in message
+
+
+def test_format_job_deployment_failure_without_a_reason() -> None:
+    """KubeRay doesn't always set `reason`; the message must still identify the job."""
+    message = format_job_deployment_failure("my-job", "my-ns", {"jobDeploymentStatus": "Failed"})
+    assert message == "RayJob my-ns/my-job deployment failed"
+
+
+# KubeRay validates the RayJob spec in the controller rather than an admission webhook, so an
+# invalid spec is not rejected at creation — the RayJob is created and then parked in
+# ValidationFailed.
+
+
+def test_format_job_deployment_failure_reports_validation_failed() -> None:
+    """ValidationFailed is a distinct jobDeploymentStatus that KubeRay excludes from
+    IsJobDeploymentTerminal, but a RayJob never leaves it — so it must read as terminal."""
+    message = format_job_deployment_failure(
+        "my-job",
+        "my-ns",
+        {
+            "jobDeploymentStatus": "ValidationFailed",
+            "reason": "ValidationFailed",
+            "message": "RayJobDeletionPolicy feature gate must be enabled to use DeletionStrategy",
+        },
+    )
+    assert "rejected by the KubeRay controller" in message
+    assert "feature gate must be enabled" in message
+
+
+def test_validation_failed_is_treated_as_a_failed_deployment() -> None:
+    assert "ValidationFailed" in FAILED_JOB_DEPLOYMENT_STATUSES
+    assert "Failed" in FAILED_JOB_DEPLOYMENT_STATUSES
+
+
+# A failure before the job reaches Running is invisible in the RayCluster status: the cluster may
+# look healthy, or may never be created at all. Without polling the RayJob's own
+# jobDeploymentStatus, KubeRayInteractiveJob reported these as a plain timeout with no reason.
+
+
+def _rayjob_client_with_statuses(statuses: list[dict[str, Any]]) -> Any:
+    from unittest.mock import MagicMock
+
+    from dagster_ray.kuberay.client import RayJobClient
+
+    client = RayJobClient.__new__(RayJobClient)
+    client.get_status = MagicMock(side_effect=statuses * 100)  # type: ignore[method-assign]
+    return client
+
+
+@pytest.mark.parametrize("failed_status", ["Failed", "ValidationFailed"])
+def test_raise_if_deployment_failed_raises_on_failure(failed_status) -> None:
+    client = _rayjob_client_with_statuses([{"jobDeploymentStatus": failed_status, "reason": "SomeReason"}])
+    with pytest.raises(RuntimeError, match="SomeReason"):
+        client.raise_if_deployment_failed("my-job", "my-ns")
+
+
+@pytest.mark.parametrize("status", ["Initializing", "Waiting", "Running", "Complete"])
+def test_raise_if_deployment_failed_is_quiet_otherwise(status) -> None:
+    client = _rayjob_client_with_statuses([{"jobDeploymentStatus": status}])
+    client.raise_if_deployment_failed("my-job", "my-ns")
+
+
+def test_get_ray_cluster_name_fails_fast_on_rejected_spec() -> None:
+    """A rejected spec never gets a RayCluster, so waiting for `rayClusterName` would otherwise
+    burn the whole timeout and then report the wrong problem."""
+    client = _rayjob_client_with_statuses(
+        [
+            {
+                "jobDeploymentStatus": "ValidationFailed",
+                "reason": "ValidationFailed",
+                "message": "RayJobDeletionPolicy feature gate must be enabled to use DeletionStrategy",
+            }
+        ]
+    )
+    with pytest.raises(RuntimeError, match="feature gate must be enabled"):
+        client.get_ray_cluster_name("my-job", "my-ns", timeout=30)
+
+
+@pytest.mark.parametrize("ready_status", ["Waiting", "Running", "Complete"])
+def test_wait_until_deployment_ready_returns_once_the_cluster_is_up(ready_status) -> None:
+    """The controller only leaves `Initializing` after RayCluster.Status.State is Ready, so these
+    statuses imply a usable cluster."""
+    client = _rayjob_client_with_statuses(
+        [{"jobDeploymentStatus": "Initializing"}, {"jobDeploymentStatus": ready_status}]
+    )
+    assert client.wait_until_deployment_ready("my-job", "my-ns", timeout=30)["jobDeploymentStatus"] == ready_status
+
+
+def test_wait_until_deployment_ready_fails_with_the_deadline_reason() -> None:
+    """Previously this stalled in the RayCluster wait, which cannot observe the RayJob's deadline,
+    and surfaced as a bare timeout."""
+    client = _rayjob_client_with_statuses(
+        [
+            {"jobDeploymentStatus": "Initializing"},
+            {"jobDeploymentStatus": "Failed", "reason": "PreRunningDeadlineExceeded"},
+        ]
+    )
+    with pytest.raises(RuntimeError, match="PreRunningDeadlineExceeded"):
+        client.wait_until_deployment_ready("my-job", "my-ns", timeout=30)
+
+
+def test_wait_until_deployment_ready_times_out_with_the_last_status() -> None:
+    """A job stuck pre-Running with no deadline set must still report what it was doing."""
+    client = _rayjob_client_with_statuses([{"jobDeploymentStatus": "Initializing"}])
+    with pytest.raises(TimeoutError, match="Initializing"):
+        client.wait_until_deployment_ready("my-job", "my-ns", timeout=0.3, poll_interval=0.1)

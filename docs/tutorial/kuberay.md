@@ -69,12 +69,12 @@ By default, the image will be inherited from the `dagster/image` Run tag. Altern
 You can customize the Ray cluster configuration:
 
 ```python
-from dagster_ray.kuberay import (
+from dagster_ray.kuberay import KubeRayInteractiveJob
+from dagster_ray.kuberay.configs import RayClusterSpec
+from dagster_ray.kuberay.resources.rayjob import (
     InteractiveRayJobConfig,
     InteractiveRayJobSpec,
-    KubeRayInteractiveJob,
 )
-from dagster_ray.kuberay.configs import RayClusterSpec
 
 ray_cluster = KubeRayInteractiveJob(
     ray_job=InteractiveRayJobConfig(
@@ -124,13 +124,30 @@ ray_cluster = KubeRayInteractiveJob(
 )
 ```
 
-### Extra Spec Fields
+### Deadlines
 
-`RayJobSpec` and `RayClusterSpec` aim to declare every field their `CRD`s support as a typed field.
+`RayJob` has two server-side deadlines. KubeRay enforces them itself, so they still apply when the Dagster step pod dies.
 
-However, they are also [permissive Dagster configs](https://docs.dagster.io/guides/operate/configuration/advanced-config-types#permissive-schemas), so extra keys will be passed through (useful for setting keys that are not supported by `dagster-ray` yet).
+- `active_deadline_seconds` — how long the job may run in total, from `.status.startTime`. Defaults to 24 hours.
+- `pre_running_deadline_seconds` — how long the job may take to reach the `Running` state. Unset by default.
 
-Field names are accepted in either `snake_case` or `camelCase`: for example, setting either `pre_running_deadline_seconds` and `preRunningDeadlineSeconds` will both produce `preRunningDeadlineSeconds` in the manifest.
+    !!! warning
+
+        `pre_running_deadline_seconds` requires KubeRay 1.6.0
+
+`pre_running_deadline_seconds` reaps jobs stuck in `Initializing` or `Waiting` — for example when the `RayCluster` can never be scheduled because the requested resources don't exist in the cluster. Without it, such a job occupies the namespace until `active_deadline_seconds` expires.
+
+```python
+from dagster_ray.kuberay.resources.rayjob import InteractiveRayJobSpec
+
+spec = InteractiveRayJobSpec(
+    pre_running_deadline_seconds=600,
+    active_deadline_seconds=3600,
+)
+```
+
+
+Pick a value above the worst-case cluster startup time. A job waiting on autoscaling or scarce GPU capacity can legitimately take a long time to reach `Running`, and the deadline can't tell that apart from being stuck.
 
 ## KubeRayCluster
 
@@ -315,3 +332,11 @@ class MyKubeRayInteractiveJob(KubeRayInteractiveJob):
     def resolve_hostname(self, service_name: str, namespace: str) -> str:
         return f"{service_name}.{namespace}.company.com"
 ```
+
+## Extra Spec Fields
+
+`RayJobSpec` and `RayClusterSpec` aim to declare every field their `CRD`s support as a typed field.
+
+However, they are also [permissive Dagster configs](https://docs.dagster.io/guides/operate/configuration/advanced-config-types#permissive-schemas), so extra keys will be passed through (useful for setting keys that are not supported by `dagster-ray` yet).
+
+Field names are accepted in either `snake_case` or `camelCase`: for example, setting either `some_new_crd_field` and `someNewCrdField` will both produce `someNewCrdField` in the manifest.
