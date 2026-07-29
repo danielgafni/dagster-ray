@@ -8,6 +8,7 @@ from typing import Any
 
 import dagster as dg
 import pytest
+from pydantic import ValidationError
 
 from dagster_ray.kuberay.client.rayjob.client import (
     FAILED_JOB_DEPLOYMENT_STATUSES,
@@ -16,6 +17,7 @@ from dagster_ray.kuberay.client.rayjob.client import (
 from dagster_ray.kuberay.configs import (
     AuthOptions,
     RayClusterSpec,
+    RayClusterUpgradeStrategy,
     RayJobConfig,
     RayJobSpec,
 )
@@ -331,6 +333,59 @@ def test_format_job_deployment_failure_reports_validation_failed() -> None:
 def test_validation_failed_is_treated_as_a_failed_deployment() -> None:
     assert "ValidationFailed" in FAILED_JOB_DEPLOYMENT_STATUSES
     assert "Failed" in FAILED_JOB_DEPLOYMENT_STATUSES
+
+
+def test_upgrade_strategy_is_omitted_by_default(context) -> None:
+    """Only exists in KubeRay 1.6.0+; older operators prune it silently."""
+    assert "upgradeStrategy" not in to_k8s(RayClusterSpec(), context)
+
+
+@pytest.mark.parametrize("strategy_type", ["Recreate", "None"])
+def test_upgrade_strategy_reaches_manifest(context, strategy_type) -> None:
+    spec = RayClusterSpec(upgrade_strategy=RayClusterUpgradeStrategy(type=strategy_type))
+    assert to_k8s(spec, context)["upgradeStrategy"] == {"type": strategy_type}
+
+
+def test_upgrade_strategy_requires_a_type() -> None:
+    """`type` is optional in the CRD, but Dagster's config system cannot resolve an optional
+    Literal, and an upgradeStrategy without a type is meaningless. So require it rather than
+    emitting an explicit null."""
+    with pytest.raises(ValidationError):
+        RayClusterUpgradeStrategy()  # type: ignore[call-arg]
+
+
+def test_upgrade_strategy_is_serializable(context) -> None:
+    """Same failure mode as auth_options: emitting the model object breaks the k8s client."""
+    from kubernetes.client import ApiClient
+
+    manifest = to_k8s(RayClusterSpec(upgrade_strategy=RayClusterUpgradeStrategy(type="Recreate")), context)
+    json.dumps(manifest)
+    ApiClient().sanitize_for_serialization(manifest)
+
+
+def test_raycluster_declared_fields_all_reach_the_manifest(context) -> None:
+    """The RayClusterSpec counterpart of the RayJobSpec guard above."""
+    sentinels: dict[str, Any] = {
+        "suspend": True,
+        "managed_by": "sentinel-managed-by",
+        "autoscaler_options": {"sentinel": 1},
+        "head_service_annotations": {"sentinel": "2"},
+        "enable_in_tree_autoscaling": True,
+        "gcs_fault_tolerance_options": {"sentinel": 3},
+        "ray_version": "sentinel-ray-version",
+        "auth_options": AuthOptions(mode="disabled"),
+        "upgrade_strategy": RayClusterUpgradeStrategy(type="Recreate"),
+    }
+    # head_group_spec/worker_group_specs are covered by the env-var and image injection tests
+    assert set(sentinels) | {"head_group_spec", "worker_group_specs"} == set(RayClusterSpec.model_fields)
+
+    manifest = to_k8s(RayClusterSpec(**sentinels), context)
+    emitted = list(manifest.values())
+
+    for name, value in sentinels.items():
+        # sub-configs are dumped to dicts on the way out
+        expected = value.model_dump(mode="json", exclude_none=True) if isinstance(value, dg.Config) else value
+        assert expected in emitted, f"{name!r} (={expected!r}) is missing from the RayCluster manifest"
 
 
 # A failure before the job reaches Running is invisible in the RayCluster status: the cluster may
