@@ -6,6 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## v0.4.6 (29-07-2026)
+
+### :sparkles: Features
+
+- support `RayCluster.authOptions (KubeRay 1.6.0)` ([#372](https://github.com/danielgafni/dagster-ray/pull/372) by [@danielgafni](https://github.com/danielgafni))
+- support `RayCluster.upgradeStrategy` (KubeRay 1.6.0) ([#371](https://github.com/danielgafni/dagster-ray/pull/371) by [@danielgafni](https://github.com/danielgafni))
+- support `RayJob.preRunningDeadlineSeconds` (KubeRay 1.6.0) ([#369](https://github.com/danielgafni/dagster-ray/pull/369) by [@danielgafni](https://github.com/danielgafni))
+- support Python 3.13 ([#366](https://github.com/danielgafni/dagster-ray/pull/366) by [@danielgafni](https://github.com/danielgafni))
+- publish heartbeats for Dagster steps running on shared Ray clusters ([#364](https://github.com/danielgafni/dagster-ray/pull/364) by [@danielgafni](https://github.com/danielgafni))
+
+### :bug: Bug Fixes
+
+- avoid setting a default for `RayJob.deletionStrategy` ([#370](https://github.com/danielgafni/dagster-ray/pull/370) by [@danielgafni](https://github.com/danielgafni))
+- swallow more transient connection errors ([#374](https://github.com/danielgafni/dagster-ray/pull/374) by [@danielgafni](https://github.com/danielgafni))
+- correctly pass through extra manifest keys ([#368](https://github.com/danielgafni/dagster-ray/pull/368) by [@danielgafni](https://github.com/danielgafni))
+
+### :hammer_and_wrench: Other Improvements
+
+- add devenv profiles for different Python versions ([#367](https://github.com/danielgafni/dagster-ray/pull/367) by [@danielgafni](https://github.com/danielgafni))
+- init dagger ([#365](https://github.com/danielgafni/dagster-ray/pull/365) by [@danielgafni](https://github.com/danielgafni))
+- update ghcr.io/astral-sh/uv docker tag to v0.11.31 ([#361](https://github.com/danielgafni/dagster-ray/pull/361) by [@renovate[bot]](https://github.com/renovate[bot]))
+- update dependency astral-sh/uv to v0.11.28 ([#360](https://github.com/danielgafni/dagster-ray/pull/360) by [@renovate[bot]](https://github.com/renovate[bot]))
+- upgrade zensical to 0.0.37 ([#363](https://github.com/danielgafni/dagster-ray/pull/363) by [@danielgafni](https://github.com/danielgafni))
+- enable uv integration in devenv ([#362](https://github.com/danielgafni/dagster-ray/pull/362) by [@danielgafni](https://github.com/danielgafni))
+
 ## v0.4.5 (29-05-2026)
 
 ### :bug: Bug Fixes
@@ -18,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### :hammer_and_wrench: Other Improvements
 
+- release v0.4.5 ([#359](https://github.com/danielgafni/dagster-ray/pull/359) by [@danielgafni](https://github.com/danielgafni))
 - update dependency astral-sh/uv to v0.11.16 ([#352](https://github.com/danielgafni/dagster-ray/pull/352) by [@renovate[bot]](https://github.com/renovate[bot]))
 - update ghcr.io/astral-sh/uv docker tag to v0.11.8 ([#357](https://github.com/danielgafni/dagster-ray/pull/357) by [@renovate[bot]](https://github.com/renovate[bot]))
 - update softprops/action-gh-release action to v2.6.2 ([#358](https://github.com/danielgafni/dagster-ray/pull/358) by [@renovate[bot]](https://github.com/renovate[bot]))
