@@ -201,6 +201,112 @@ def test_format_job_deployment_failure_without_a_reason() -> None:
     assert message == "RayJob my-ns/my-job deployment failed"
 
 
+def test_deletion_strategy_is_omitted_by_default(context) -> None:
+    """`deletionStrategy` requires KubeRay 1.5.0+ *and* the RayJobDeletionPolicy feature gate.
+    With the gate off the controller moves the RayJob to ValidationFailed, so sending it by
+    default made dagster-ray unusable on 1.5.x, where the gate is alpha and off by default.
+
+    Cleanup is governed by `shutdownAfterJobFinishes` instead, which works on every version.
+    """
+    manifest = to_k8s(RayJobSpec(), context)
+    assert "deletionStrategy" not in manifest
+    assert manifest["shutdownAfterJobFinishes"] is True
+
+
+def test_deletion_rules_reach_the_manifest(context) -> None:
+    rules = [{"policy": "DeleteCluster", "condition": {"jobStatus": "FAILED", "ttlSeconds": 600}}]
+    spec = RayJobSpec(
+        shutdown_after_job_finishes=False,
+        ttl_seconds_after_finished=None,
+        deletion_strategy={"deletionRules": rules},
+    )
+    assert to_k8s(spec, context)["deletionStrategy"] == {"deletionRules": rules}
+
+
+# KubeRay validates the RayJob spec in the controller rather than an admission webhook, so an
+# invalid combination is not rejected at creation — the RayJob is created and then parked in
+# ValidationFailed. These encode the rules from `validateDeletionConfiguration` so a future
+# default change can't silently reintroduce a combination KubeRay refuses.
+
+
+def assert_kuberay_deletion_config_valid(manifest: dict[str, Any]) -> None:
+    shutdown = manifest.get("shutdownAfterJobFinishes", False)
+    ttl = manifest.get("ttlSecondsAfterFinished", 0) or 0
+    strategy = manifest.get("deletionStrategy")
+
+    assert shutdown or ttl <= 0, "shutdownAfterJobFinishes=False with ttlSecondsAfterFinished>0 is rejected by KubeRay"
+
+    if strategy is None:
+        return
+
+    legacy = "onSuccess" in strategy or "onFailure" in strategy
+    rules = bool(strategy.get("deletionRules"))
+
+    assert legacy or rules, "deletionStrategy requires onSuccess+onFailure or deletionRules"
+    assert not (legacy and rules), "legacy policies and deletionRules are mutually exclusive"
+    assert not (rules and shutdown), "deletionRules and shutdownAfterJobFinishes are mutually exclusive"
+
+    if legacy:
+        assert "onSuccess" in strategy and "onFailure" in strategy, (
+            "legacy deletionStrategy requires BOTH onSuccess and onFailure"
+        )
+
+    # TTLs must be non-decreasing along DeleteWorkers -> DeleteCluster -> DeleteSelf per condition
+    order = ["DeleteWorkers", "DeleteCluster", "DeleteSelf"]
+    by_condition: dict[str, dict[str, int]] = {}
+    for rule in strategy.get("deletionRules", []):
+        condition = rule["condition"]
+        assert ("jobStatus" in condition) != ("jobDeploymentStatus" in condition), (
+            "exactly one of jobStatus and jobDeploymentStatus must be set"
+        )
+        key = str(condition.get("jobStatus") or condition.get("jobDeploymentStatus"))
+        policies = by_condition.setdefault(key, {})
+        assert rule["policy"] not in policies, f"duplicate rule for {rule['policy']} and {key}"
+        policies[rule["policy"]] = condition.get("ttlSeconds", 0)
+
+    for key, policies in by_condition.items():
+        ttls = [policies[p] for p in order if p in policies]
+        assert ttls == sorted(ttls), f"TTLs for {key} must be non-decreasing across {order}"
+
+
+def test_default_spec_is_a_valid_kuberay_deletion_config(context) -> None:
+    assert_kuberay_deletion_config_valid(to_k8s(RayJobSpec(), context))
+
+
+def test_documented_deletion_rules_config_is_valid(context) -> None:
+    """The configuration recommended in docs/tutorial/kuberay.md must satisfy KubeRay's rules."""
+    spec = RayJobSpec(
+        shutdown_after_job_finishes=False,
+        ttl_seconds_after_finished=None,
+        deletion_strategy={
+            "deletionRules": [
+                {"policy": "DeleteWorkers", "condition": {"jobStatus": "FAILED", "ttlSeconds": 100}},
+                {"policy": "DeleteCluster", "condition": {"jobStatus": "FAILED", "ttlSeconds": 600}},
+                {"policy": "DeleteCluster", "condition": {"jobStatus": "SUCCEEDED", "ttlSeconds": 0}},
+            ]
+        },
+    )
+    assert_kuberay_deletion_config_valid(to_k8s(spec, context))
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "match"),
+    [
+        # the combination users hit by setting deletionRules without clearing our other defaults
+        (
+            dict(deletion_strategy={"deletionRules": [{"policy": "DeleteSelf", "condition": {"jobStatus": "FAILED"}}]}),
+            "mutually exclusive",
+        ),
+        (dict(shutdown_after_job_finishes=False), "rejected by KubeRay"),
+        (dict(deletion_strategy={"onSuccess": {"policy": "DeleteCluster"}}), "BOTH onSuccess and onFailure"),
+    ],
+)
+def test_invalid_deletion_configs_are_detected(context, kwargs, match) -> None:
+    """Confirms the checker above actually catches what KubeRay rejects."""
+    with pytest.raises(AssertionError, match=match):
+        assert_kuberay_deletion_config_valid(to_k8s(RayJobSpec(**kwargs), context))
+
+
 # KubeRay validates the RayJob spec in the controller rather than an admission webhook, so an
 # invalid spec is not rejected at creation — the RayJob is created and then parked in
 # ValidationFailed.
