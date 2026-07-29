@@ -21,8 +21,29 @@ RETRYABLE_K8S_STATUSES = {
 
 
 def is_retryable_k8s_api_exception(e: BaseException) -> bool:
-    """Check if a Kubernetes API exception is transient and safe to retry."""
+    """Check if a failed Kubernetes API call is transient and safe to retry.
+
+    Covers two kinds of failure. The first is an `ApiException` carrying one of
+    `RETRYABLE_K8S_STATUSES`. The second is a connection-level failure, where the apiserver never
+    answers at all — a restarting apiserver refuses TCP connections rather than returning 503, so
+    the status list above can't see the very restart it's meant to tolerate. `urllib3` retries the
+    transport a couple of times over ~2s and then raises `MaxRetryError`, which is far too short
+    for an apiserver to come back.
+    """
+    import urllib3
     from kubernetes.client import ApiException
+
+    retryable_connection_errors = (
+        # raised mid-response, e.g. IncompleteRead when the apiserver goes away
+        urllib3.exceptions.ProtocolError
+        # urllib3 exhausted its own transport-level retries
+        | urllib3.exceptions.MaxRetryError
+        # builtin, covers ConnectionRefusedError and ConnectionResetError
+        | ConnectionError
+    )
+
+    if isinstance(e, retryable_connection_errors):
+        return True
 
     return isinstance(e, ApiException) and e.status in RETRYABLE_K8S_STATUSES
 

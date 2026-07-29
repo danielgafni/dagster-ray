@@ -11,8 +11,7 @@ from io import FileIO
 from queue import Queue
 from typing import TYPE_CHECKING, Any, TypedDict, cast
 
-import urllib3
-from tenacity import retry, retry_if_exception, retry_if_exception_type, stop_after_attempt, wait_fixed
+from tenacity import retry, retry_if_exception, stop_after_attempt, wait_fixed
 from typing_extensions import NotRequired
 
 from dagster_ray.kuberay.client.base import BaseKubeRayClient, load_kubeconfig
@@ -138,11 +137,9 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
         @retry(
             stop=stop_after_attempt(30),
             wait=wait_fixed(2),
-            retry=(
-                retry_if_exception_type(urllib3.exceptions.ProtocolError)
-                # transient K8s API errors during cluster startup (e.g. 404 when the resource doesn't exist yet)
-                | retry_if_exception(is_retryable_k8s_api_exception)
-            ),
+            # transient K8s API errors during cluster startup (e.g. 404 when the resource doesn't
+            # exist yet), plus connection-level failures when the apiserver is briefly unreachable
+            retry=retry_if_exception(is_retryable_k8s_api_exception),
             reraise=True,
         )
         def get_status_with_retry() -> RayClusterStatus:
@@ -155,6 +152,7 @@ class RayClusterClient(BaseKubeRayClient[RayClusterStatus]):
             state = status.get("state")
 
             if not state:
+                time.sleep(poll_interval)
                 continue
 
             # https://docs.ray.io/en/latest/cluster/kubernetes/user-guides/observability.html#raycluster-status-conditions

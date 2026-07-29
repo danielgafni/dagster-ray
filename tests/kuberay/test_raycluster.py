@@ -785,3 +785,22 @@ def test_cluster_sharing_warns_on_low_heartbeat_headroom():
     )
     assert len(warnings_raised) == 1
     assert "ttl_seconds" in warnings_raised[0]
+
+
+def test_wait_until_ready_sleeps_while_state_is_missing() -> None:
+    """`state` is absent until the controller first writes it, and stays absent for a cluster that
+    never gets there. `time.sleep(poll_interval)` sits at the end of the wait loop, so continuing
+    without it polls the apiserver flat out for the entire timeout.
+
+    Observed in CI as the apiserver refusing connections partway through a 600s wait: the RayCluster
+    stalled with no `state`, and the resulting hot loop took the apiserver down with it.
+    """
+    client = RayClusterClient.__new__(RayClusterClient)
+    client.get_status = MagicMock(return_value={})  # type: ignore[method-assign]  # no `state`
+    client._read_head_pod_logs = MagicMock(return_value=None)  # type: ignore[method-assign]
+
+    with pytest.raises(TimeoutError):
+        client.wait_until_ready("some-cluster", "ns", timeout=1.0, poll_interval=0.2)
+
+    # one priming call plus ~timeout/poll_interval iterations; unbounded polling ran to thousands
+    assert client.get_status.call_count <= 10, client.get_status.call_count

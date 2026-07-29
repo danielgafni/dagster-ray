@@ -3,6 +3,8 @@ import re
 import pytest
 
 from dagster_ray.kuberay.utils import (
+    RETRYABLE_K8S_STATUSES,
+    is_retryable_k8s_api_exception,
     merge_extra_k8s_fields,
     normalize_k8s_label_values,
     to_camel_case,
@@ -160,3 +162,49 @@ def test_merge_extra_k8s_fields_raises_when_two_extras_converge() -> None:
             {},
             {"pre_running_deadline_seconds": 1, "preRunningDeadlineSeconds": 2},
         )
+
+
+# A restarting apiserver refuses TCP connections rather than answering 503, so the status list
+# can't see the very restart it is meant to tolerate. urllib3 retries the transport for ~2s and
+# then raises MaxRetryError, which used to escape the retry predicate and fail the caller
+# outright — observed in CI as `test_delete_kuberay_clusters_job` dying on a connection refused.
+
+
+def _max_retry_error() -> Exception:
+    import urllib3
+    from urllib3.connectionpool import HTTPSConnectionPool
+
+    return urllib3.exceptions.MaxRetryError(
+        HTTPSConnectionPool("apiserver", 8443),
+        "/status",
+        ConnectionRefusedError(111, "Connection refused"),
+    )
+
+
+def test_connection_failures_are_retryable() -> None:
+    import urllib3
+
+    assert is_retryable_k8s_api_exception(_max_retry_error())
+    assert is_retryable_k8s_api_exception(urllib3.exceptions.ProtocolError("Connection broken: IncompleteRead"))
+    assert is_retryable_k8s_api_exception(ConnectionRefusedError(111, "Connection refused"))
+    assert is_retryable_k8s_api_exception(ConnectionResetError(104, "Connection reset by peer"))
+
+
+@pytest.mark.parametrize("status", sorted(RETRYABLE_K8S_STATUSES))
+def test_transient_api_statuses_are_retryable(status) -> None:
+    from kubernetes.client import ApiException  # noqa: TID253
+
+    assert is_retryable_k8s_api_exception(ApiException(status=status))
+
+
+@pytest.mark.parametrize("status", [400, 401, 403, 422])
+def test_permanent_api_statuses_are_not_retryable(status) -> None:
+    """Retrying an auth or validation error only delays the real error."""
+    from kubernetes.client import ApiException  # noqa: TID253
+
+    assert not is_retryable_k8s_api_exception(ApiException(status=status))
+
+
+def test_unrelated_exceptions_are_not_retryable() -> None:
+    assert not is_retryable_k8s_api_exception(ValueError("nope"))
+    assert not is_retryable_k8s_api_exception(TimeoutError("nope"))
