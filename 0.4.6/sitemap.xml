@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+      <url>
+        <loc>https://danielgafni.github.io/0.4.6/</loc>
+      </url>
+      <url>
+        <loc>https://danielgafni.github.io/0.4.6/tutorial/</loc>
+      </url>
+      <url>
+        <loc>https://danielgafni.github.io/0.4.6/tutorial/external/</loc>
+      </url>
+      <url>
+        <loc>https://danielgafni.github.io/0.4.6/tutorial/kuberay/</loc>
+      </url>
+      <url>
+        <loc>https://danielgafni.github.io/0.4.6/tutorial/auth/</loc>
+      </url>
+      <url>
+        <loc>https://danielgafni.github.io/0.4.6/api/</loc>
+      </url>
+      <url>
+        <loc>https://danielgafni.github.io/0.4.6/api/core/</loc>
+      </url>
+      <url>
+        <loc>https://danielgafni.github.io/0.4.6/api/kuberay/</loc>
+      </url>
+      <url>
+        <loc>https://danielgafni.github.io/0.4.6/api/configs/</loc>
+      </url>
+      <url>
+        <loc>https://danielgafni.github.io/0.4.6/api/types/</loc>
+      </url>
+      <url>
+        <loc>https://danielgafni.github.io/0.4.6/changelog/</loc>
+      </url>
+</urlset>
