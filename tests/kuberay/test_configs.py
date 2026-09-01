@@ -16,10 +16,14 @@ from dagster_ray.kuberay.client.rayjob.client import (
 )
 from dagster_ray.kuberay.configs import (
     AuthOptions,
+    CollectorOptions,
+    HistoryServerOptions,
+    NetworkPolicyConfig,
     RayClusterSpec,
     RayClusterUpgradeStrategy,
     RayJobConfig,
     RayJobSpec,
+    TLSOptions,
 )
 
 IMAGE = "test-image"
@@ -413,6 +417,85 @@ def test_upgrade_strategy_is_serializable(context) -> None:
     ApiClient().sanitize_for_serialization(manifest)
 
 
+# The 1.7.0 RayClusterSpec fields (tls_options, network_policy, history_server_options) are all
+# alpha and feature-gated. They must be omitted unless set, so the manifest stays valid on the
+# older operators in the test matrix, which prune unknown fields silently.
+
+
+@pytest.mark.parametrize(
+    "field",
+    ["tlsOptions", "networkPolicy", "historyServerOptions"],
+)
+def test_170_cluster_fields_are_omitted_by_default(context, field) -> None:
+    assert field not in to_k8s(RayClusterSpec(), context)
+
+
+def test_tls_options_reaches_manifest(context) -> None:
+    spec = RayClusterSpec(tls_options=TLSOptions(enabled=True))
+    assert to_k8s(spec, context)["tlsOptions"] == {"enabled": True}
+
+
+def test_network_policy_reaches_manifest(context) -> None:
+    spec = RayClusterSpec(
+        network_policy=NetworkPolicyConfig(
+            mode="DenyAllIngress",
+            head={"ingressRules": [{"from": [{"podSelector": {}}]}]},
+        )
+    )
+    assert to_k8s(spec, context)["networkPolicy"] == {
+        "mode": "DenyAllIngress",
+        "head": {"ingressRules": [{"from": [{"podSelector": {}}]}]},
+    }
+
+
+def test_history_server_options_reaches_manifest(context) -> None:
+    spec = RayClusterSpec(
+        history_server_options=HistoryServerOptions(
+            collector_options=CollectorOptions(image="collector:1.0", image_pull_policy="IfNotPresent")
+        )
+    )
+    assert to_k8s(spec, context)["historyServerOptions"] == {
+        "collectorOptions": {"image": "collector:1.0", "imagePullPolicy": "IfNotPresent"}
+    }
+
+
+@pytest.mark.parametrize(
+    "spec_kwargs",
+    [
+        {"tls_options": TLSOptions(enabled=True)},
+        {"network_policy": NetworkPolicyConfig(mode="DenyAll")},
+        {"history_server_options": HistoryServerOptions(collector_options=CollectorOptions(image="c:1"))},
+    ],
+)
+def test_170_cluster_fields_are_serializable(context, spec_kwargs) -> None:
+    """Same failure mode as auth_options: emitting the model object breaks the k8s client."""
+    from kubernetes.client import ApiClient
+
+    manifest = to_k8s(RayClusterSpec(**spec_kwargs), context)
+    json.dumps(manifest)
+    ApiClient().sanitize_for_serialization(manifest)
+
+
+@pytest.mark.parametrize(
+    ("config", "field"),
+    [
+        (TLSOptions(some_future_crd_field=1), "tlsOptions"),  # type: ignore[call-arg]
+        (NetworkPolicyConfig(some_future_crd_field=1), "networkPolicy"),  # type: ignore[call-arg]
+        (HistoryServerOptions(some_future_crd_field=1), "historyServerOptions"),  # type: ignore[call-arg]
+    ],
+)
+def test_170_cluster_fields_pass_extras_through(context, config, field) -> None:
+    spec = RayClusterSpec(**{_FIELD_ATTR[field]: config})
+    assert to_k8s(spec, context)[field]["someFutureCrdField"] == 1
+
+
+_FIELD_ATTR = {
+    "tlsOptions": "tls_options",
+    "networkPolicy": "network_policy",
+    "historyServerOptions": "history_server_options",
+}
+
+
 def test_raycluster_declared_fields_all_reach_the_manifest(context) -> None:
     """The RayClusterSpec counterpart of the RayJobSpec guard above."""
     sentinels: dict[str, Any] = {
@@ -425,6 +508,9 @@ def test_raycluster_declared_fields_all_reach_the_manifest(context) -> None:
         "ray_version": "sentinel-ray-version",
         "auth_options": AuthOptions(mode="disabled"),
         "upgrade_strategy": RayClusterUpgradeStrategy(type="Recreate"),
+        "tls_options": TLSOptions(enabled=True),
+        "network_policy": NetworkPolicyConfig(mode="DenyAll"),
+        "history_server_options": HistoryServerOptions(collector_options=CollectorOptions(image="collector:latest")),
     }
     # head_group_spec/worker_group_specs are covered by the env-var and image injection tests
     assert set(sentinels) | {"head_group_spec", "worker_group_specs"} == set(RayClusterSpec.model_fields)
@@ -434,7 +520,14 @@ def test_raycluster_declared_fields_all_reach_the_manifest(context) -> None:
 
     for name, value in sentinels.items():
         # sub-configs are dumped to dicts on the way out
-        expected = value.to_k8s() if isinstance(value, AuthOptions | RayClusterUpgradeStrategy) else value
+        expected = (
+            value.to_k8s()
+            if isinstance(
+                value,
+                AuthOptions | RayClusterUpgradeStrategy | TLSOptions | NetworkPolicyConfig | HistoryServerOptions,
+            )
+            else value
+        )
         assert expected in emitted, f"{name!r} (={expected!r}) is missing from the RayCluster manifest"
 
 

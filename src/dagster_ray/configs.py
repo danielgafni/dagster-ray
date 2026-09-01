@@ -80,6 +80,7 @@ class RayDataExecutionOptions(dg.Config):
     use_polars: bool = True
 
     def apply(self):
+        """Apply these options to the current Ray Data execution context."""
         import ray
         from ray.data import ExecutionResources
 
@@ -95,6 +96,7 @@ class RayDataExecutionOptions(dg.Config):
         ctx.use_polars = self.use_polars
 
     def apply_remote(self):
+        """Apply these options to the Ray Data execution context on a Ray worker."""
         import ray
 
         @ray.remote

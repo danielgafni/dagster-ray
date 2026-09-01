@@ -143,6 +143,121 @@ class RayClusterUpgradeStrategy(dg.PermissiveConfig):
         return merge_extra_k8s_fields(remove_none_from_dict({"type": self.type}), self.model_extra)
 
 
+class TLSOptions(dg.PermissiveConfig):
+    """[TLSOptions](https://ray-project.github.io/kuberay/reference/api/#tlsoptions) for the Ray cluster.
+
+    !!! warning "Alpha in KubeRay 1.7.0"
+        Requires the operator's TLS feature gate, cert-manager, and Ray 2.55.1 or later.
+        Older operators prune the field without an error.
+
+    Every field the CRD supports is meant to be declared here. As an escape hatch for any that is missing, undeclared fields are passed through to the Kubernetes manifest, in either `snake_case` or `camelCase`. See [Extra Spec Fields](../tutorial/kuberay.md#extra-spec-fields).
+    """
+
+    enabled: bool | None = Field(
+        default=None,
+        description="Enable mutual TLS between the `RayCluster` pods, issued via cert-manager.",
+    )
+
+    def to_k8s(self) -> dict[str, Any]:
+        """Convert into Kubernetes manifests in camelCase format"""
+        return merge_extra_k8s_fields(remove_none_from_dict({"enabled": self.enabled}), self.model_extra)
+
+
+class NetworkPolicyConfig(dg.PermissiveConfig):
+    """[NetworkPolicyConfig](https://ray-project.github.io/kuberay/reference/api/#networkpolicyconfig) for the Ray cluster.
+
+    !!! warning "Alpha in KubeRay 1.7.0"
+        Requires the operator's network policy feature gate.
+        Older operators prune the field without an error.
+
+    Every field the CRD supports is meant to be declared here. As an escape hatch for any that is missing, undeclared fields are passed through to the Kubernetes manifest, in either `snake_case` or `camelCase`. See [Extra Spec Fields](../tutorial/kuberay.md#extra-spec-fields).
+    """
+
+    mode: str | None = Field(
+        default=None,
+        description="Network isolation level, one of `DenyAll`, `DenyAllIngress`, or `DenyAllEgress`. All modes allow intra-cluster pod-to-pod traffic. KubeRay defaults it to `DenyAll` when omitted. Typed as `str` because Dagster's config system cannot resolve an optional `Literal`.",
+    )
+    head: dict[str, Any] | None = Field(
+        default=None,
+        description="Custom `NetworkPolicyRules` (`ingressRules`/`egressRules`) applied only to the head pod's policy.",
+    )
+    worker: dict[str, Any] | None = Field(
+        default=None,
+        description="Custom `NetworkPolicyRules` applied to every worker pod's policy.",
+    )
+    worker_groups: list[dict[str, Any]] | None = Field(
+        default=None,
+        description="Per-worker-group `NetworkPolicyRules`, each keyed by its `groupName`.",
+    )
+
+    def to_k8s(self) -> dict[str, Any]:
+        """Convert into Kubernetes manifests in camelCase format"""
+        return merge_extra_k8s_fields(
+            remove_none_from_dict(
+                {
+                    "mode": self.mode,
+                    "head": self.head,
+                    "worker": self.worker,
+                    "workerGroups": self.worker_groups,
+                }
+            ),
+            self.model_extra,
+        )
+
+
+class CollectorOptions(dg.PermissiveConfig):
+    """[CollectorOptions](https://ray-project.github.io/kuberay/reference/api/#collectoroptions) for the history server collector sidecar.
+
+    Every field the CRD supports is meant to be declared here. As an escape hatch for any that is missing, undeclared fields are passed through to the Kubernetes manifest, in either `snake_case` or `camelCase`. See [Extra Spec Fields](../tutorial/kuberay.md#extra-spec-fields).
+    """
+
+    image: str | None = None
+    image_pull_policy: str | None = None
+    resources: dict[str, Any] | None = None
+    env: list[dict[str, Any]] | None = None
+
+    def to_k8s(self) -> dict[str, Any]:
+        """Convert into Kubernetes manifests in camelCase format"""
+        return merge_extra_k8s_fields(
+            remove_none_from_dict(
+                {
+                    "image": self.image,
+                    "imagePullPolicy": self.image_pull_policy,
+                    "resources": self.resources,
+                    "env": self.env,
+                }
+            ),
+            self.model_extra,
+        )
+
+
+class HistoryServerOptions(dg.PermissiveConfig):
+    """[HistoryServerOptions](https://ray-project.github.io/kuberay/reference/api/#historyserveroptions) for the Ray cluster.
+
+    !!! warning "Alpha in KubeRay 1.7.0"
+        Requires the operator's history server feature gate.
+        Older operators prune the field without an error.
+
+    Every field the CRD supports is meant to be declared here. As an escape hatch for any that is missing, undeclared fields are passed through to the Kubernetes manifest, in either `snake_case` or `camelCase`. See [Extra Spec Fields](../tutorial/kuberay.md#extra-spec-fields).
+    """
+
+    collector_options: CollectorOptions | None = Field(
+        default=None,
+        description="Configuration for the history server event-collector sidecar injected into the Ray pods.",
+    )
+
+    def to_k8s(self) -> dict[str, Any]:
+        """Convert into Kubernetes manifests in camelCase format"""
+        return merge_extra_k8s_fields(
+            remove_none_from_dict(
+                {
+                    "collectorOptions": self.collector_options.to_k8s() if self.collector_options is not None else None,
+                }
+            ),
+            self.model_extra,
+        )
+
+
 class RayClusterSpec(dg.PermissiveConfig):
     """[RayCluster spec](https://ray-project.github.io/kuberay/reference/api/#rayclusterspec) configuration options. A few sensible defaults are provided for convenience.
 
@@ -162,6 +277,18 @@ class RayClusterSpec(dg.PermissiveConfig):
     upgrade_strategy: RayClusterUpgradeStrategy | None = Field(
         default=None,
         description="Scaling policy used when upgrading the `RayCluster`. See [RayClusterUpgradeStrategy](https://ray-project.github.io/kuberay/reference/api/#rayclusterupgradestrategy). Requires KubeRay 1.6.0: older operators prune the field without an error.",
+    )
+    tls_options: TLSOptions | None = Field(
+        default=None,
+        description="Mutual TLS settings for the `RayCluster`. See [TLSOptions](https://ray-project.github.io/kuberay/reference/api/#tlsoptions).",
+    )
+    network_policy: NetworkPolicyConfig | None = Field(
+        default=None,
+        description="Network isolation settings for the `RayCluster`. See [NetworkPolicyConfig](https://ray-project.github.io/kuberay/reference/api/#networkpolicyconfig).",
+    )
+    history_server_options: HistoryServerOptions | None = Field(
+        default=None,
+        description="History server collector sidecar settings for the `RayCluster`. See [HistoryServerOptions](https://ray-project.github.io/kuberay/reference/api/#historyserveroptions).",
     )
 
     @model_validator(mode="after")
@@ -273,6 +400,11 @@ class RayClusterSpec(dg.PermissiveConfig):
                     "rayVersion": self.ray_version,
                     "authOptions": self.auth_options.to_k8s() if self.auth_options is not None else None,
                     "upgradeStrategy": self.upgrade_strategy.to_k8s() if self.upgrade_strategy is not None else None,
+                    "tlsOptions": self.tls_options.to_k8s() if self.tls_options is not None else None,
+                    "networkPolicy": self.network_policy.to_k8s() if self.network_policy is not None else None,
+                    "historyServerOptions": self.history_server_options.to_k8s()
+                    if self.history_server_options is not None
+                    else None,
                 }
             ),
             self.model_extra,
