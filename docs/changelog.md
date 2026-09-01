@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## v0.4.7 (01-09-2026)
+
+### :sparkles: Features
+
+- support kuberay 1.7.0 ([#382](https://github.com/danielgafni/dagster-ray/pull/382) by [@danielgafni](https://github.com/danielgafni))
+
 ## v0.4.6 (29-07-2026)
 
 ### :sparkles: Features
@@ -24,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### :hammer_and_wrench: Other Improvements
 
+- release v0.4.6 ([#376](https://github.com/danielgafni/dagster-ray/pull/376) by [@danielgafni](https://github.com/danielgafni))
 - add devenv profiles for different Python versions ([#367](https://github.com/danielgafni/dagster-ray/pull/367) by [@danielgafni](https://github.com/danielgafni))
 - init dagger ([#365](https://github.com/danielgafni/dagster-ray/pull/365) by [@danielgafni](https://github.com/danielgafni))
 - update ghcr.io/astral-sh/uv docker tag to v0.11.31 ([#361](https://github.com/danielgafni/dagster-ray/pull/361) by [@renovate[bot]](https://github.com/renovate[bot]))
