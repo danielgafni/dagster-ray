@@ -81,6 +81,10 @@ plugins:
             show_docstring_description: true
             show_docstring_parameters: true
             show_root_heading: true
+            # dagster config fields declared as `x: T = Field(description=...)` without a trailing
+            # docstring are undocumented to griffe; griffe_pydantic renders the described ones, and
+            # this surfaces the rest (plain `x: T = None` fields) as clean signatures.
+            show_if_no_docstring: true
             show_root_full_path: true
             show_root_members_full_path: false
             scoped_crossrefs: true
@@ -108,6 +112,9 @@ plugins:
                     - Config
                     - dg.Config
                     - dagster.Config
+                    - PermissiveConfig
+                    - dg.PermissiveConfig
+                    - dagster.PermissiveConfig
                     - dagster.ConfigurableResource
                     - BaseKubeRayResource
           extra:

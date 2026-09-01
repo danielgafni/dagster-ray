@@ -45,6 +45,7 @@ These resources initialize Ray client connection with a remote cluster.
       members:
         - "__init__"
         - "run"
+        - "resolve_hostname"
 
 ---
 
@@ -98,6 +99,31 @@ These resources initialize Ray client connection with a remote cluster.
       members: null
 
 ::: dagster_ray.kuberay.configs.AuthOptions
+    options:
+      inherited_members: true
+      members: null
+
+::: dagster_ray.kuberay.configs.RayClusterUpgradeStrategy
+    options:
+      inherited_members: true
+      members: null
+
+::: dagster_ray.kuberay.configs.TLSOptions
+    options:
+      inherited_members: true
+      members: null
+
+::: dagster_ray.kuberay.configs.NetworkPolicyConfig
+    options:
+      inherited_members: true
+      members: null
+
+::: dagster_ray.kuberay.configs.HistoryServerOptions
+    options:
+      inherited_members: true
+      members: null
+
+::: dagster_ray.kuberay.configs.CollectorOptions
     options:
       inherited_members: true
       members: null
