@@ -1,3 +1,7 @@
+---
+description: Let Dagster create and manage Ray clusters on Kubernetes.
+---
+
 # Dagster + KubeRay
 
 This tutorial explains how to use `dagster-ray` with KubeRay to automatically create and manage Ray clusters for Dagster steps.
@@ -269,11 +273,12 @@ Configuration options for cluster sharing can be found [here](../api/kuberay.md#
 ### `RayCluster` Garbage Collection
 
 A `RayCluster` created by `dagster-ray` may become dangling for two reasons:
+
 - the Dagster step process exits unexpectedly (e.g. OOM), missing the change to run cleanup
 - if [Cluster Sharing](#cluster-sharing) is used **and** the cluster did not expire at the time of the Dagster step completion
 
 
-Since `RayCluster` doesn't support native garbage collection yet (see [TTL](https://github.com/ray-project/kuberay/issues/4033) and [idle termination](https://github.com/ray-project/kuberay/issues/2998) feature requests), `dagster-ray` provides a custom garbage collection Dagster sensor.
+Since `RayCluster` doesn't support native garbage collection yet (see [TTL](https://github.com/ray-project/kuberay/issues/4033) and [idle termination](https://github.com/ray-project/kuberay/issues/2998) feature requests), `dagster-ray` provides a custom Dagster sensor to do it instead.
 
 ```py
 import dagster as dg

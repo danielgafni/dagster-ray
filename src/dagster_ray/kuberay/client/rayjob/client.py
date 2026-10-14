@@ -3,9 +3,7 @@ from __future__ import annotations
 import logging
 import time
 from collections.abc import Iterator
-from typing import TYPE_CHECKING, Any, Literal, TypedDict, cast
-
-from typing_extensions import NotRequired
+from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict, cast
 
 from dagster_ray.kuberay.client.base import BaseKubeRayClient, load_kubeconfig
 from dagster_ray.kuberay.client.raycluster import RayClusterClient, RayClusterStatus

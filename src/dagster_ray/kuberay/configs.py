@@ -1,12 +1,11 @@
 import os
 import warnings
 from collections.abc import Mapping
-from typing import Any, Literal
+from typing import Any, Literal, Self
 
 import dagster as dg
 from packaging.version import InvalidVersion, Version
 from pydantic import Field, model_validator
-from typing_extensions import Self
 
 from dagster_ray.kuberay.utils import merge_extra_k8s_fields, remove_none_from_dict
 from dagster_ray.types import AnyDagsterContext

@@ -10,7 +10,7 @@ import logging
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -122,7 +122,7 @@ class LeaderElection:
             spec=V1LeaseSpec(
                 holder_identity=self._holder_identity,
                 lease_duration_seconds=self.lease_duration_seconds,
-                acquire_time=datetime.now(timezone.utc),
+                acquire_time=datetime.now(UTC),
             ),
         )
 

@@ -38,3 +38,32 @@ release bump="" message="":
     else
         git cliff --tag "$version" -o docs/changelog.md
     fi
+
+# Outside CI it runs in a temporary copy of the worktree, so local files and the dev venv stay untouched.
+# Run a CI test matrix job: pin Ray and Dagster for the given Python, then run the full test suite.
+test-matrix py ray dagster kuberay:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -z "${CI:-}" ]; then
+        workdir=$(mktemp -d)
+        trap 'rm -rf "$workdir"' EXIT
+        git ls-files -z -co --exclude-standard \
+            | while IFS= read -r -d '' f; do [ -e "$f" ] && printf '%s\0' "$f"; done \
+            | tar --null -T - -cf - | tar -xf - -C "$workdir"
+        cd "$workdir"
+        unset UV_PROJECT_ENVIRONMENT VIRTUAL_ENV
+    fi
+    set -x
+    export UV_PYTHON={{py}}
+    marker="python_full_version == '{{py}}.*'"
+    # scoped to this Python so the lock still resolves for the rest of requires-python
+    uv add --no-sync "ray[all]=={{ray}} ; $marker" "dagster=={{dagster}} ; $marker"
+    export UV_LOCKED=1
+    uv sync
+    uv run python -c "import dagster_ray"
+    uv sync --all-extras --dev
+    # nothing may re-sync the environment from here on (e.g. Ray workers launched with `uv run`)
+    export UV_NO_SYNC=1
+    export PYTEST_KUBERAY_VERSIONS={{kuberay}}
+    uv run pytest -v .
+    uv run pytest -v -m kuberay_auth .

@@ -9,10 +9,9 @@ from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from io import FileIO
 from queue import Queue
-from typing import TYPE_CHECKING, Any, TypedDict, cast
+from typing import TYPE_CHECKING, Any, NotRequired, TypedDict, cast
 
 from tenacity import retry, retry_if_exception, stop_after_attempt, wait_fixed
-from typing_extensions import NotRequired
 
 from dagster_ray.kuberay.client.base import BaseKubeRayClient, load_kubeconfig
 from dagster_ray.kuberay.utils import is_retryable_k8s_api_exception, k8s_service_fqdn

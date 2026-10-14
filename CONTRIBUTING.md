@@ -64,6 +64,14 @@ between them does not rebuild anything:
 devenv shell -P python-3.13
 ```
 
+To reproduce a CI test job locally, pass its Python, Ray, Dagster and KubeRay versions:
+
+```bash
+just test-matrix 3.13 2.53.0 1.13.15 1.7.0
+```
+
+It runs in a temporary copy of the worktree, so local files and the dev venv stay untouched.
+
 ## Documentation
 
 To build and serve the documentation locally:

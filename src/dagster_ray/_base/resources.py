@@ -4,7 +4,7 @@ import contextlib
 from abc import ABC, abstractmethod
 from collections.abc import Generator
 from functools import cached_property
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Self, cast
 from uuid import uuid4
 
 import dagster as dg
@@ -14,7 +14,6 @@ from pydantic import Field, PrivateAttr
 # https://github.com/ray-project/kuberay/issues/2078
 from requests.exceptions import ConnectionError
 from tenacity import retry, retry_if_exception_type, stop_after_delay
-from typing_extensions import Self
 
 from dagster_ray._base.utils import get_dagster_tags
 from dagster_ray.configs import Lifecycle, RayDataExecutionOptions

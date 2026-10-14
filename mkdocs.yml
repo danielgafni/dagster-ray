@@ -60,6 +60,10 @@ theme:
 
 plugins:
   - search
+  - social:
+      cards_layout_options:
+        background_color: "#4F43DD"
+        color: "#FFFFFF"
   - section-index
   - autorefs
   # - awesome-nav

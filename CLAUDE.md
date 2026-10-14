@@ -18,6 +18,7 @@ uv run pytest                    # all tests (excludes kuberay_auth by default)
 uv run pytest tests/test_pipes.py               # single test file
 uv run pytest tests/test_pipes.py::test_name -k "pattern"  # single test or pattern
 uv run pytest -m kuberay_auth    # auth-specific KubeRay tests (needs minikube)
+just test-matrix 3.13 2.53.0 1.13.15 1.7.0  # run a CI matrix job locally (py ray dagster kuberay)
 
 # Linting & type checking
 uv run ruff check src tests      # lint
@@ -29,7 +30,7 @@ uv run --group docs mkdocs serve
 ```
 
 KubeRay tests require: docker, kubectl, helm, minikube. Nix users: `devenv shell`.
-The shell defaults to Python 3.11; `devenv shell -P python-3.13` (or `-P python-3.10`/`3.12`)
+The shell defaults to Python 3.11; `devenv shell -P python-3.13` (or `-P python-3.12`/`3.14`)
 switches versions, each with its own venv under `.devenv/profiles/`.
 
 ## Architecture

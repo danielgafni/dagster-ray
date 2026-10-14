@@ -9,7 +9,7 @@ import time
 from collections.abc import AsyncIterator, Generator, Iterator
 from contextlib import contextmanager
 from functools import cached_property, partial
-from typing import TYPE_CHECKING, Any, TypedDict, cast
+from typing import TYPE_CHECKING, Any, NotRequired, TypedDict, cast
 
 import dagster as dg
 import dagster._check as check
@@ -30,7 +30,6 @@ from dagster._core.pipes.utils import (
     extract_message_or_forward_to_stdout,
 )
 from dagster_pipes import PipesDefaultMessageWriter, PipesExtras, PipesParams
-from typing_extensions import NotRequired
 
 from dagster_ray._base.utils import get_dagster_tags
 from dagster_ray.types import OpOrAssetExecutionContext

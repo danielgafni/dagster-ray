@@ -1,6 +1,6 @@
 import os
 from collections.abc import Generator
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import cast
 
 import dagster as dg
@@ -65,9 +65,9 @@ def cleanup_expired_kuberay_clusters(
                     continue
 
                 if cluster.get("metadata", {}).get("creationTimestamp"):
-                    cluster_age = datetime.now(timezone.utc) - datetime.strptime(
+                    cluster_age = datetime.now(UTC) - datetime.strptime(
                         cluster["metadata"]["creationTimestamp"], "%Y-%m-%dT%H:%M:%SZ"
-                    ).replace(tzinfo=timezone.utc)
+                    ).replace(tzinfo=UTC)
                     if cluster_age.total_seconds() >= expiration_seconds:
                         context.log.info(
                             f"Found expired RayCluster (time since creation exceeds {expiration_seconds} seconds): {cluster['metadata']['namespace']}/{cluster['metadata']['name']}"

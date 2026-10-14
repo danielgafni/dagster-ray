@@ -1,3 +1,7 @@
+---
+description: API reference for using external Ray clusters from Dagster.
+---
+
 # Core API Reference
 
 Core `dagster-ray` APIs for using external Ray clusters. Learn how to use it [here](../tutorial/external.md).
