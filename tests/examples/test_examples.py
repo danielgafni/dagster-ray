@@ -1,3 +1,4 @@
+import os
 import shutil
 import subprocess
 import sys
@@ -27,12 +28,14 @@ def test_ray_run_launcher(local_ray_address: str, example_dir: Path, tmp_path_fa
     # TODO: rewrite this test in Dagster's Python API instead of calling the CLI
     # the CLI command doesn't actually use the RunLauncher!
 
-    subprocess.run(
+    result = subprocess.run(
         f"""cd {example_dir} && {sys.executable} -m dagster job execute -f {example_dir / "definitions.py"} -j my_job
         """,
-        check=True,
         shell=True,
-        env={
-            "DAGSTER_HOME": str(dagster_home),
-        },
+        # inherit the environment: Ray 2.58+ enables token authentication for local clusters,
+        # and the client finds the token through it
+        env={**os.environ, "DAGSTER_HOME": str(dagster_home)},
+        capture_output=True,
+        text=True,
     )
+    assert result.returncode == 0, f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"

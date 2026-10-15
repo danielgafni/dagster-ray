@@ -222,11 +222,23 @@ def test_cleanup_on_interrupt(
         cleanup,
     ]
 
+    existing_jobs = {job["metadata"]["name"] for job in rayjob_client.list(namespace=NAMESPACE)["items"]}
+
     # Start the subprocess with stdout capture
     process = subprocess.Popen(cmd_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
-    # Wait a bit to let the RayJob get created
-    time.sleep(10)
+    # Wait for the RayJob to get created: by then Dagster handles SIGTERM, while a fixed sleep can
+    # interrupt a slow-starting process before that and kill it outright
+    deadline = time.time() + 120
+    while time.time() < deadline and process.poll() is None:
+        jobs = {job["metadata"]["name"] for job in rayjob_client.list(namespace=NAMESPACE)["items"]}
+        if jobs - existing_jobs:
+            break
+        time.sleep(1)
+    else:
+        process.kill()
+        _, stderr = process.communicate()
+        pytest.fail(f"The subprocess didn't create a RayJob, stderr:\n{stderr}")
 
     # Interrupt the process
     process.send_signal(signal.SIGTERM)
@@ -239,7 +251,7 @@ def test_cleanup_on_interrupt(
         stdout, stderr = process.communicate()
 
     # Extract run ID from stdout (last line should be the run ID)
-    assert stdout, "Expected to get stdout from the subprocess"
+    assert stdout, f"Expected to get stdout from the subprocess, stderr:\n{stderr}"
     lines = stdout.strip().split("\n")
     run_id = None
     for line in reversed(lines):

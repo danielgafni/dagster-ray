@@ -1,3 +1,5 @@
+# generated Dagger SDK and client code
+exclude: ^\.dagger/modules/[^/]+/(sdk|clients)/
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.0.1

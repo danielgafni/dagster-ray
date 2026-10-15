@@ -1,4 +1,0 @@
-extend = "../pyproject.toml"
-ignore = [
-    "TID252"
-]

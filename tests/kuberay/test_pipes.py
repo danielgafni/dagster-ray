@@ -16,6 +16,7 @@ from dagster_ray import PipesRayJobClient
 from dagster_ray.core.pipes import SubmitJobParams
 from dagster_ray.kuberay.client import RayJobClient
 from dagster_ray.kuberay.pipes import PipesKubeRayJobClient
+from tests.kuberay.utils import HEAD_READINESS_PROBE, NAMESPACE, RAY_POD_RESOURCES, RAY_START_PARAMS
 
 ENTRYPOINT = "python /src/tests/scripts/remote_job.py"
 
@@ -24,7 +25,7 @@ RAY_JOB = {
     "kind": "RayJob",
     "metadata": {
         "annotations": {},
-        "namespace": "ray",
+        "namespace": NAMESPACE,
     },
     "spec": {
         "activeDeadlineSeconds": 10800,
@@ -38,7 +39,7 @@ RAY_JOB = {
             },
             "enableInTreeAutoscaling": False,
             "headGroupSpec": {
-                "rayStartParams": {"dashboard-host": "0.0.0.0", "num-cpus": "1", "num-gpus": "0"},
+                "rayStartParams": {"dashboard-host": "0.0.0.0", "num-gpus": "0", **RAY_START_PARAMS},
                 "serviceType": "ClusterIP",
                 "template": {
                     "spec": {
@@ -48,6 +49,8 @@ RAY_JOB = {
                                 "env": [],
                                 "imagePullPolicy": "IfNotPresent",
                                 "name": "ray-head",
+                                "readinessProbe": HEAD_READINESS_PROBE,
+                                "resources": RAY_POD_RESOURCES,
                                 "securityContext": {"runAsUser": 0},
                             }
                         ],

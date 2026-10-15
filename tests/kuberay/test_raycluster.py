@@ -39,10 +39,17 @@ def delete_shared_rayclusters(raycluster_client: RayClusterClient | KubeRayClust
         if isinstance(raycluster_client, RayClusterClient)
         else RayClusterClient(kube_config=raycluster_client.kube_config, kube_context=raycluster_client.kube_context)
     )
+    from kubernetes.client.exceptions import ApiException
+
     clusters = raycluster_client.list(namespace=NAMESPACE).get("items", [])
     for cluster in clusters:
         if cluster["metadata"].get("labels", {}).get("dagster/cluster-sharing") == "true":
-            raycluster_client.delete(name=cluster["metadata"]["name"], namespace=cluster["metadata"]["namespace"])
+            try:
+                raycluster_client.delete(name=cluster["metadata"]["name"], namespace=cluster["metadata"]["namespace"])
+            except ApiException as e:
+                # the cluster can be deleted between listing and deleting, e.g. by the previous test's cleanup
+                if e.status != 404:
+                    raise
 
 
 @pytest.fixture(scope="session")

@@ -1,0 +1,15 @@
+ignore = [".devenv", ".venv", "**/.venv", ".cache", "site", "**/__pycache__", ".pytest_cache", ".ruff_cache", ".hypothesis"]
+
+[modules.python-sdk]
+source = "dagger.io/sdk/python@32c11750f2ddf779fca873e460385d10914f8917"
+
+[sdks.python]
+module = "python-sdk"
+
+[modules.dagster-ray-dev]
+entrypoint = true
+source = ".dagger/modules/dagster-ray-dev"
+
+[sdks.python.scopes.".dagger/modules/dagster-ray-dev"]
+is-module = true
+clients = ["github.com/marcosnils/daggerverse/k3s", "github.com/typesafe-ai/daggerverse/github", "github.com/typesafe-ai/daggerverse/uv"]
