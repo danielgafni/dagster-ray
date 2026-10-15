@@ -46,6 +46,7 @@ pip install dagster-ray
 
 These happy users are running `dagster-ray` in production:
 
+- [TypeSafe AI](https://typesafe.ai)
 - [Anam](https://anam.ai)
 - [kaiko](https://kaiko.ai/)
 - [Sanas](https://www.sanas.ai/)
