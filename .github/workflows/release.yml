@@ -24,7 +24,7 @@ jobs:
       pages: write
       id-token: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Install uv
@@ -55,7 +55,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Extract release notes from changelog
         run: awk '/^## /{if(found) exit; found=1; next} found' docs/changelog.md > CHANGES.md
       - uses: softprops/action-gh-release@v2.6.2
