@@ -1,3 +1,7 @@
+---
+description: Shared types used across the dagster-ray API.
+---
+
 # Types API Reference
 
 Type definitions and base classes used throughout `dagster-ray`.

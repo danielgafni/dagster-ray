@@ -2,9 +2,9 @@ import logging
 import threading
 from collections.abc import Callable, Sequence
 from datetime import datetime, timedelta
+from typing import Self
 
 from pydantic import BaseModel, Field, ValidationError
-from typing_extensions import Self
 
 logger = logging.getLogger(__name__)
 

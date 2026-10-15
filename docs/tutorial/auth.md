@@ -1,3 +1,7 @@
+---
+description: Connect Dagster to Ray clusters that require authentication.
+---
+
 # Authentication
 
 ## Ray Token Authentication

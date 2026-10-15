@@ -1,3 +1,7 @@
+---
+description: Release history of dagster-ray.
+---
+
 # Changelog
 
 All notable user-facing changes to `dagster-ray` will be documented in this file.

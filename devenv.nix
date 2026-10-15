@@ -7,7 +7,7 @@
 }: let
   # Python versions we support. Each one gets a `python-<version>` profile,
   # activated with `devenv shell -P python-<version>`.
-  pythonVersions = ["3.10" "3.11" "3.12" "3.13"];
+  pythonVersions = ["3.11" "3.12" "3.13" "3.14"];
   defaultPythonVersion = "3.11";
 
   caBundle = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";

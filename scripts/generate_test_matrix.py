@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # /// script
-# requires-python = ">=3.10"
+# requires-python = ">=3.11"
 # dependencies = [
 #     "packaging",
 # ]
@@ -37,6 +37,12 @@ class VersionConfig(NamedTuple):
         if Version(self.py) >= Version("3.12") and Version(self.ray) < Version("2.37.0"):
             return False
 
+        # Python 3.14 requires Ray >= 2.55.0 and Dagster >= 1.12.9
+        if Version(self.py) >= Version("3.14") and (
+            Version(self.ray) < Version("2.55.0") or Version(self.dagster) < Version("1.12.9")
+        ):
+            return False
+
         # Add more validation rules here as needed
 
         return True
@@ -58,7 +64,7 @@ class TestConfig(NamedTuple):
 
 # Component versions
 OS_VERSIONS = ["Ubuntu"]
-PYTHON_VERSIONS = ["3.13", "3.12", "3.11", "3.10"]
+PYTHON_VERSIONS = ["3.14", "3.13", "3.12", "3.11"]
 RAY_VERSIONS = ["2.56.1", "2.53.0", "2.46.0"]
 DAGSTER_VERSIONS = ["1.13.15", "1.12.12", "1.11.16", "1.10.21"]
 KUBERAY_VERSIONS = ["1.7.0", "1.6.2", "1.5.2", "1.4.2", "1.3.0", "1.2.2"]
@@ -109,15 +115,22 @@ def generate_matrix() -> list[TestConfig]:
     # Track which versions have been used
     used_versions: dict[str, set[str]] = {name: {latest_versions[name]} for name in version_components}
 
-    # 2. Each non-latest version with latest of everything else (if valid)
+    # 2. Each non-latest version with latest of everything else (if valid).
+    #    If that is invalid, step one other component down to its newest compatible version.
     for component_name, component_versions in version_components.items():
         for version in component_versions:
             if version not in used_versions[component_name]:
                 config_dict = latest_versions.copy()
                 config_dict[component_name] = version
+                candidates = [config_dict] + [
+                    {**config_dict, other_name: other_version}
+                    for other_name, other_versions in version_components.items()
+                    if other_name != component_name
+                    for other_version in sorted(other_versions, key=Version, reverse=True)
+                ]
                 # Validate before adding
-                config = VersionConfig(**config_dict)
-                if config.is_valid():
+                config = next((c for c in (VersionConfig(**d) for d in candidates) if c.is_valid()), None)
+                if config is not None:
                     base_configs.add(config)
                     used_versions[component_name].add(version)
 

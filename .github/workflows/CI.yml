@@ -99,30 +99,9 @@ jobs:
         with:
           version: 0.11.28
           enable-cache: true
-      - name: Set up Python ${{ matrix.py }}
-        run: uv python install ${{ matrix.py }} && uv python pin ${{ matrix.py }} && uv venv --python ${{ matrix.py }}
-      - name: Override ray==${{ matrix.ray }} dagster==${{ matrix.dagster }}
-        run: uv add --no-sync "ray[all]==${{ matrix.ray }}" "dagster==${{ matrix.dagster }}"
-      - name: Install Default Dependencies
-        run: uv sync
-        env:
-          UV_LOCKED: "1"
-      - name: Check Import With Only Default Dependencies
-        run: uv run python -c "import dagster_ray"
-        env:
-          UV_LOCKED: "1"
-      - name: Install All Dependencies
-        run: uv sync --all-extras --dev
+      - uses: extractions/setup-just@v3
       - name: Run tests
-        env:
-          PYTEST_KUBERAY_VERSIONS: "${{ matrix.kuberay }}"
-          UV_LOCKED: "1"
-        run: uv run pytest -v .
-      - name: Run auth tests
-        env:
-          PYTEST_KUBERAY_VERSIONS: "${{ matrix.kuberay }}"
-          UV_LOCKED: "1"
-        run: uv run pytest -v -m kuberay_auth .
+        run: just test-matrix ${{ matrix.py }} ${{ matrix.ray }} ${{ matrix.dagster }} ${{ matrix.kuberay }}
 
   lint:
     name: Lint ${{ matrix.py }}
@@ -135,7 +114,7 @@ jobs:
         os:
           - Ubuntu
         py:
-          - "3.10"
+          - "3.11"
     steps:
       - uses: actions/checkout@v6
       - name: Install uv
@@ -157,7 +136,7 @@ jobs:
         os:
           - Ubuntu
         py:
-          - "3.10"
+          - "3.11"
     steps:
       - uses: actions/checkout@v6
       - name: Install uv
@@ -184,8 +163,8 @@ jobs:
         with:
           version: 0.11.28
           enable-cache: true
-      - name: Set up Python 3.10
-        run: uv python install 3.10 && uv python pin 3.10
+      - name: Set up Python 3.11
+        run: uv python install 3.11 && uv python pin 3.11
       - name: Build Docs
         run: uv run --group docs zensical build --strict --clean
 

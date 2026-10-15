@@ -1,3 +1,7 @@
+---
+description: API reference for dagster-ray configuration.
+---
+
 # Configuration API Reference
 
 Configuration classes for Ray execution and data processing options.

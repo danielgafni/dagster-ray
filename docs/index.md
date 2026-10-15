@@ -1,3 +1,7 @@
+---
+description: Run Ray workloads from Dagster pipelines.
+---
+
 # Welcome to `dagster-ray` docs
 
 [![PyPI version](https://img.shields.io/pypi/v/dagster-ray.svg)](https://pypi.python.org/pypi/dagster-ray)
