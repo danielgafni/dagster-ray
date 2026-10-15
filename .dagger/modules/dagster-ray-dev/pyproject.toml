@@ -1,0 +1,26 @@
+[project]
+name = "dagster-ray-dev"
+version = "0.1.0"
+requires-python = ">=3.14"
+dependencies = [
+    "dagger-io",
+    "dagger-clients-core",
+    "dagger-clients-k3s",
+    "dagger-clients-uv",
+    "packaging>=26.3",
+    "dagger-clients-github",
+]
+
+[build-system]
+requires = ["uv_build>=0.8.4,<0.12.0"]
+build-backend = "uv_build"
+
+[tool.uv.workspace]
+members = ["sdk", "clients/core", "clients/k3s", "clients/uv", "clients/github"]
+
+[tool.uv.sources]
+dagger-io = { workspace = true }
+dagger-clients-core = { workspace = true }
+dagger-clients-k3s = { workspace = true }
+dagger-clients-uv = { workspace = true }
+dagger-clients-github = { workspace = true }

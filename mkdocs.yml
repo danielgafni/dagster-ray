@@ -17,6 +17,7 @@ nav:
     - KubeRay: api/kuberay.md
     - Configs: api/configs.md
     - Types: api/types.md
+  - Compatibility: compatibility-matrix.md
   - Changelog: changelog.md
 
 theme:

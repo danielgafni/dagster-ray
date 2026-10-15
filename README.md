@@ -25,7 +25,7 @@ Learn more in the [docs](https://danielgafni.github.io/dagster-ray)
 - **🔧 Ray Resources**: Automatically create and destroy ephemeral Ray clusters and connect to them in client mode
 - **📡 Dagster Pipes Integration**: Submit external scripts as Ray jobs, stream back logs and rich Dagster metadata
 - **☸️ KubeRay Support**: Utilize `RayJob` and `RayCluster` custom resources in client or job submission mode ([tutorial](https://danielgafni.github.io/dagster-ray/tutorial/kuberay))
-- **🏭 Production Ready**: Tested against a matrix of core dependencies, integrated with Dagster+
+- **🏭 Production Ready**: Tested against a [matrix of core dependencies](https://danielgafni.github.io/dagster-ray/compatibility-matrix), integrated with Dagster+
 - **⚡ Instant Startup**: Leverage `RayCluster` with [Cluster Sharing](https://danielgafni.github.io/dagster-ray/tutorial/kuberay/#cluster-sharing) for lightning-fast development cycles with zero cold start times (intended for development environments)
 
 ## 📦 Installation

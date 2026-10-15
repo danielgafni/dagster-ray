@@ -20,7 +20,7 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 from dagster_ray.kuberay.client import RayClusterClient
 from dagster_ray.kuberay.configs import DEFAULT_HEAD_GROUP_SPEC, DEFAULT_WORKER_GROUP_SPECS, AuthOptions
 from tests import ROOT_DIR
-from tests.kuberay.utils import NAMESPACE
+from tests.kuberay.utils import NAMESPACE, RAY_POD_RESOURCES
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +82,28 @@ def dagster_ray_image():
     return image
 
 
+# kubeconfig of an existing cluster with KubeRay already installed (e.g. created by Dagger).
+# When unset, a minikube cluster is created for the test session.
+PYTEST_KUBECONFIG = os.getenv("PYTEST_KUBECONFIG")
+
+
+class ExistingClusterManager(AClusterManager):
+    """A cluster that outlives the test session: creating it waits for readiness, deleting it is a no-op."""
+
+    @classmethod
+    def get_binary_name(cls) -> str:
+        return "kubectl"
+
+    def _on_create(self, cluster_options: ClusterOptions, **kwargs) -> None:
+        pass
+
+    def _on_delete(self) -> None:
+        pass
+
+    def load_image(self, image: str) -> None:
+        raise NotImplementedError("images have to be loaded by whatever created the cluster")
+
+
 KUBERNETES_VERSION = os.getenv("PYTEST_KUBERNETES_VERSION", "1.31.0")
 KUBERAY_VERSIONS = os.getenv("PYTEST_KUBERAY_VERSIONS", "1.4.0").split(",")
 KUBERNETES_CONTEXT = "pytest-dagster-ray"
@@ -102,70 +124,73 @@ def ray_version() -> str:
 
 
 @pytest.fixture(scope="session")  # type: ignore
-def k8s_with_kuberay(
-    request, kuberay_helm_repo, dagster_ray_image: str, kuberay_version: str
-) -> Iterator[AClusterManager]:
-    k8s = select_provider_manager("minikube")(KUBERNETES_CONTEXT[7:])  # strip pytest-
-    k8s.create(ClusterOptions(api_version=KUBERNETES_VERSION), cluster_timeout=600)
-    # load images in advance to avoid possible timeouts later on
-    k8s.load_image(f"quay.io/kuberay/operator:v{kuberay_version}")
+def k8s_with_kuberay(request, dagster_ray_image: str, kuberay_version: str) -> Iterator[AClusterManager]:
+    if PYTEST_KUBECONFIG is not None:
+        k8s: AClusterManager = ExistingClusterManager(KUBERNETES_CONTEXT[7:])  # strip pytest-
+        k8s.create(ClusterOptions(kubeconfig_path=Path(PYTEST_KUBECONFIG)))
+    else:
+        request.getfixturevalue("kuberay_helm_repo")
+        k8s = select_provider_manager("minikube")(KUBERNETES_CONTEXT[7:])  # strip pytest-
+        k8s.create(ClusterOptions(api_version=KUBERNETES_VERSION), cluster_timeout=600)
+        # load images in advance to avoid possible timeouts later on
+        k8s.load_image(f"quay.io/kuberay/operator:v{kuberay_version}")
 
-    # warning: minikube fails to load the image directly because of
-    # https://github.com/kubernetes/minikube/issues/18021
-    # so we export it to .tar first
-    # TODO: load image without .tar export once the issue is resolved
-    with tempfile.TemporaryDirectory() as tmpdir:
-        image_tar = Path(tmpdir) / "dagster-ray.tar"
-        subprocess.run(["docker", "image", "save", "-o", str(image_tar), dagster_ray_image], check=True)
-        logger.info(f"Loading image {dagster_ray_image} into K8s...")
-        k8s.load_image(str(image_tar))
-        logger.info(f"Image {dagster_ray_image} loaded.")
+        # warning: minikube fails to load the image directly because of
+        # https://github.com/kubernetes/minikube/issues/18021
+        # so we export it to .tar first
+        # TODO: load image without .tar export once the issue is resolved
+        with tempfile.TemporaryDirectory() as tmpdir:
+            image_tar = Path(tmpdir) / "dagster-ray.tar"
+            subprocess.run(["docker", "image", "save", "-o", str(image_tar), dagster_ray_image], check=True)
+            logger.info(f"Loading image {dagster_ray_image} into K8s...")
+            k8s.load_image(str(image_tar))
+            logger.info(f"Image {dagster_ray_image} loaded.")
 
-    # init the cluster with a workload
+        # init the cluster with a workload
 
-    args = [
-        "helm",
-        "--kubeconfig",
-        str(k8s.kubeconfig),
-        "upgrade",
-        "--install",
-        "--create-namespace",
-        "--namespace",
-        "kuberay-operator",
-        "kuberay-operator",
-        "kuberay/kuberay-operator",
-        "--version",
-        kuberay_version,
-        "--timeout",
-        "10m",
-    ]
+        args = [
+            "helm",
+            "--kubeconfig",
+            str(k8s.kubeconfig),
+            "upgrade",
+            "--install",
+            "--create-namespace",
+            "--namespace",
+            "kuberay-operator",
+            "kuberay-operator",
+            "kuberay/kuberay-operator",
+            "--version",
+            kuberay_version,
+            "--timeout",
+            "10m",
+        ]
 
-    if Version(kuberay_version) > Version("1.3.0"):
-        args.extend(
-            [
-                "--set",
-                "featureGates[0].name=RayClusterStatusConditions",
-                "--set",
-                "featureGates[0].enabled=true",
-            ]
+        if Version(kuberay_version) > Version("1.3.0"):
+            args.extend(
+                [
+                    "--set",
+                    "featureGates[0].name=RayClusterStatusConditions",
+                    "--set",
+                    "featureGates[0].enabled=true",
+                ]
+            )
+
+        # RayJobDeletionPolicy is alpha and off by default in 1.5.x, and beta and on by default from
+        # 1.6.0. Setting it on 1.6+ would test a configuration no real user runs.
+        if Version("1.5.0") <= Version(kuberay_version) < Version("1.6.0"):
+            args.extend(
+                [
+                    "--set",
+                    "featureGates[1].name=RayJobDeletionPolicy",
+                    "--set",
+                    "featureGates[1].enabled=true",
+                ]
+            )
+
+        subprocess.run(
+            args,
+            check=True,
         )
-
-    # RayJobDeletionPolicy is alpha and off by default in 1.5.x, and beta and on by default from
-    # 1.6.0. Setting it on 1.6+ would test a configuration no real user runs.
-    if Version("1.5.0") <= Version(kuberay_version) < Version("1.6.0"):
-        args.extend(
-            [
-                "--set",
-                "featureGates[1].name=RayJobDeletionPolicy",
-                "--set",
-                "featureGates[1].enabled=true",
-            ]
-        )
-
-    subprocess.run(
-        args,
-        check=True,
-    )
 
     k8s.wait("deployment/kuberay-operator", "condition=Available=True", namespace="kuberay-operator")
     # namespace to create RayClusters in
@@ -176,7 +201,8 @@ def k8s_with_kuberay(
             raise
 
     yield k8s
-    k8s.delete()
+    if PYTEST_KUBECONFIG is None:
+        k8s.delete()
 
 
 @pytest.fixture(scope="session")
@@ -191,6 +217,7 @@ def head_group_spec(dagster_ray_image: str) -> dict[str, Any]:
         # to prevent timeout errors in low-resource CI environments
         {"name": "RAY_DASHBOARD_SUBPROCESS_MODULE_WAIT_READY_TIMEOUT", "value": "120"},
     ]
+    head_group_spec["template"]["spec"]["containers"][0]["resources"] = copy.deepcopy(RAY_POD_RESOURCES)
     return head_group_spec
 
 
@@ -199,6 +226,7 @@ def worker_group_specs(dagster_ray_image: str) -> list[dict[str, Any]]:
     worker_group_specs = DEFAULT_WORKER_GROUP_SPECS.copy()
     worker_group_specs[0]["template"]["spec"]["containers"][0]["image"] = dagster_ray_image
     worker_group_specs[0]["template"]["spec"]["containers"][0]["imagePullPolicy"] = "IfNotPresent"
+    worker_group_specs[0]["template"]["spec"]["containers"][0]["resources"] = copy.deepcopy(RAY_POD_RESOURCES)
     return worker_group_specs
 
 
