@@ -1,0 +1,17 @@
+# Versions the test suite runs against. Each entry becomes a `test-kuberay*` check, and each Python, Ray and Dagster
+# combination a `test-core-*` check. Run `dagger generate` after editing.
+#
+# Instead of every combination, the matrix holds:
+# - the latest version of everything
+# - the oldest version of everything
+# - each KubeRay version with the latest version of everything else
+# - each other Python, Ray and Dagster version with the latest of the rest, on the KubeRay version with the fewest jobs
+# Combinations matching an `exclude` entry are skipped.
+
+# Kubernetes version of the k3s clusters, the same for every job
+kubernetes = "1.31.9"
+
+python = ["3.13", "3.12", "3.11", "3.10"]
+ray = ["2.59.0", "2.58.0"]
+dagster = ["1.13.15", "1.12.12"]
+kuberay = ["1.7.0", "1.6.2", "1.3.0"]

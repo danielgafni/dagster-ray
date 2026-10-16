@@ -26,6 +26,10 @@ uv run basedpyright              # type check
 
 # Docs
 uv run --group docs mkdocs serve
+
+# CI (Dagger checks, see .dagger/README.md)
+dagger check                     # all checks
+dagger check -l --all            # list them
 ```
 
 KubeRay tests require: docker, kubectl, helm, minikube. Nix users: `devenv shell`.

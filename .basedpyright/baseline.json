@@ -10,24 +10,6 @@
                 }
             }
         ],
-        "./tests/kuberay/conftest.py": [
-            {
-                "code": "reportUnusedParameter",
-                "range": {
-                    "startColumn": 4,
-                    "endColumn": 11,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportUnusedParameter",
-                "range": {
-                    "startColumn": 13,
-                    "endColumn": 30,
-                    "lineCount": 1
-                }
-            }
-        ],
         "./tests/kuberay/test_pipes.py": [
             {
                 "code": "reportUnusedVariable",
