@@ -24,7 +24,10 @@ def local_ray_address() -> Iterator[str]:
     import ray
 
     context = ray.init(
-        ignore_reinit_error=True, runtime_env={"env_vars": {"RAY_ENABLE_RECORD_ACTOR_TASK_LOGGING": "1"}}
+        ignore_reinit_error=True,
+        # Ray otherwise takes every CPU of the machine and prestarts a worker process for each
+        num_cpus=2,
+        runtime_env={"env_vars": {"RAY_ENABLE_RECORD_ACTOR_TASK_LOGGING": "1"}},
     )
 
     yield "auto"

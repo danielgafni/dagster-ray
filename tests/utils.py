@@ -1,13 +1,5 @@
 import dagster as dg
-from packaging.version import Version
-
-if Version(dg.__version__) < Version("1.11.6"):
-    from dagster._core.remote_representation import CodeLocationOrigin, InProcessCodeLocationOrigin
-else:
-    from dagster._core.remote_origin import InProcessCodeLocationOrigin, CodeLocationOrigin  # pyright: ignore[reportMissingImports,reportUnusedImport]  # noqa: F401,I001
-
-assert InProcessCodeLocationOrigin is not None
-assert CodeLocationOrigin is not None
+from dagster._core.remote_origin import CodeLocationOrigin, InProcessCodeLocationOrigin
 
 
 def get_saved_path(result: dg.ExecuteInProcessResult, asset_name: str) -> str:

@@ -68,6 +68,7 @@ These resources initialize Ray client connection with a remote cluster.
         - "entrypoint_num_gpus"
         - "entrypoint_memory"
         - "entrypoint_resources"
+        - "pre_running_deadline_seconds"
         - "to_k8s"
 
 ---

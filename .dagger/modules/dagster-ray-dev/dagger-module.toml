@@ -1,0 +1,5 @@
+name = "dagster-ray-dev"
+
+[entrypoint]
+  kind = "dang"
+  source = "./sdk/entrypoint"

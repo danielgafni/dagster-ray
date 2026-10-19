@@ -1,207 +1,41 @@
 name: CI
 
+# Lint, type checks, docs and the test matrix run as Dagger checks on Dagger Cloud (see .dagger/README.md).
+# This job waits for them and reports their result.
+
 on:
   workflow_dispatch:
   pull_request:
   push:
     branches:
       - main
-  release:
-    types:
-      - created
-    # Sequence of patterns matched against refs/tags
-    tags:
-      - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
-  UV_SYSTEM_PYTHON: "1"
+  DAGGER_VERSION: 1.0.0-beta.18
 
 jobs:
-  changes:
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: read
-    # Set job outputs to values from filter step
-    outputs:
-      src: ${{ steps.filter.outputs.src }}
-      docs: ${{ steps.filter.outputs.docs }}
-    steps:
-      - uses: actions/checkout@v6
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            src:
-              - .github/workflows/CI.yml
-              - 'src/dagster_ray/**'
-              - 'tests/**'
-              - 'examples/**/*.py'
-              - pyproject.toml
-              - uv.lock
-              - .pre-commit-config.yaml
-              - Dockerfile
-              - .dockerignore
-              - scripts/generate_test_matrix.py
-            docs:
-              - '**/*.md'
-              - .github/workflows/CI.yml
-              - 'docs/**'
-              - mkdocs.yml
-              - 'src/dagster_ray/**'
-              - pyproject.toml
-              - uv.lock
-
-  generate-matrix:
-    name: Generate Test Matrix
-    runs-on: ubuntu-latest
-    needs: changes
-    if: ${{ needs.changes.outputs.src == 'true' }}
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-    steps:
-      - uses: actions/checkout@v6
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          version: 0.11.28
-          enable-cache: true
-      - name: Generate matrix
-        id: set-matrix
-        run: |
-          uv run scripts/generate_test_matrix.py --dry-run
-          MATRIX=$(uv run scripts/generate_test_matrix.py)
-          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
-
-  test:
-    name: Test Python ${{ matrix.py }} - Ray ${{ matrix.ray }} - Dagster ${{ matrix.dagster }} - KubeRay ${{ matrix.kuberay }}
-    runs-on: ${{ matrix.os }}-latest
-    needs: [changes, generate-matrix]
-    if: ${{ needs.changes.outputs.src == 'true' }}
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
-    steps:
-      - uses: actions/checkout@v6
-      - uses: azure/setup-helm@v4.3.1
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Start minikube
-        uses: medyagh/setup-minikube@master
-        with:
-          start: false
-          driver: docker
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          version: 0.11.28
-          enable-cache: true
-      - name: Set up Python ${{ matrix.py }}
-        run: uv python install ${{ matrix.py }} && uv python pin ${{ matrix.py }} && uv venv --python ${{ matrix.py }}
-      - name: Override ray==${{ matrix.ray }} dagster==${{ matrix.dagster }}
-        run: uv add --no-sync "ray[all]==${{ matrix.ray }}" "dagster==${{ matrix.dagster }}"
-      - name: Install Default Dependencies
-        run: uv sync
-        env:
-          UV_LOCKED: "1"
-      - name: Check Import With Only Default Dependencies
-        run: uv run python -c "import dagster_ray"
-        env:
-          UV_LOCKED: "1"
-      - name: Install All Dependencies
-        run: uv sync --all-extras --dev
-      - name: Run tests
-        env:
-          PYTEST_KUBERAY_VERSIONS: "${{ matrix.kuberay }}"
-          UV_LOCKED: "1"
-        run: uv run pytest -v .
-      - name: Run auth tests
-        env:
-          PYTEST_KUBERAY_VERSIONS: "${{ matrix.kuberay }}"
-          UV_LOCKED: "1"
-        run: uv run pytest -v -m kuberay_auth .
-
-  lint:
-    name: Lint ${{ matrix.py }}
-    runs-on: ${{ matrix.os }}-latest
-    needs: changes
-    if: ${{ needs.changes.outputs.src == 'true' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - Ubuntu
-        py:
-          - "3.10"
-    steps:
-      - uses: actions/checkout@v6
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          version: 0.11.28
-          enable-cache: true
-      - name: Run prek hooks
-        run: SKIP=basedpyright uv run prek run --all-files
-
-  typecheck:
-    name: Typecheck ${{ matrix.py }}
-    runs-on: ${{ matrix.os }}-latest
-    needs: changes
-    if: ${{ needs.changes.outputs.src == 'true' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - Ubuntu
-        py:
-          - "3.10"
-    steps:
-      - uses: actions/checkout@v6
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          version: 0.11.28
-          enable-cache: true
-      - name: Set up Python ${{ matrix.py }}
-        run: uv python install ${{ matrix.py }} && uv python pin ${{ matrix.py }}
-      - name: Install dependencies
-        run: uv sync --all-extras
-      - name: BasedPyright
-        run: uv run basedpyright --level error
-
-  build-docs:
-    name: Build Docs
-    runs-on: Ubuntu-latest
-    needs: changes
-    if: ${{ needs.changes.outputs.docs == 'true' }}
-    steps:
-      - uses: actions/checkout@v6
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          version: 0.11.28
-          enable-cache: true
-      - name: Set up Python 3.10
-        run: uv python install 3.10 && uv python pin 3.10
-      - name: Build Docs
-        run: uv run --group docs zensical build --strict --clean
-
   qa_success:
     name: QA Success
-    if: always()
-    needs:
-      - test
-      - lint
-      - typecheck
-      - build-docs
-    runs-on: Ubuntu-latest
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    permissions:
+      contents: read
+      statuses: read
     steps:
-      - name: Decide whether the needed jobs succeeded or failed
-        uses: re-actors/alls-green@release/v1
+      - uses: actions/checkout@v6
+      - name: Wait for Dagger Cloud checks
+        uses: dagger/dagger-for-github@v8.4.1
         with:
-          allowed-failures: ""
-          allowed-skips: lint, test, typecheck, build-docs
-          jobs: ${{ toJSON(needs) }}
+          version: ${{ env.DAGGER_VERSION }}
+          cloud-token: ${{ secrets.DAGGER_CLOUD_TOKEN }}
+          call: >-
+            wait-for-cloud-checks
+            --repo=${{ github.repository }}
+            --ref=${{ github.event.pull_request.head.sha || github.sha }}
+            --token=env:GITHUB_TOKEN
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
