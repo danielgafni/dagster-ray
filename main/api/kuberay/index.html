@@ -275,6 +275,22 @@
   
   
     <li class="md-tabs__item">
+      <a href="../../compatibility-matrix/" class="md-tabs__link">
+        
+  
+  Compatibility
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
       <a href="../../changelog/" class="md-tabs__link">
         
   
@@ -1151,6 +1167,17 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;entrypoint_resources
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dagster_ray.kuberay.configs.RayJobSpec.pre_running_deadline_seconds" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;pre_running_deadline_seconds
       </span>
     </span>
   </a>
@@ -3060,6 +3087,32 @@
   
   
     <li class="md-nav__item">
+      <a href="../../compatibility-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Compatibility
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../changelog/" class="md-nav__link">
         
   
@@ -3567,6 +3620,17 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;entrypoint_resources
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dagster_ray.kuberay.configs.RayJobSpec.pre_running_deadline_seconds" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;pre_running_deadline_seconds
       </span>
     </span>
   </a>
@@ -10586,7 +10650,7 @@ or a different protocol. The <code>dashboard_port</code> can be ignored if not n
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.kuberay.resources.rayjob.InteractiveRayJobSpec.pre_running_deadline_seconds">pre_running_deadline_seconds</a></code>
+  &lt;/span&gt;" href="./#dagster_ray.kuberay.configs.RayJobSpec.pre_running_deadline_seconds">pre_running_deadline_seconds</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a> | None</code>)
             </li>
             <li>
@@ -10880,6 +10944,30 @@ or a different protocol. The <code>dashboard_port</code> can be ignored if not n
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h5 id="dagster_ray.kuberay.configs.RayJobSpec.pre_running_deadline_seconds" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">pre_running_deadline_seconds</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-pydantic-field"><code>pydantic-field</code></small>
+  </span>
+
+<a href="#dagster_ray.kuberay.configs.RayJobSpec.pre_running_deadline_seconds" class="headerlink" title="Permanent link">&para;</a></h5>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">pre_running_deadline_seconds</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Deadline for the <code>RayJob</code> to reach the <code>Running</code> state, measured from <code>.status.startTime</code>. If it doesn't, KubeRay fails the job with reason <code>PreRunningDeadlineExceeded</code>. Useful for reaping jobs stuck in <code>Initializing</code> or <code>Waiting</code> — for example when the <code>RayCluster</code> can never be scheduled. Unset means no deadline. Requires KubeRay 1.6.0: older operators prune the field without an error.</p>
 
     </div>
 
