@@ -13,7 +13,7 @@
 
   # Dagger 1.0 betas are not packaged in nixpkgs or github:dagger/nix yet.
   dagger = let
-    version = "1.0.0-beta.18";
+    version = "1.0.0-beta.19";
     platform = "${
       if pkgs.stdenv.hostPlatform.isDarwin
       then "darwin"
@@ -25,10 +25,10 @@
     }";
     # from https://dl.dagger.io/dagger/releases/${version}/checksums.txt
     hashes = {
-      darwin_amd64 = "5373a853153fce1fa0eebc558a090f24eeddf38272e5bc55554461e6d6a148d9";
-      darwin_arm64 = "b132521ba660b63da0d3e2b6b0e160313e716684a6bde86cf766d1efd434b7dd";
-      linux_amd64 = "5326f48825b64008705290cb2a8109c28e4a88d341ef765be8234860acf32fdb";
-      linux_arm64 = "abcc2e70154498e7933758e7d81b3be79f7a5699d30b0d04ea33ed70d6edf827";
+      darwin_amd64 = "d3c7c36c7003461b10785297f6e10b07a8cfe2a92ef0db052b2e750ad7167ff8";
+      darwin_arm64 = "57d3fe6fa9107759427ea651921a279462ffec194b48140fd50ce555d13b0605";
+      linux_amd64 = "fecc67355fb3baff9da548d8f05c468a9c404aeb8d9498801f199fbea78038a0";
+      linux_arm64 = "89be820ea938ad13373d943ac6bac036478d51cc2eb36dfdea36e625859907d8";
     };
   in
     pkgs.stdenvNoCC.mkDerivation {
