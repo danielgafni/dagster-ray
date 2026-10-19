@@ -33,7 +33,7 @@ dagger check -l --all            # list them
 ```
 
 KubeRay tests require: docker, kubectl, helm, minikube. Nix users: `devenv shell`.
-The shell defaults to Python 3.11; `devenv shell -P python-3.13` (or `-P python-3.10`/`3.12`)
+The shell defaults to Python 3.11; `devenv shell -P python-3.13` (or `-P python-3.10`/`3.12`/`3.14`)
 switches versions, each with its own venv under `.devenv/profiles/`.
 
 ## Architecture
