@@ -98,7 +98,10 @@ class DagsterRayDev:
             "/".join(await artifact.path()) for artifact in await ws.artifacts().filter_directives(["check"]).items()
         ]
         return await (
-            github().status_monitor().wait_for_statuses(repo=repo, ref=ref, token=token, checks=checks, timeout=10800)
+            github()
+            .status_monitor()
+            # statuses appear late when Dagger Cloud is short on engines
+            .wait_for_statuses(repo=repo, ref=ref, token=token, checks=checks, timeout=10800, discovery_timeout=1800)
         )
 
     @function

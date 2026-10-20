@@ -40,6 +40,17 @@ class Void(_Scalar):
     resolvers that do not return anything. """
 
 
+class AcronymStyle(_Enum):
+    """How acronyms and terms are written where a word starts with a
+    capital."""
+
+    CAPITALIZED = 'CAPITALIZED'
+    """HttpClient, Ipv6Address, GitHubRepo"""
+
+    UPPERCASE = 'UPPERCASE'
+    """HTTPClient, IPv6Address, GitHubRepo"""
+
+
 class AgentMessageDelivery(_Enum):
     """EXPERIMENTAL: Agent APIs are likely to change.  How a message
     landed in an agent's evaluation. """
@@ -97,6 +108,28 @@ class CacheSharingMode(_Enum):
 
     SHARED = 'SHARED'
     """Shares the cache volume amongst many build pipelines"""
+
+
+class Casing(_Enum):
+    """A convention for joining words into an identifier."""
+
+    CAMEL = 'CAMEL'
+    """httpClient"""
+
+    FLAT = 'FLAT'
+    """httpclient (output only: drops word boundaries)"""
+
+    KEBAB = 'KEBAB'
+    """http-client"""
+
+    PASCAL = 'PASCAL'
+    """HTTPClient"""
+
+    SCREAMING_SNAKE = 'SCREAMING_SNAKE'
+    """HTTP_CLIENT"""
+
+    SNAKE = 'SNAKE'
+    """http_client"""
 
 
 class ChangesetMergeConflict(_Enum):
@@ -205,6 +238,19 @@ class GitPushDisposition(_Enum):
 
     UP_TO_DATE = 'UP_TO_DATE'
     """The remote ref already pointed to this commit."""
+
+
+class IdentifierWordKind(_Enum):
+    """The kind of a word in an identifier."""
+
+    ACRONYM = 'ACRONYM'
+    """An acronym, from the dictionary or a run of capitals."""
+
+    TERM = 'TERM'
+    """A dictionary term with a fixed mixed-case spelling (GitHub, IPv6)."""
+
+    WORD = 'WORD'
+    """An ordinary word."""
 
 
 class ImageLayerCompression(_Enum):
@@ -1161,6 +1207,16 @@ class Agent(_Type):
         ]
         return await self._ctx.execute_sync(self, "notify", _args)
 
+    def parent(self) -> _Self:
+        """The agent that spawned this agent, or null for a root agent.
+
+        .. caution::
+            Experimental: Agent APIs are likely to change.
+        """
+        _args: list[_Arg] = []
+        _ctx = self._select("parent", _args)
+        return Agent(_ctx)
+
     async def pause(self, *, interrupt: bool | None = False) -> _Self:
         """Stop draining the mailbox once the in-flight step completes, or
         immediately with interrupt.
@@ -1784,6 +1840,15 @@ class Artifact(_Type):
         _ctx = self._select("value", _args)
         return _NodeClient(_ctx)
 
+    def workspace(self) -> "Workspace":
+        """The workspace this artifact was discovered in; its address is relative
+        to it. Null for an artifact without a workspace, such as one of an
+        LLM's bound tool objects (see LLM.artifacts).
+        """
+        _args: list[_Arg] = []
+        _ctx = self._select("workspace", _args)
+        return Workspace(_ctx)
+
 
 class ArtifactDimension(_Type):
 
@@ -2243,12 +2308,19 @@ class ArtifactResult(_Type):
 class Artifacts(_Type):
     """An immutable selection of workspace artifacts. Listed types,
     dimensions, and keys use OR; chained filters use AND. Empty
-    alternatives and unknown names match nothing. Filters never change
-    addresses or dimension identifiers."""
+    alternatives match nothing; unknown names match nothing but module
+    load failures. Filters never change addresses or dimension
+    identifiers. Module keys match a module's configured or kebab-case
+    name. A module that failed to load has no schema, so its load failure
+    stands in for whatever it would hold: a filter keeps it when the
+    module could hold something the filter selects, and an exclusion drops
+    it only by its own address, such as <module>/** or
+    ?module=<module>."""
 
     async def as_changesets(self) -> list["Changeset"]:
         """Convert the selection to Changesets. Fail if any artifact is not a
-        Changeset. Does not apply command filters.
+        Changeset; a module load failure fails with its load error. Does not
+        apply command filters.
         """
         _args: list[_Arg] = []
         _ctx = self._select("asChangesets", _args)
@@ -2256,15 +2328,19 @@ class Artifacts(_Type):
 
     async def as_checks(self) -> list["Check"]:
         """Convert the selection to Checks. Fail if any artifact is not a Check.
-        Does not apply command filters or run the checks.
+        A module load failure is a Check that fails with its load error. Does
+        not apply command filters or run the checks.
         """
         _args: list[_Arg] = []
         _ctx = self._select("asChecks", _args)
         return await _ctx.execute_object_list(Check)
 
     async def as_expertise(self) -> list["Expertise"]:
-        """Convert the selection to expertise without running the functions. Fail
-        if any artifact is not a source of expertise.
+        """Convert the selection to expertise without running the functions. Each
+        must take one LLM! argument and return LLM!; any other arguments must
+        be optional or auto-filled. Agent arguments receive the agent that
+        owns the conversation. A module load failure fails with its load
+        error.
         """
         _args: list[_Arg] = []
         _ctx = self._select("asExpertise", _args)
@@ -2272,7 +2348,8 @@ class Artifacts(_Type):
 
     async def as_generators(self) -> list["Generator"]:
         """Convert the selection to Generators without running them. Fail if any
-        artifact is not a Generator.
+        artifact is not a Generator. Module load failures are skipped:
+        generating can repair them.
         """
         _args: list[_Arg] = []
         _ctx = self._select("asGenerators", _args)
@@ -2280,7 +2357,8 @@ class Artifacts(_Type):
 
     async def as_services(self) -> list["Service"]:
         """Convert the selection to Services. Fail if any artifact is not a
-        Service. Does not apply command filters or start the services.
+        Service; a module load failure fails with its load error. Does not
+        apply command filters or start the services.
         """
         _args: list[_Arg] = []
         _ctx = self._select("asServices", _args)
@@ -2489,6 +2567,10 @@ class Artifacts(_Type):
 
         The scheme is optional. The path may be a pattern; an empty path
         selects all artifacts.
+
+        A module that failed to load keeps its load failure when the module
+        could hold what the address selects, as with every filter (see
+        Artifacts).
 
         Parameters
         ----------
@@ -8541,10 +8623,18 @@ class ErrorValue(_Type):
 
 
 class Expertise(_Type):
-    """An agent function that can modify a conversation."""
+    """A function that can modify a conversation."""
+
+    def artifact(self) -> Artifact:
+        """The artifact this expertise runs. Look it up again by URI to pick up
+        module changes.
+        """
+        _args: list[_Arg] = []
+        _ctx = self._select("artifact", _args)
+        return Artifact(_ctx)
 
     async def description(self) -> str:
-        """The agent function's description.
+        """The function's description.
 
         Returns
         -------
@@ -8593,7 +8683,7 @@ class Expertise(_Type):
         return await _ctx.execute(str)
 
     async def name(self) -> str:
-        """The agent function's name.
+        """The function's name.
 
         Returns
         -------
@@ -8614,13 +8704,13 @@ class Expertise(_Type):
         return await _ctx.execute(str)
 
     def original_module(self) -> "Module":
-        """The module that defines the agent function."""
+        """The module that defines the function."""
         _args: list[_Arg] = []
         _ctx = self._select("originalModule", _args)
         return Module(_ctx)
 
     async def path(self) -> list[str]:
-        """The agent function's path within its module.
+        """The function's path within its module.
 
         Returns
         -------
@@ -10611,6 +10701,29 @@ class GitCommit(_Type):
         _ctx = self._select("tree", _args)
         return Directory(_ctx)
 
+    async def tree_sha(self) -> str:
+        """The ID of the commit's Git tree object.
+
+        Commits with identical trees have identical contents and file modes.
+
+        Returns
+        -------
+        str
+            The `String` scalar type represents textual data, represented as
+            UTF-8 character sequences. The String type is most often used by
+            GraphQL to represent free-form human-readable text.
+
+        Raises
+        ------
+        ExecuteTimeoutError
+            If the time to execute the query exceeds the configured timeout.
+        QueryError
+            If the API returns an error.
+        """
+        _args: list[_Arg] = []
+        _ctx = self._select("treeSHA", _args)
+        return await _ctx.execute(str)
+
 
 class GitPushResult(_Type):
     """A receipt for a completed Git push. Reading or replaying the
@@ -12065,6 +12178,201 @@ class Host(_Type):
         return Socket(_ctx)
 
 
+class Identifier(_Type):
+    """A name parsed into words, which can be formatted in any casing."""
+
+    async def format(self, casing: Casing, *, acronyms: AcronymStyle | None = AcronymStyle.UPPERCASE,) -> str:
+        """Format the identifier in a casing.
+
+        Parameters
+        ----------
+        casing:
+            The casing to format the identifier in.
+        acronyms:
+            How to write acronyms and terms where a word starts with a
+            capital.
+
+        Returns
+        -------
+        str
+            The `String` scalar type represents textual data, represented as
+            UTF-8 character sequences. The String type is most often used by
+            GraphQL to represent free-form human-readable text.
+
+        Raises
+        ------
+        ExecuteTimeoutError
+            If the time to execute the query exceeds the configured timeout.
+        QueryError
+            If the API returns an error.
+        """
+        if not (isinstance(casing, Casing)):
+            raise _type_error("Identifier.format", "casing", casing, "Casing")
+        if not (acronyms is None or isinstance(acronyms, AcronymStyle)):
+            raise _type_error("Identifier.format", "acronyms", acronyms, "AcronymStyle | None")
+        _args = [
+            _Arg("casing", casing),
+            _Arg("acronyms", acronyms, AcronymStyle.UPPERCASE),
+        ]
+        _ctx = self._select("format", _args)
+        return await _ctx.execute(str)
+
+    async def id(self) -> str:
+        """A unique identifier for this Identifier.
+
+        Note
+        ----
+        This is lazily evaluated, no operation is actually run.
+
+        Returns
+        -------
+        str
+            The `ID` scalar type represents a unique identifier, often used to
+            refetch an object or as key for a cache. The ID type appears in a
+            JSON response as a String; however, it is not intended to be
+            human-readable. When expected as an input type, any string (such
+            as `"4"`) or integer (such as `4`) input value will be accepted as
+            an ID.
+
+        Raises
+        ------
+        ExecuteTimeoutError
+            If the time to execute the query exceeds the configured timeout.
+        QueryError
+            If the API returns an error.
+        """
+        _args: list[_Arg] = []
+        _ctx = self._select("id", _args)
+        return await _ctx.execute(str)
+
+    async def name(self) -> str:
+        """The name as given.
+
+        Returns
+        -------
+        str
+            The `String` scalar type represents textual data, represented as
+            UTF-8 character sequences. The String type is most often used by
+            GraphQL to represent free-form human-readable text.
+
+        Raises
+        ------
+        ExecuteTimeoutError
+            If the time to execute the query exceeds the configured timeout.
+        QueryError
+            If the API returns an error.
+        """
+        _args: list[_Arg] = []
+        _ctx = self._select("name", _args)
+        return await _ctx.execute(str)
+
+    async def words(self) -> list["IdentifierWord"]:
+        """The words that make up the name, in order."""
+        _args: list[_Arg] = []
+        _ctx = self._select("words", _args)
+        return await _ctx.execute_object_list(IdentifierWord)
+
+
+class IdentifierWord(_Type):
+    """One word of an identifier."""
+
+    async def id(self) -> str:
+        """A unique identifier for this IdentifierWord.
+
+        Note
+        ----
+        This is lazily evaluated, no operation is actually run.
+
+        Returns
+        -------
+        str
+            The `ID` scalar type represents a unique identifier, often used to
+            refetch an object or as key for a cache. The ID type appears in a
+            JSON response as a String; however, it is not intended to be
+            human-readable. When expected as an input type, any string (such
+            as `"4"`) or integer (such as `4`) input value will be accepted as
+            an ID.
+
+        Raises
+        ------
+        ExecuteTimeoutError
+            If the time to execute the query exceeds the configured timeout.
+        QueryError
+            If the API returns an error.
+        """
+        _args: list[_Arg] = []
+        _ctx = self._select("id", _args)
+        return await _ctx.execute(str)
+
+    async def kind(self) -> IdentifierWordKind:
+        """The kind of word.
+
+        Returns
+        -------
+        IdentifierWordKind
+            The kind of a word in an identifier.
+
+        Raises
+        ------
+        ExecuteTimeoutError
+            If the time to execute the query exceeds the configured timeout.
+        QueryError
+            If the API returns an error.
+        """
+        _args: list[_Arg] = []
+        _ctx = self._select("kind", _args)
+        return await _ctx.execute(IdentifierWordKind)
+
+    async def suffix(self) -> str:
+        """Trailing digits and/or a plural "s", in that order: SHA+"s",
+        OAuth+"2", HTTP+"2s".
+
+        Returns
+        -------
+        str
+            The `String` scalar type represents textual data, represented as
+            UTF-8 character sequences. The String type is most often used by
+            GraphQL to represent free-form human-readable text.
+
+        Raises
+        ------
+        ExecuteTimeoutError
+            If the time to execute the query exceeds the configured timeout.
+        QueryError
+            If the API returns an error.
+        """
+        _args: list[_Arg] = []
+        _ctx = self._select("suffix", _args)
+        return await _ctx.execute(str)
+
+    def term(self) -> "NamingTerm":
+        """The dictionary entry this word matched, if any."""
+        _args: list[_Arg] = []
+        _ctx = self._select("term", _args)
+        return NamingTerm(_ctx)
+
+    async def text(self) -> str:
+        """Standard spelling: "client" (WORD), "HTTP" (ACRONYM), "GitHub" (TERM).
+
+        Returns
+        -------
+        str
+            The `String` scalar type represents textual data, represented as
+            UTF-8 character sequences. The String type is most often used by
+            GraphQL to represent free-form human-readable text.
+
+        Raises
+        ------
+        ExecuteTimeoutError
+            If the time to execute the query exceeds the configured timeout.
+        QueryError
+            If the API returns an error.
+        """
+        _args: list[_Arg] = []
+        _ctx = self._select("text", _args)
+        return await _ctx.execute(str)
+
+
 class InputTypeDef(_Type):
     """A graphql input type, which is essentially just a group of named
     args. This is currently only used to represent pre-existing usage of
@@ -12572,8 +12880,16 @@ class LLM(_Type):
         return Artifacts(_ctx)
 
     def compose(self, expertise: list[Expertise]) -> _Self:
-        """Run expertise in list order, passing this conversation through each
-        function. Retain existing contributions.
+        """Run expertise on this conversation, passing it through each function
+        in order, and record it in expertise.
+
+        Composing an entry that is already recorded refreshes its module: the
+        module's contributions are cleared, all of its recorded entries run
+        again, and compatible tool state is kept. Other contributions are
+        untouched.
+
+        Agent arguments receive the agent that owns this conversation. Without
+        one, entries requiring an Agent are skipped.
 
         Parameters
         ----------
@@ -12631,6 +12947,12 @@ class LLM(_Type):
         _args: list[_Arg] = []
         _ctx = self._select("contextWindow", _args)
         return await _ctx.execute(int | None)
+
+    async def expertise(self) -> list[Expertise]:
+        """Expertise composed into this conversation, in order."""
+        _args: list[_Arg] = []
+        _ctx = self._select("expertise", _args)
+        return await _ctx.execute_object_list(Expertise)
 
     def fork(self, label: str) -> _Self:
         """Fork the conversation, so that otherwise-identical follow-ups evaluate
@@ -12817,30 +13139,6 @@ class LLM(_Type):
         _ctx = self._select("reasoningEffort", _args)
         return await _ctx.execute(str)
 
-    def recompose(self, expertise: list[Expertise]) -> _Self:
-        """Run expertise in list order, replacing their modules' contributions
-        and preserving compatible tool state.
-
-        Clear each selected module's contributions once before execution.
-        Retain unowned contributions and contributions from other modules.
-        Keep this LLM's workspace.
-
-        A change to a tool binding's version resets its state. Removed
-        bindings, changed identities, and incompatible state are errors.
-
-        Parameters
-        ----------
-        expertise:
-            The expertise to run. Each reference retains its source workspace.
-        """
-        if not (isinstance(expertise, list) and all(isinstance(_v0, Expertise) for _v0 in expertise)):
-            raise _type_error("LLM.recompose", "expertise", expertise, "list[Expertise]")
-        _args = [
-            _Arg("expertise", expertise),
-        ]
-        _ctx = self._select("recompose", _args)
-        return LLM(_ctx)
-
     async def skills(self) -> list["LLMSkill"]:
         """The skills visible to the model, exactly as the ListSkills tool serves
         them: engine-embedded skills, skills installed with withSkills, and
@@ -12850,7 +13148,7 @@ class LLM(_Type):
         _ctx = self._select("skills", _args)
         return await _ctx.execute_object_list(LLMSkill)
 
-    async def spawn(self, *, name: str | None = None, handle: str | None = None, state: AgentState | None = AgentState.IDLE, parent_handle: str | None = None, error: str | None = '',) -> str:
+    async def spawn(self, *, expertise: list[Expertise] | None = None, name: str | None = None, handle: str | None = None, state: AgentState | None = AgentState.IDLE, parent_handle: str | None = None, error: str | None = '',) -> str:
         """Spawn the conversation as an agent: a startable, addressable
         evaluation loop seeded with this conversation's state, tools, and
         workspace.
@@ -12877,6 +13175,11 @@ class LLM(_Type):
 
         Parameters
         ----------
+        expertise:
+            Expertise to compose into the new agent's conversation. Agent
+            arguments receive the new agent, which cannot be used until
+            composition completes; if composition fails, the agent is left
+            STOPPED.
         name:
             Display label for the agent — telemetry and error messages;
             carries no identity. Defaults to a short name derived from the
@@ -12920,6 +13223,8 @@ class LLM(_Type):
         QueryError
             If the API returns an error.
         """
+        if not (expertise is None or (isinstance(expertise, list) and all(isinstance(_v0, Expertise) for _v0 in expertise))):
+            raise _type_error("LLM.spawn", "expertise", expertise, "list[Expertise] | None")
         if not (name is None or isinstance(name, str)):
             raise _type_error("LLM.spawn", "name", name, "str | None")
         if not (handle is None or isinstance(handle, str)):
@@ -12931,6 +13236,7 @@ class LLM(_Type):
         if not (error is None or isinstance(error, str)):
             raise _type_error("LLM.spawn", "error", error, "str | None")
         _args = [
+            _Arg("expertise", [] if expertise is None else expertise, []),
             _Arg("name", name, None),
             _Arg("handle", handle, None),
             _Arg("state", state, AgentState.IDLE),
@@ -15550,6 +15856,80 @@ class ModuleSource(_Type):
 
 
 
+class NamingTerm(_Type):
+    """An entry in the naming dictionary."""
+
+    async def capitalized(self) -> str:
+        """Spelling in the CAPITALIZED style: "Http", "Ipv6", "GitHub", "Ios".
+
+        Returns
+        -------
+        str
+            The `String` scalar type represents textual data, represented as
+            UTF-8 character sequences. The String type is most often used by
+            GraphQL to represent free-form human-readable text.
+
+        Raises
+        ------
+        ExecuteTimeoutError
+            If the time to execute the query exceeds the configured timeout.
+        QueryError
+            If the API returns an error.
+        """
+        _args: list[_Arg] = []
+        _ctx = self._select("capitalized", _args)
+        return await _ctx.execute(str)
+
+    async def id(self) -> str:
+        """A unique identifier for this NamingTerm.
+
+        Note
+        ----
+        This is lazily evaluated, no operation is actually run.
+
+        Returns
+        -------
+        str
+            The `ID` scalar type represents a unique identifier, often used to
+            refetch an object or as key for a cache. The ID type appears in a
+            JSON response as a String; however, it is not intended to be
+            human-readable. When expected as an input type, any string (such
+            as `"4"`) or integer (such as `4`) input value will be accepted as
+            an ID.
+
+        Raises
+        ------
+        ExecuteTimeoutError
+            If the time to execute the query exceeds the configured timeout.
+        QueryError
+            If the API returns an error.
+        """
+        _args: list[_Arg] = []
+        _ctx = self._select("id", _args)
+        return await _ctx.execute(str)
+
+    async def spelling(self) -> str:
+        """Standard spelling: "HTTP", "IPv6", "GitHub", "iOS".
+
+        Returns
+        -------
+        str
+            The `String` scalar type represents textual data, represented as
+            UTF-8 character sequences. The String type is most often used by
+            GraphQL to represent free-form human-readable text.
+
+        Raises
+        ------
+        ExecuteTimeoutError
+            If the time to execute the query exceeds the configured timeout.
+        QueryError
+            If the API returns an error.
+        """
+        _args: list[_Arg] = []
+        _ctx = self._select("spelling", _args)
+        return await _ctx.execute(str)
+
+
 class ObjectTypeDef(_Type):
     """A definition of a custom object defined in a Module."""
 
@@ -16108,6 +16488,57 @@ class Query(_Root):
         _ctx = self._select("file", _args)
         return File(_ctx)
 
+    async def format_identifiers(self, names: list[str], casing: Casing, *, acronyms: AcronymStyle | None = AcronymStyle.UPPERCASE, version: str | None = None,) -> list[str]:
+        """Format many names at once, for codegen. Returns them in input order.
+
+        .. caution::
+            Experimental: Identifier casing APIs are likely to change.
+
+        Parameters
+        ----------
+        names:
+            The names to format, in any casing.
+        casing:
+            The casing to format the names in.
+        acronyms:
+            How to write acronyms and terms where a word starts with a
+            capital.
+        version:
+            The engine version whose naming dictionary to parse the names
+            with, e.g. the __schemaVersion of a schema being generated.
+            Defaults to the caller's engine version.
+
+        Returns
+        -------
+        list[str]
+            The `String` scalar type represents textual data, represented as
+            UTF-8 character sequences. The String type is most often used by
+            GraphQL to represent free-form human-readable text.
+
+        Raises
+        ------
+        ExecuteTimeoutError
+            If the time to execute the query exceeds the configured timeout.
+        QueryError
+            If the API returns an error.
+        """
+        if not (isinstance(names, list) and all(isinstance(_v0, str) for _v0 in names)):
+            raise _type_error("Query.format_identifiers", "names", names, "list[str]")
+        if not (isinstance(casing, Casing)):
+            raise _type_error("Query.format_identifiers", "casing", casing, "Casing")
+        if not (acronyms is None or isinstance(acronyms, AcronymStyle)):
+            raise _type_error("Query.format_identifiers", "acronyms", acronyms, "AcronymStyle | None")
+        if not (version is None or isinstance(version, str)):
+            raise _type_error("Query.format_identifiers", "version", version, "str | None")
+        _args = [
+            _Arg("names", names),
+            _Arg("casing", casing),
+            _Arg("acronyms", acronyms, AcronymStyle.UPPERCASE),
+            _Arg("version", version, None),
+        ]
+        _ctx = self._select("formatIdentifiers", _args)
+        return await _ctx.execute(list[str])
+
     def function(self, name: str, return_type: "TypeDef") -> Function:
         """Creates a function.
 
@@ -16275,6 +16706,29 @@ class Query(_Root):
         _ctx = self._select("id", _args)
         return await _ctx.execute(str)
 
+    def identifier(self, name: str) -> Identifier:
+        """Parse a name in any casing into words.
+
+        Known acronyms and terms come from the naming dictionary; everything
+        else falls back to the case heuristic. Errors on non-ASCII input,
+        input with no letters or digits, or input over 256 bytes.
+
+        .. caution::
+            Experimental: Identifier casing APIs are likely to change.
+
+        Parameters
+        ----------
+        name:
+            The name to parse.
+        """
+        if not (isinstance(name, str)):
+            raise _type_error("Query.identifier", "name", name, "str")
+        _args = [
+            _Arg("name", name),
+        ]
+        _ctx = self._select("identifier", _args)
+        return Identifier(_ctx)
+
     def json(self) -> JSONValue:
         """Initialize a JSON value"""
         _args: list[_Arg] = []
@@ -16376,6 +16830,16 @@ class Query(_Root):
         ]
         _ctx = self._select("moduleSource", _args)
         return ModuleSource(_ctx)
+
+    async def naming_dictionary(self) -> list[NamingTerm]:
+        """The acronyms and terms used to parse and format identifiers.
+
+        .. caution::
+            Experimental: Identifier casing APIs are likely to change.
+        """
+        _args: list[_Arg] = []
+        _ctx = self._select("namingDictionary", _args)
+        return await _ctx.execute_object_list(NamingTerm)
 
     def node(self, id: _Type) -> Node:
         """Load any object by its ID."""
@@ -20789,11 +21253,12 @@ def core(*, session: _Session | None = None) -> Query:
     return _client_root(Query, None, None, [], session=session)
 
 
-CORE_DIGEST = "sha256:02f7e7a3fda2ea038b289c7b8aa11fde76d2727ea4d084e7fe84cdd1ea7f7696"
+CORE_DIGEST = "sha256:fadf38ef17bc7e9c4d341d6946aab220d3f16fb7a8451fd7042c43a9683c7a8d"
 """Digest of the core schema that this package was generated from."""
 
 
 __all__ = [
+    "AcronymStyle",
     "Address",
     "Agent",
     "AgentMessage",
@@ -20811,6 +21276,7 @@ __all__ = [
     "CORE_DIGEST",
     "CacheSharingMode",
     "CacheVolume",
+    "Casing",
     "Changeset",
     "ChangesetMergeConflict",
     "ChangesetsMergeConflict",
@@ -20859,6 +21325,9 @@ __all__ = [
     "HTTPState",
     "HealthcheckConfig",
     "Host",
+    "Identifier",
+    "IdentifierWord",
+    "IdentifierWordKind",
     "ImageLayerCompression",
     "ImageMediaTypes",
     "InputTypeDef",
@@ -20884,6 +21353,7 @@ __all__ = [
     "ModuleSource",
     "ModuleSourceExperimentalFeature",
     "ModuleSourceKind",
+    "NamingTerm",
     "NetworkProtocol",
     "Node",
     "ObjectTypeDef",
