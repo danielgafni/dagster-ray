@@ -140,18 +140,23 @@ type ModuleTypes {
             .withCheck
         )
         .withFunction(
-          function("test_core_py3_13_ray2_58_0_dagster1_13_15", typeDef.withOptional(true).withKind(TypeDefKind.VOID_KIND))
-            .withDescription("Run the tests outside tests/kuberay with Python 3.13, Ray 2.58.0 and Dagster 1.13.15.")
-            .withCheck
-        )
-        .withFunction(
-          function("test_core_py3_13_ray2_59_0_dagster1_12_12", typeDef.withOptional(true).withKind(TypeDefKind.VOID_KIND))
-            .withDescription("Run the tests outside tests/kuberay with Python 3.13, Ray 2.59.0 and Dagster 1.12.12.")
-            .withCheck
-        )
-        .withFunction(
           function("test_core_py3_13_ray2_59_0_dagster1_13_15", typeDef.withOptional(true).withKind(TypeDefKind.VOID_KIND))
             .withDescription("Run the tests outside tests/kuberay with Python 3.13, Ray 2.59.0 and Dagster 1.13.15.")
+            .withCheck
+        )
+        .withFunction(
+          function("test_core_py3_14_ray2_58_0_dagster1_13_15", typeDef.withOptional(true).withKind(TypeDefKind.VOID_KIND))
+            .withDescription("Run the tests outside tests/kuberay with Python 3.14, Ray 2.58.0 and Dagster 1.13.15.")
+            .withCheck
+        )
+        .withFunction(
+          function("test_core_py3_14_ray2_59_0_dagster1_12_12", typeDef.withOptional(true).withKind(TypeDefKind.VOID_KIND))
+            .withDescription("Run the tests outside tests/kuberay with Python 3.14, Ray 2.59.0 and Dagster 1.12.12.")
+            .withCheck
+        )
+        .withFunction(
+          function("test_core_py3_14_ray2_59_0_dagster1_13_15", typeDef.withOptional(true).withKind(TypeDefKind.VOID_KIND))
+            .withDescription("Run the tests outside tests/kuberay with Python 3.14, Ray 2.59.0 and Dagster 1.13.15.")
             .withCheck
         )
         .withFunction(
@@ -169,13 +174,13 @@ type ModuleTypes {
             .withCheck
         )
         .withFunction(
-          function("test_kuberay1_3_0_py3_13_ray2_59_0_dagster1_12_12", typeDef.withOptional(true).withKind(TypeDefKind.VOID_KIND))
-            .withDescription("Run tests/kuberay against KubeRay 1.3.0, with Python 3.13, Ray 2.59.0, Dagster 1.12.12.")
+          function("test_kuberay1_3_0_py3_14_ray2_58_0_dagster1_13_15", typeDef.withOptional(true).withKind(TypeDefKind.VOID_KIND))
+            .withDescription("Run tests/kuberay against KubeRay 1.3.0, with Python 3.14, Ray 2.58.0, Dagster 1.13.15.")
             .withCheck
         )
         .withFunction(
-          function("test_kuberay1_3_0_py3_13_ray2_59_0_dagster1_13_15", typeDef.withOptional(true).withKind(TypeDefKind.VOID_KIND))
-            .withDescription("Run tests/kuberay against KubeRay 1.3.0, with Python 3.13, Ray 2.59.0, Dagster 1.13.15.")
+          function("test_kuberay1_3_0_py3_14_ray2_59_0_dagster1_13_15", typeDef.withOptional(true).withKind(TypeDefKind.VOID_KIND))
+            .withDescription("Run tests/kuberay against KubeRay 1.3.0, with Python 3.14, Ray 2.59.0, Dagster 1.13.15.")
             .withCheck
         )
         .withFunction(
@@ -184,13 +189,13 @@ type ModuleTypes {
             .withCheck
         )
         .withFunction(
-          function("test_kuberay1_6_2_py3_13_ray2_58_0_dagster1_13_15", typeDef.withOptional(true).withKind(TypeDefKind.VOID_KIND))
-            .withDescription("Run tests/kuberay against KubeRay 1.6.2, with Python 3.13, Ray 2.58.0, Dagster 1.13.15.")
+          function("test_kuberay1_6_2_py3_13_ray2_59_0_dagster1_13_15", typeDef.withOptional(true).withKind(TypeDefKind.VOID_KIND))
+            .withDescription("Run tests/kuberay against KubeRay 1.6.2, with Python 3.13, Ray 2.59.0, Dagster 1.13.15.")
             .withCheck
         )
         .withFunction(
-          function("test_kuberay1_6_2_py3_13_ray2_59_0_dagster1_13_15", typeDef.withOptional(true).withKind(TypeDefKind.VOID_KIND))
-            .withDescription("Run tests/kuberay against KubeRay 1.6.2, with Python 3.13, Ray 2.59.0, Dagster 1.13.15.")
+          function("test_kuberay1_6_2_py3_14_ray2_59_0_dagster1_13_15", typeDef.withOptional(true).withKind(TypeDefKind.VOID_KIND))
+            .withDescription("Run tests/kuberay against KubeRay 1.6.2, with Python 3.14, Ray 2.59.0, Dagster 1.13.15.")
             .withCheck
         )
         .withFunction(
@@ -204,8 +209,13 @@ type ModuleTypes {
             .withCheck
         )
         .withFunction(
-          function("test_kuberay1_7_0_py3_13_ray2_59_0_dagster1_13_15", typeDef.withOptional(true).withKind(TypeDefKind.VOID_KIND))
-            .withDescription("Run tests/kuberay against KubeRay 1.7.0, with Python 3.13, Ray 2.59.0, Dagster 1.13.15.")
+          function("test_kuberay1_7_0_py3_14_ray2_59_0_dagster1_12_12", typeDef.withOptional(true).withKind(TypeDefKind.VOID_KIND))
+            .withDescription("Run tests/kuberay against KubeRay 1.7.0, with Python 3.14, Ray 2.59.0, Dagster 1.12.12.")
+            .withCheck
+        )
+        .withFunction(
+          function("test_kuberay1_7_0_py3_14_ray2_59_0_dagster1_13_15", typeDef.withOptional(true).withKind(TypeDefKind.VOID_KIND))
+            .withDescription("Run tests/kuberay against KubeRay 1.7.0, with Python 3.14, Ray 2.59.0, Dagster 1.13.15.")
             .withCheck
         )
         .withFunction(
