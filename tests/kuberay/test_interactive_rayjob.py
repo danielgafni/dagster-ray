@@ -20,7 +20,7 @@ from dagster_ray.kuberay.client.rayjob.client import RayJobClient
 from dagster_ray.kuberay.configs import RayClusterSpec
 from dagster_ray.kuberay.resources.rayjob import InteractiveRayJobConfig, InteractiveRayJobSpec
 from tests.kuberay.conftest import KUBERNETES_CONTEXT, RAYJOB_TIMEOUT
-from tests.kuberay.utils import NAMESPACE, get_random_free_port
+from tests.kuberay.utils import NAMESPACE, get_random_free_port, ray_client_server_logs
 
 MIN_KUBERAY_VERSION = "1.3.0"
 
@@ -342,7 +342,11 @@ def ensure_interactive_rayjob_correctness(
         # now we can access the head node
         # hack the _host attribute to point to the port-forwarded address
         rayjob._host = "127.0.0.1"
-        rayjob.connect(context)  # normally this would happen automatically during resource setup
+        try:
+            rayjob.connect(context)  # normally this would happen automatically during resource setup
+        except Exception as e:
+            logs = ray_client_server_logs(k8s_with_kuberay, rayjob.namespace, rayjob.cluster_name)
+            raise AssertionError(f"Connecting to Ray failed. Ray Client server logs from the head pod:\n{logs}") from e
         assert rayjob.context is not None
 
         # Setting `jobId` doesn't make the RayJob Running synchronously: KubeRay needs a reconcile

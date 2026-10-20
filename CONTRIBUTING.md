@@ -40,21 +40,17 @@ fix!: rename RayResource to WhatTheHell
 
 ## Testing
 
-```bash
-uv run pytest
-```
-
-Running KubeRay tests requires the following tools to be present:
-- `docker`
-- `kubectl`
-- `helm`
-- `minikube`
-
-Nix users will find them provided in the dev shell:
+Tests run as [Dagger](https://dagger.io) checks, the same ones CI runs (see [.dagger/README.md](.dagger/README.md)). The dev shell provides Dagger:
 
 ```bash
 devenv shell
+dagger check                       # everything CI runs
+dagger check 'test-core-*'         # tests outside tests/kuberay
+dagger check 'test-kuberay*'       # KubeRay tests, each against its own k3s cluster
+dagger check -l                    # list checks
 ```
+
+`uv run pytest` runs the tests that need neither Kubernetes nor a container image. It skips the KubeRay tests that need a cluster.
 
 The shell defaults to Python 3.11. To test against another supported version, activate the
 matching profile — each profile keeps its own venv under `.devenv/profiles/`, so switching

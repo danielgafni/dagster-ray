@@ -3,4 +3,4 @@
 NAME = "k3s"
 REF = "github.com/marcosnils/daggerverse/k3s@k3s/v0.11.1"
 PIN = "c07646d1bf7f6079dab47ba152c767e062aa0f58"
-CORE_DIGEST = "sha256:fadf38ef17bc7e9c4d341d6946aab220d3f16fb7a8451fd7042c43a9683c7a8d"
+CORE_DIGEST = "sha256:bed28fa58a5987620cdc3d20ea0e63bc8cded176fbe1d7b31c9b42cce4c29757"
