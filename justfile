@@ -18,10 +18,6 @@ ruff:
 changelog-preview:
     git cliff --unreleased --strip all
 
-# Generate full CHANGELOG.md
-changelog:
-    git cliff -o docs/changelog.md
-
 # Create a release (version auto-detected from commits, or manually specified)
 release bump="" message="":
     #!/usr/bin/env bash
@@ -34,7 +30,7 @@ release bump="" message="":
     version="v$(uv version --short)"
     echo "__version__ = \"$(uv version --short)\"" > src/dagster_ray/_version.py
     if [ -n "{{message}}" ]; then
-        git cliff --tag "$version" --with-tag-message "{{message}}" -o docs/changelog.md
+        git cliff --tag "$version" --with-tag-message "{{message}}" --unreleased --prepend docs/changelog.md
     else
-        git cliff --tag "$version" -o docs/changelog.md
+        git cliff --tag "$version" --unreleased --prepend docs/changelog.md
     fi

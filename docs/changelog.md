@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## v0.4.8 (22-10-2026)
+
+### :sparkles: Features
+
+- support Python 3.14 ([#388](https://github.com/danielgafni/dagster-ray/pull/388) by [@danielgafni](https://github.com/danielgafni))
+
+### :hammer_and_wrench: Other Improvements
+
+- switch KubeRay tests to use Dagger (locally and in CI) ([#386](https://github.com/danielgafni/dagster-ray/pull/386) by [@danielgafni](https://github.com/danielgafni))
+
 ## v0.4.7 (01-09-2026)
 
 ### :sparkles: Features
@@ -220,4 +230,3 @@ This release includes massive docs improvements and drops support for Python 3.9
 ### Added
 - `KubeRayInteractiveJob` -- a resource that utilizes the new `InteractiveMode` for `RayJob`. It can be used to connect to Ray in Client mode -- like `KubeRayCluster` -- but gives access to `RayJob` features, such as automatic cleanup (`ttlSecondsAfterFinished`), retries (`backoffLimit`) and timeouts (`activeDeadlineSeconds`).
 - `RayResource` setup lifecycle has been overhauled: resources now has an `actions` parameter with 3 configuration options: `create`, `wait` and `connect`. The user can disable them and run `.create()`, `.wait()` and `.connect()` manually if needed.
-
