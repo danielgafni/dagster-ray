@@ -94,6 +94,11 @@ docs = [
 ]
 
 
+[tool.uv]
+# grpcio 1.84.0 breaks Ray Client in the test Ray pods: the client server's per-connection
+# process dies right after it is forked. 1.75.1 works and is the first release with Python 3.14 wheels.
+constraint-dependencies = ["grpcio<1.76", "grpcio-health-checking<1.76"]
+
 [tool.uv.build-backend]
 module-root = "src"
 

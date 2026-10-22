@@ -13,11 +13,11 @@ dagster-ray is a Dagster integration library for Ray distributed computing. It p
 uv sync --all-extras --all-groups
 uv run prek install              # install pre-commit hooks
 
-# Tests
-uv run pytest                    # all tests (excludes kuberay_auth by default)
-uv run pytest tests/test_pipes.py               # single test file
+# Tests (KubeRay tests need a cluster, so they only run in Dagger)
+dagger check 'test-core-*'       # tests outside tests/kuberay, one check per Python/Ray/Dagster combination
+dagger check 'test-kuberay*'     # KubeRay tests, each against its own k3s cluster
+uv run pytest tests/test_pipes.py               # single test file, skips KubeRay tests that need a cluster
 uv run pytest tests/test_pipes.py::test_name -k "pattern"  # single test or pattern
-uv run pytest -m kuberay_auth    # auth-specific KubeRay tests (needs minikube)
 
 # Linting & type checking
 uv run ruff check src tests      # lint
@@ -32,7 +32,7 @@ dagger check                     # all checks
 dagger check -l --all            # list them
 ```
 
-KubeRay tests require: docker, kubectl, helm, minikube. Nix users: `devenv shell`.
+`devenv shell` provides Dagger and kubectl.
 The shell defaults to Python 3.11; `devenv shell -P python-3.13` (or `-P python-3.10`/`3.12`/`3.14`)
 switches versions, each with its own venv under `.devenv/profiles/`.
 

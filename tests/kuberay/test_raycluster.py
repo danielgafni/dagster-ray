@@ -27,7 +27,7 @@ from dagster_ray.kuberay.jobs import delete_kuberay_clusters
 from dagster_ray.kuberay.ops import DeleteKubeRayClustersConfig, RayClusterRef
 from dagster_ray.kuberay.utils import k8s_service_fqdn
 from tests.kuberay.conftest import KUBERNETES_CONTEXT
-from tests.kuberay.utils import NAMESPACE, get_random_free_port
+from tests.kuberay.utils import NAMESPACE, get_random_free_port, ray_client_server_logs
 from tests.utils import CodeLocationOrigin  # pyright: ignore[reportAttributeAccessIssue]
 
 TESTING_LABELS = {"dagster/code-location": "test_location"}
@@ -185,7 +185,11 @@ def ensure_kuberay_cluster_correctness(
         # now we can access the head node
         # hack the _host attribute to point to the port-forwarded address
         ray_cluster._host = "127.0.0.1"
-        ray_cluster.connect(context)  # normally this would happen automatically during resource setup
+        try:
+            ray_cluster.connect(context)  # normally this would happen automatically during resource setup
+        except Exception as e:
+            logs = ray_client_server_logs(k8s_with_kuberay, ray_cluster.namespace, ray_cluster.name)
+            raise AssertionError(f"Connecting to Ray failed. Ray Client server logs from the head pod:\n{logs}") from e
         assert ray_cluster.context is not None
 
         # make sure a @remote function runs inside the cluster

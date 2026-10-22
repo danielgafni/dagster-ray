@@ -1,5 +1,8 @@
 import os
 import socket
+import subprocess
+
+from pytest_kubernetes.providers import AClusterManager
 
 
 def get_random_free_port():
@@ -33,3 +36,33 @@ HEAD_READINESS_PROBE = {
     "timeoutSeconds": 5,
     "failureThreshold": 300,
 }
+
+
+def ray_client_server_logs(k8s: AClusterManager, namespace: str, cluster_name: str) -> str:
+    """The head pod's Ray Client server logs and memory counters, which explain why a Ray Client connection failed."""
+    # not `k8s.kubectl`: it runs the command through a shell, which mangles the script
+    script = (
+        "for f in /tmp/ray/session_latest/logs/ray_client_server* /sys/fs/cgroup/memory.events /sys/fs/cgroup/memory.peak; "
+        'do echo "==> $f"; tail -n 100 "$f"; done'
+    )
+    context = ["--context", k8s.context] if k8s.context else []
+    result = subprocess.run(
+        [
+            "kubectl",
+            "--kubeconfig",
+            str(k8s.kubeconfig),
+            *context,
+            "exec",
+            "-n",
+            namespace,
+            f"svc/{cluster_name}-head-svc",
+            "--",
+            "bash",
+            "-c",
+            script,
+        ],
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    return result.stdout or f"could not read the Ray Client server logs: {result.stderr}"
