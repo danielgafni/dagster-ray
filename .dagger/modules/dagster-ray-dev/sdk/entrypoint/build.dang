@@ -2,7 +2,8 @@
 The container a Python module runs in, built from its committed files.
 The runtime module, the generated static entrypoint and the shared entrypoint
 under entrypoint/ all share this build; the two entrypoints carry a copy with
-the block below inlined, because neither can read a file of its own.
+the block below inlined, because inside an entrypoint the current module is
+the module it serves.
 """
 type PythonModuleBuild {
   """
@@ -35,8 +36,9 @@ type PythonModuleBuild {
   let uvCacheVolume: String! = "modpython-uv"
   let pipCacheVolume: String! = "modpython-pip"
 
-  let defaultBaseImage: String! = "python:3.14-slim@sha256:486b8092bfb12997e10d4920897213a06563449c951c5506c2a2cfaf591c599f"
-  let defaultUvImage: String! = "ghcr.io/astral-sh/uv:0.12.24@sha256:3af4716e991d6956a41e573eab705d0ee08500cd829ed30293eb8472f372c65a"
+  let defaultBaseImage: String! = "python:3.14-slim@sha256:a2b82f3c48559aa0a8446d9af49826b6e2b2016f4cd2afabfe6013ec53729170"
+  let defaultUvImage: String! = "ghcr.io/astral-sh/uv:0.13.1@sha256:4a1f3666816dafadd20ceb71eac9a7d56d7ef30279f7d64048519ab901ada336"
+  let workspaceReader: String! { source.file("sdk/entrypoint/workspace_reader.py").contents }
 
   """
   The module directory.
@@ -300,142 +302,6 @@ type PythonModuleBuild {
       lines
     }
   }
-
-  let workspaceReader: String! =
-    "import glob, os, re, sys, tomllib\n" +
-    "root = sys.argv[1]\n" +
-    "sub = os.path.normpath(sys.argv[2])\n" +
-    "vendored = sys.argv[3]\n" +
-    "module = os.path.join(root, sub)\n" +
-    "def fail(message):\n" +
-    "    print('error\\t' + message)\n" +
-    "    sys.exit(0)\n" +
-    "def load(rel, file='pyproject.toml'):\n" +
-    "    path = os.path.normpath(os.path.join(rel, file))\n" +
-    "    try:\n" +
-    "        with open(os.path.join(module, path), 'rb') as f:\n" +
-    "            return tomllib.load(f)\n" +
-    "    except (tomllib.TOMLDecodeError, UnicodeDecodeError, OSError) as e:\n" +
-    "        fail(f'{path} is not valid TOML: {e}')\n" +
-    "def table(doc, *keys):\n" +
-    "    for key in keys:\n" +
-    "        doc = doc.get(key) if isinstance(doc, dict) else None\n" +
-    "    return doc if isinstance(doc, dict) else {}\n" +
-    "def strings(value, key, where):\n" +
-    "    if value is None:\n" +
-    "        return []\n" +
-    "    if not isinstance(value, list) or not all(isinstance(v, str) for v in value):\n" +
-    "        fail(f'{where}: {key} is not an array of strings; write it as one, such as {key} = [\"a\", \"b\"]')\n" +
-    "    return value\n" +
-    "def outside(path):\n" +
-    "    joined = os.path.normpath(os.path.join(sub, path))\n" +
-    "    return joined == '..' or joined.startswith('../')\n" +
-    "def names_parent(value):\n" +
-    "    if isinstance(value, str):\n" +
-    "        return value == '..' or value.startswith('../') or '/../' in value\n" +
-    "    if isinstance(value, dict):\n" +
-    "        return any(names_parent(key) or names_parent(item) for key, item in value.items())\n" +
-    "    return isinstance(value, list) and any(names_parent(item) for item in value)\n" +
-    "def reads_beside(rel, project):\n" +
-    "    uv = {key: value for key, value in table(project, 'tool', 'uv').items() if key != 'sources'}\n" +
-    "    tool = dict(table(project, 'tool'), uv=uv)\n" +
-    "    return names_parent(dict(project, tool=tool)) or os.path.exists(os.path.join(module, rel, 'uv.toml'))\n" +
-    "def name(requirement):\n" +
-    "    m = re.match(r'\\s*([A-Za-z0-9][A-Za-z0-9._-]*)', requirement if isinstance(requirement, str) else '')\n" +
-    "    return re.sub(r'[-_.]+', '-', m.group(1).lower()) if m else ''\n" +
-    "doc = load('.')\n" +
-    "members = strings(table(doc, 'tool', 'uv', 'workspace').get('members'), 'members', 'pyproject.toml')\n" +
-    "wanted = {name(r) for r in strings(table(doc, 'project').get('dependencies'), 'dependencies', 'pyproject.toml')}\n" +
-    "dirs = []\n" +
-    "for member in members:\n" +
-    "    print('member\\t' + member)\n" +
-    "    for found in sorted(glob.glob(os.path.join(module, member, 'pyproject.toml'))):\n" +
-    "        rel = os.path.relpath(os.path.dirname(found), module)\n" +
-    "        if rel not in dirs:\n" +
-    "            dirs.append(rel)\n" +
-    "docs = {'.': doc}\n" +
-    "projects = {}\n" +
-    "for rel in dirs:\n" +
-    "    docs[rel] = load(rel)\n" +
-    "    project = table(docs[rel], 'project')\n" +
-    "    projects[rel] = (name(project.get('name')), {name(r) for r in strings(project.get('dependencies'), 'dependencies', rel + '/pyproject.toml')})\n" +
-    "needed = []\n" +
-    "while True:\n" +
-    "    found = [rel for rel in dirs if rel not in needed and projects[rel][0] in wanted]\n" +
-    "    if not found:\n" +
-    "        break\n" +
-    "    needed += found\n" +
-    "    wanted = set().union(*(projects[rel][1] for rel in found))\n" +
-    "for rel in dirs:\n" +
-    "    if rel in needed:\n" +
-    "        print('local\\t./' + rel)\n" +
-    "inputs = ['pyproject.toml', 'uv.lock', 'uv.toml', '.python-version'] + dirs + ([] if vendored in members else [vendored])\n" +
-    "paths = []\n" +
-    "sourced = {}\n" +
-    "pending = list(docs.items())\n" +
-    "while pending:\n" +
-    "    rel, member = pending.pop(0)\n" +
-    "    for value in table(member, 'tool', 'uv', 'sources').values():\n" +
-    "        for source in value if isinstance(value, list) else [value]:\n" +
-    "            path = source.get('path') if isinstance(source, dict) else None\n" +
-    "            if not isinstance(path, str):\n" +
-    "                continue\n" +
-    "            path = os.path.normpath(os.path.join(rel, path))\n" +
-    "            if path in paths:\n" +
-    "                continue\n" +
-    "            paths.append(path)\n" +
-    "            if path not in dirs and not os.path.isabs(path) and not outside(path) and os.path.exists(os.path.join(module, path, 'pyproject.toml')):\n" +
-    "                sourced[path] = load(path)\n" +
-    "                pending.append((path, sourced[path]))\n" +
-    "inputs += [path for path in paths if path not in dirs + [vendored]]\n" +
-    "settings = [table(member, 'tool', 'uv') for member in list(docs.values()) + list(sourced.values())]\n" +
-    "if os.path.exists(os.path.join(module, 'uv.toml')):\n" +
-    "    settings.append(load('.', 'uv.toml'))\n" +
-    "urls = []\n" +
-    "for uv in settings + [table(uv, 'pip') for uv in settings]:\n" +
-    "    indexes = uv.get('index') if isinstance(uv.get('index'), list) else [uv.get('index')]\n" +
-    "    urls += [uv.get('index-url')] + [table(index).get('url') for index in indexes]\n" +
-    "    for key in ('extra-index-url', 'find-links'):\n" +
-    "        urls += uv.get(key) if isinstance(uv.get(key), list) else []\n" +
-    "whole = any(isinstance(url, str) and '://' not in url for url in urls)\n" +
-    "whole = whole or any('project' not in member or bool(set(table(member, 'project').get('dynamic') or []) - {'version'}) for member in list(docs.values()) + list(sourced.values()))\n" +
-    "whole = whole or os.path.exists(os.path.join(module, 'requirements.lock'))\n" +
-    "whole = whole or any(os.path.isabs(path) or outside(path) for path in inputs)\n" +
-    "# The module itself installs after the source mount, so members, path sources and the\n" +
-    "# SDK-written vendored package are what the dependency step builds.\n" +
-    "whole = whole or any('backend-path' in table(member, 'build-system') for member in [docs[rel] for rel in dirs] + list(sourced.values()))\n" +
-    "# A path source the walk follows reads only its own directory unless its project names\n" +
-    "# a parent directory outside its [tool.uv.sources] or keeps a uv.toml beside it.\n" +
-    "whole = whole or any(reads_beside(rel, project) for rel, project in sourced.items())\n" +
-    "above = []\n" +
-    "parts = [] if sub == '.' else sub.split('/')\n" +
-    "for i in range(len(parts)):\n" +
-    "    rel = os.path.join(*parts[:i]) if i else '.'\n" +
-    "    whole = whole or any(os.path.exists(os.path.join(root, rel, f)) for f in ('pyproject.toml', 'uv.toml'))\n" +
-    "    if os.path.exists(os.path.join(root, rel, '.python-version')):\n" +
-    "        above.append(os.path.normpath(os.path.join(rel, '.python-version')))\n" +
-    "for path in ['.'] if whole else above + [os.path.normpath(os.path.join(sub, p)) for p in inputs]:\n" +
-    "    print('input\\t' + path)\n" +
-    "def text(value):\n" +
-    "    return value if isinstance(value, str) and '\\t' not in value and '\\n' not in value else ''\n" +
-    "def flag(value, default):\n" +
-    "    return value if isinstance(value, bool) else default\n" +
-    "project = table(doc, 'project')\n" +
-    "dagger = table(doc, 'tool', 'dagger')\n" +
-    "indexes = table(doc, 'tool', 'uv').get('index')\n" +
-    "indexes = [index for index in (indexes if isinstance(indexes, list) else [indexes]) if isinstance(index, dict) and text(index.get('name')) == '']\n" +
-    "settings = {\n" +
-    "    'projectName': text(project.get('name')),\n" +
-    "    'requiresPython': text(project.get('requires-python')),\n" +
-    "    'baseImage': text(dagger.get('base-image')),\n" +
-    "    'useUv': 'true' if flag(dagger.get('use-uv'), True) else 'false',\n" +
-    "    'uvVersion': text(dagger.get('uv-version')),\n" +
-    "    'vendorPath': text(table(doc, 'tool', 'uv', 'sources', 'dagger-io').get('path')),\n" +
-    "    'indexURL': next((text(index.get('url')) for index in indexes if flag(index.get('default'), False)), ''),\n" +
-    "    'extraIndexURL': next((text(index.get('url')) for index in indexes if not flag(index.get('default'), False)), ''),\n" +
-    "}\n" +
-    "for key, value in settings.items():\n" +
-    "    print('setting\\t' + key + '\\t' + value)\n"
 
   """
   The generated files a module needs before it builds. A scope needs each of

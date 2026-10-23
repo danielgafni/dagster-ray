@@ -8,14 +8,13 @@ import textwrap
 import typing
 from collections.abc import Awaitable, Callable, Mapping
 from functools import wraps
-from typing import Any, TypeVar, cast
+from typing import Any, TypeVar, cast, dataclass_transform, overload
 
 import anyio
 import cattrs
 import cattrs.gen
 from cattrs.preconf import is_primitive_enum
 from cattrs.preconf.json import JsonConverter
-from typing_extensions import dataclass_transform, overload
 
 from dagger._exceptions import QueryError
 from dagger.client._core import configure_converter_enum
@@ -216,7 +215,7 @@ class Module:
                 # Cattrs can decode JSON strings but use `json` directly
                 # for more granular control over the error.
                 inputs[arg.name] = json.loads(arg.value)
-            except ValueError as e:  # noqa: PERF203
+            except ValueError as e:
                 logger.exception("Failed to decode JSON input value")
                 msg = f"Unable to decode input argument '{arg.name}'"
                 extra = {

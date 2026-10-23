@@ -27,7 +27,7 @@ The Dagger Python SDK contains everything you need to develop CI/CD pipelines in
 
 ## Requirements
 
-- Python 3.10 or later
+- Python 3.12 or later
 - [Docker](https://docs.docker.com/engine/install/), or another OCI-compatible container runtime
 
 A compatible version of the  [Dagger CLI](https://docs.dagger.io/cli) is automatically downloaded and run by the SDK for you, although it’s possible to manage it manually.
@@ -62,7 +62,8 @@ async def main(args: list[str]):
     async with dagger.connection():
         # build container with cowsay entrypoint
         ctr = (
-            core().container()
+            core()
+            .container()
             .from_("python:alpine")
             .with_exec(["pip", "install", "cowsay"])
         )

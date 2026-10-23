@@ -4,10 +4,7 @@ import os
 import shutil
 import sys
 from collections.abc import Callable
-from typing import TextIO
-
-from exceptiongroup import ExceptionGroup
-from typing_extensions import Self
+from typing import Self, TextIO
 
 from dagger._engine._version import CLI_VERSION
 from dagger._exceptions import QueryError

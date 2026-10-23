@@ -4,12 +4,11 @@ import os
 import threading
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Self
 
 import anyio
 import httpx
 from opentelemetry import propagate
-from typing_extensions import Self
 
 from dagger import telemetry
 from dagger._exceptions import (
@@ -123,7 +122,7 @@ class ClientSession(ResourceManager):
         for attempt in range(1, attempts + 1):
             try:
                 response = await client.post(self.conn.url, json={"query": query})
-            except httpx.TransportError as e:  # noqa: PERF203 — this is the retry loop
+            except httpx.TransportError as e:
                 if attempt == attempts:
                     raise TransportError(_transport_message(e)) from e
                 delay = min(0.1 * 2 ** (attempt - 1), MAX_BACKOFF_SECONDS)

@@ -29,6 +29,13 @@ def main(argv: list[str] | None = None) -> int:
     )
     entrypoint.add_argument("--name", required=True, help="module name")
     entrypoint.add_argument("--output", required=True, type=pathlib.Path)
+    entrypoint.add_argument(
+        "--outside",
+        action="append",
+        default=[],
+        help="a directory outside the module directory that its build reads, "
+        "relative to it, once per directory",
+    )
     entrypoint.set_defaults(run=_entrypoint)
 
     describe = commands.add_parser(
@@ -64,7 +71,12 @@ def _entrypoint(args: argparse.Namespace) -> None:
 
     with registering_types():
         mod = load_module()
-    write_entrypoint(mod.describe(), name=args.name, output=args.output)
+    write_entrypoint(
+        mod.describe(),
+        name=args.name,
+        output=args.output,
+        outside=args.outside,
+    )
 
 
 def _describe(args: argparse.Namespace) -> None:

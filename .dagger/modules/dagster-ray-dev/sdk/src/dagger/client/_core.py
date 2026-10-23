@@ -17,7 +17,6 @@ from typing import (
 
 import anyio
 import cattrs
-import exceptiongroup
 from cattrs.preconf.json import make_converter as make_json_converter
 from typing_extensions import TypeForm
 
@@ -332,9 +331,6 @@ class Context:
 
         return self.converter.structure(value, return_type)
 
-    def handle_group_err(self, grp: exceptiongroup.BaseExceptionGroup):
-        raise grp.exceptions[0] from None
-
     async def resolve_ids(self) -> None:
         """Replace Type arguments with their IDs."""
 
@@ -347,7 +343,7 @@ class Context:
             sel = self.selections[pos]
             sel.args[k][idx] = await v.id()
 
-        with exceptiongroup.catch({DaggerError: self.handle_group_err}):
+        try:
             async with anyio.create_task_group() as tg:
                 for i, sel in enumerate(self.selections):
                     for k, v in sel.args.items():
@@ -356,6 +352,8 @@ class Context:
                                 tg.start_soon(_resolve_seq_id, i, seq_i, k, seq_v)
                         elif is_id_type(v):
                             tg.start_soon(_resolve_id, i, k, v)
+        except* DaggerError as grp:
+            raise grp.exceptions[0] from None
 
 
 def _allows_none(t: Any) -> bool:
