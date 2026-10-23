@@ -1,4 +1,13 @@
-# Welcome to `dagster-ray` docs
+---
+title: "Ray integration for Dagster"
+description: "dagster-ray connects Dagster to Ray: it can send work to a Ray cluster you already run, or let Dagster manage its own clusters on Kubernetes with KubeRay."
+---
+
+# dagster-ray
+
+<div align="center" markdown>
+![dagster-ray logo](assets/logo.svg){ width="200" }
+</div>
 
 [![PyPI version](https://img.shields.io/pypi/v/dagster-ray.svg)](https://pypi.python.org/pypi/dagster-ray)
 [![License](https://img.shields.io/pypi/l/dagster-ray.svg)](https://pypi.python.org/pypi/dagster-ray)

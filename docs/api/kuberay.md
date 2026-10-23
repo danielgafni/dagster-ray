@@ -1,3 +1,8 @@
+---
+title: "KubeRay API"
+description: "API reference for managing Ray clusters on Kubernetes from Dagster through KubeRay."
+---
+
 # KubeRay API Reference
 
 KubeRay integration components for running Ray on Kubernetes.  Learn how to use it [here](../tutorial/kuberay.md).

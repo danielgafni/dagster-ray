@@ -1,3 +1,8 @@
+---
+title: "API Reference"
+description: "Reference for the public dagster-ray API, with a page for each module."
+---
+
 # API Reference
 
 Complete API documentation for `dagster-ray` components, organized by functionality. Learn how to use `dagster-ray` [here](tutorial/index.md).

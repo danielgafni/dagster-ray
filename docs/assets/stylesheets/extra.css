@@ -2,10 +2,13 @@
 
 /* Dagster color palette */
 :root {
-    /* Primary colors */
-    --md-primary-fg-color: #4F43DD;
-    --md-primary-fg-color--light: #A7A0F8;
-    --md-primary-fg-color--dark: #332AA6;
+    /* Primary colors (header) */
+    --md-primary-fg-color: #1D1338;
+    --md-primary-fg-color--light: #B9B4F1;
+    --md-primary-fg-color--dark: #140C28;
+
+    /* Link colors */
+    --md-typeset-a-color: #4F43DD;
 
     /* Accent colors */
     --md-accent-fg-color: #A7A0F8;
@@ -28,16 +31,19 @@
 /* Dark mode (slate) colors */
 [data-md-color-scheme="slate"] {
     /* Primary colors remain the same */
-    --md-primary-fg-color: #4F43DD;
-    --md-primary-fg-color--light: #A7A0F8;
-    --md-primary-fg-color--dark: #332AA6;
+    --md-primary-fg-color: #1D1338;
+    --md-primary-fg-color--light: #B9B4F1;
+    --md-primary-fg-color--dark: #140C28;
+
+    /* Link colors */
+    --md-typeset-a-color: #B9B4F1;
 
     /* Accent colors */
     --md-accent-fg-color: #A7A0F8;
     --md-accent-fg-color--transparent: rgba(167, 160, 248, 0.1);
 
     /* Background colors for dark mode */
-    --md-default-bg-color: #030615;
+    --md-default-bg-color: #0F0A1C;
     --md-code-bg-color: #282A36;
 
     /* Text colors for dark mode */
