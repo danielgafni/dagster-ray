@@ -6,11 +6,12 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Dagster integration library for Ray">
+        <meta name="description" content="API reference for running Dagster work on Ray clusters that Dagster doesn't manage.">
       
       
       
         <link rel="canonical" href="https://danielgafni.github.io/main/api/core/">
+      
       
       
         <link rel="prev" href="../">
@@ -22,24 +23,24 @@
         
       
       
-      <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.57">
+      <link rel="icon" href="../../assets/logo.svg">
+      <meta name="generator" content="zensical-0.0.71">
     
     
       
-        <title>Core API Reference - dagster-ray</title>
+        <title>Core API - dagster-ray</title>
       
     
     
       
         
       
-      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.5da3a30f.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.e442bf79.min.css">
       
         
           
         
-        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.812a03bb.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.b60ce83d.min.css">
       
       
 
@@ -66,7 +67,19 @@
 
     
     
-  </head>
+  <meta property="og:type" content="website" />
+<meta property="og:title" content="Core API - dagster-ray" />
+<meta property="og:description" content="API reference for running Dagster work on Ray clusters that Dagster doesn&#39;t manage." />
+<meta property="og:image" content="https://danielgafni.github.io/main/assets/images/social/api/core.png" />
+<meta property="og:image:type" content="image/png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:url" content="https://danielgafni.github.io/main/api/core/" />
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:title" content="Core API - dagster-ray" />
+<meta property="twitter:description" content="API reference for running Dagster work on Ray clusters that Dagster doesn&#39;t manage." />
+<meta property="twitter:image" content="https://danielgafni.github.io/main/assets/images/social/api/core.png" />
+</head>
   
   
     
@@ -81,14 +94,11 @@
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
-    <label class="md-overlay" for="__drawer" aria-label="Navigation"></label>
+    <label class="md-overlay" for="__drawer" aria-hidden="true"></label>
     <div data-md-component="skip">
-      
-        
-        <a href="#core-api-reference" class="md-skip">
-          Skip to content
-        </a>
-      
+      <a href="#__skip" class="md-skip">
+        Skip to content
+      </a>
     </div>
     <div data-md-component="announce">
       
@@ -107,8 +117,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="dagster-ray" class="md-header__button md-logo" aria-label="dagster-ray" data-md-component="logo">
       
-  
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+  <img src="../../assets/logo.svg" alt="dagster-ray">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer" aria-label="Navigation">
@@ -125,7 +134,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Core API Reference
+              Core API
             
           </span>
         </div>
@@ -331,8 +340,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href="../.." title="dagster-ray" class="md-nav__button md-logo" aria-label="dagster-ray" data-md-component="logo">
       
-  
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+  <img src="../../assets/logo.svg" alt="dagster-ray">
 
     </a>
     dagster-ray
@@ -420,18 +428,19 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2">
-            <span class="md-nav__icon md-icon"></span>
-            
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_2">
+              <span class="md-nav__icon md-icon"></span>
+              
   
   Tutorial
 
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
               
                 
+                  
   
   
   
@@ -455,10 +464,10 @@
     </li>
   
 
-              
-            
+                
               
                 
+                  
   
   
   
@@ -482,10 +491,10 @@
     </li>
   
 
-              
-            
+                
               
                 
+                  
   
   
   
@@ -509,10 +518,10 @@
     </li>
   
 
-              
-            
+                
               
                 
+                  
   
   
   
@@ -536,10 +545,11 @@
     </li>
   
 
+                
               
-            
-          </ul>
-        </nav>
+            </ul>
+          </nav>
+        
       
     </li>
   
@@ -590,18 +600,19 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_3">
-            <span class="md-nav__icon md-icon"></span>
-            
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+            <label class="md-nav__title" for="__nav_3">
+              <span class="md-nav__icon md-icon"></span>
+              
   
   API Reference
 
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
               
                 
+                  
   
   
   
@@ -625,10 +636,10 @@
     </li>
   
 
-              
-            
+                
               
                 
+                  
   
   
     
@@ -1382,10 +1393,10 @@
     </li>
   
 
-              
-            
+                
               
                 
+                  
   
   
   
@@ -1409,10 +1420,10 @@
     </li>
   
 
-              
-            
+                
               
                 
+                  
   
   
   
@@ -1436,10 +1447,10 @@
     </li>
   
 
-              
-            
+                
               
                 
+                  
   
   
   
@@ -1463,10 +1474,11 @@
     </li>
   
 
+                
               
-            
-          </ul>
-        </nav>
+            </ul>
+          </nav>
+        
       
     </li>
   
@@ -2312,8 +2324,10 @@
 
               
               <article class="md-content__inner md-typeset">
+                <a id="__skip" tabindex="-1"></a>
                 
                   
+
   
   
 
@@ -2342,7 +2356,7 @@
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-external" title="dagster.ConfigurableResource" href="https://docs.dagster.io/api/dagster/resources/#dagster.ConfigurableResource">ConfigurableResource</a></code>, <code><a class="autorefs autorefs-external" title="abc.ABC" href="https://docs.python.org/3/library/abc.html#abc.ABC">ABC</a></code></p>
+              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.ConfigurableResource&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/resources/#dagster.ConfigurableResource">ConfigurableResource</a></code>, <code><a class="autorefs autorefs-external" title="&lt;code&gt;abc.ABC&lt;/code&gt;" href="https://docs.python.org/3/library/abc.html#abc.ABC">ABC</a></code></p>
 
         <p>Base class for Ray Resources providing a common interface for Ray cluster management.</p>
 <p>This abstract base class defines the interface that all Ray resources must implement,
@@ -2583,7 +2597,7 @@ implementations like LocalRay or KubeRayCluster instead.</p>
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.RayResource.lifecycle">lifecycle</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray._base.resources.RayResource.lifecycle&lt;/code&gt;)" href="./#dagster_ray.RayResource.lifecycle">lifecycle</a></code>
                 (<code><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;dagster_ray.configs.Lifecycle&lt;/span&gt;
 
 
@@ -2597,7 +2611,7 @@ implementations like LocalRay or KubeRayCluster instead.</p>
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.RayResource.timeout">timeout</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray._base.resources.RayResource.timeout&lt;/code&gt;)" href="./#dagster_ray.RayResource.timeout">timeout</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a></code>)
             </li>
             <li>
@@ -2606,8 +2620,8 @@ implementations like LocalRay or KubeRayCluster instead.</p>
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.RayResource.ray_init_options">ray_init_options</a></code>
-                (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a>, <a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a>]</code>)
+  &lt;/span&gt; (&lt;code&gt;dagster_ray._base.resources.RayResource.ray_init_options&lt;/code&gt;)" href="./#dagster_ray.RayResource.ray_init_options">ray_init_options</a></code>
+                (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a>, <a class="autorefs autorefs-external" title="&lt;code&gt;typing.Any&lt;/code&gt;" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a>]</code>)
             </li>
             <li>
               <code><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-attribute-name&quot;&gt;data_execution_options&lt;/span&gt;
@@ -2615,7 +2629,7 @@ implementations like LocalRay or KubeRayCluster instead.</p>
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.RayResource.data_execution_options">data_execution_options</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray._base.resources.RayResource.data_execution_options&lt;/code&gt;)" href="./#dagster_ray.RayResource.data_execution_options">data_execution_options</a></code>
                 (<code><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;dagster_ray.configs.RayDataExecutionOptions&lt;/span&gt;
 
 
@@ -2629,7 +2643,7 @@ implementations like LocalRay or KubeRayCluster instead.</p>
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.RayResource.redis_port">redis_port</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray._base.resources.RayResource.redis_port&lt;/code&gt;)" href="./#dagster_ray.RayResource.redis_port">redis_port</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></code>)
             </li>
             <li>
@@ -2638,7 +2652,7 @@ implementations like LocalRay or KubeRayCluster instead.</p>
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.RayResource.dashboard_port">dashboard_port</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray._base.resources.RayResource.dashboard_port&lt;/code&gt;)" href="./#dagster_ray.RayResource.dashboard_port">dashboard_port</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></code>)
             </li>
             <li>
@@ -2647,7 +2661,7 @@ implementations like LocalRay or KubeRayCluster instead.</p>
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.RayResource.env_vars">env_vars</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray._base.resources.RayResource.env_vars&lt;/code&gt;)" href="./#dagster_ray.RayResource.env_vars">env_vars</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a>] | None</code>)
             </li>
             <li>
@@ -2656,7 +2670,7 @@ implementations like LocalRay or KubeRayCluster instead.</p>
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.RayResource.enable_tracing">enable_tracing</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray._base.resources.RayResource.enable_tracing&lt;/code&gt;)" href="./#dagster_ray.RayResource.enable_tracing">enable_tracing</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#bool">bool</a></code>)
             </li>
             <li>
@@ -2665,7 +2679,7 @@ implementations like LocalRay or KubeRayCluster instead.</p>
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.RayResource.enable_actor_task_logging">enable_actor_task_logging</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray._base.resources.RayResource.enable_actor_task_logging&lt;/code&gt;)" href="./#dagster_ray.RayResource.enable_actor_task_logging">enable_actor_task_logging</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#bool">bool</a></code>)
             </li>
             <li>
@@ -2674,7 +2688,7 @@ implementations like LocalRay or KubeRayCluster instead.</p>
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.RayResource.enable_debug_post_mortem">enable_debug_post_mortem</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray._base.resources.RayResource.enable_debug_post_mortem&lt;/code&gt;)" href="./#dagster_ray.RayResource.enable_debug_post_mortem">enable_debug_post_mortem</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#bool">bool</a></code>)
             </li>
             <li>
@@ -2683,7 +2697,7 @@ implementations like LocalRay or KubeRayCluster instead.</p>
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.RayResource.enable_legacy_debugger">enable_legacy_debugger</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray._base.resources.RayResource.enable_legacy_debugger&lt;/code&gt;)" href="./#dagster_ray.RayResource.enable_legacy_debugger">enable_legacy_debugger</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#bool">bool</a></code>)
             </li>
         </ul>
@@ -2765,7 +2779,7 @@ implementations like LocalRay or KubeRayCluster instead.</p>
   </span>
 
 <a href="#dagster_ray.RayResource.ray_init_options" class="headerlink" title="Permanent link">&para;</a></h5>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">ray_init_options</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">ray_init_options</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;typing.Any&lt;/code&gt;" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -3230,7 +3244,7 @@ implementations like LocalRay or KubeRayCluster instead.</p>
 
 
 <a href="#dagster_ray.RayResource.yield_for_execution" class="headerlink" title="Permanent link">&para;</a></h5>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">yield_for_execution</span><span class="p">(</span><span class="n">context</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="dagster.InitResourceContext" href="https://docs.dagster.io/api/dagster/resources/#dagster.InitResourceContext">InitResourceContext</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Generator" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Generator">Generator</a></span><span class="p">[</span><span class="n"><span title="typing_extensions.Self">Self</span></span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">yield_for_execution</span><span class="p">(</span><span class="n">context</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.InitResourceContext&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/resources/#dagster.InitResourceContext">InitResourceContext</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;collections.abc.Generator&lt;/code&gt;" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Generator">Generator</a></span><span class="p">[</span><span class="n"><span title="typing_extensions.Self">Self</span></span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -3781,7 +3795,7 @@ implementations like LocalRay or KubeRayCluster instead.</p>
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-model&quot;&gt;&lt;code&gt;pydantic-model&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.RayResource">RayResource</a></code></p>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray._base.resources.RayResource&lt;/code&gt;)" href="./#dagster_ray.RayResource">RayResource</a></code></p>
 
         <p>Dummy Resource.
 Is useful for testing and local development.
@@ -3985,7 +3999,7 @@ Provides the same interface as actual Resources.</p>
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.RayResource.lifecycle">lifecycle</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray.core.resources.LocalRay.lifecycle&lt;/code&gt;)" href="./#dagster_ray.RayResource.lifecycle">lifecycle</a></code>
                 (<code><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;dagster_ray.configs.Lifecycle&lt;/span&gt;
 
 
@@ -3999,7 +4013,7 @@ Provides the same interface as actual Resources.</p>
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.RayResource.timeout">timeout</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray.core.resources.LocalRay.timeout&lt;/code&gt;)" href="./#dagster_ray.RayResource.timeout">timeout</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a></code>)
             </li>
             <li>
@@ -4008,8 +4022,8 @@ Provides the same interface as actual Resources.</p>
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.RayResource.ray_init_options">ray_init_options</a></code>
-                (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a>, <a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a>]</code>)
+  &lt;/span&gt; (&lt;code&gt;dagster_ray.core.resources.LocalRay.ray_init_options&lt;/code&gt;)" href="./#dagster_ray.RayResource.ray_init_options">ray_init_options</a></code>
+                (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a>, <a class="autorefs autorefs-external" title="&lt;code&gt;typing.Any&lt;/code&gt;" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a>]</code>)
             </li>
             <li>
               <code><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-attribute-name&quot;&gt;data_execution_options&lt;/span&gt;
@@ -4017,7 +4031,7 @@ Provides the same interface as actual Resources.</p>
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.RayResource.data_execution_options">data_execution_options</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray.core.resources.LocalRay.data_execution_options&lt;/code&gt;)" href="./#dagster_ray.RayResource.data_execution_options">data_execution_options</a></code>
                 (<code><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;dagster_ray.configs.RayDataExecutionOptions&lt;/span&gt;
 
 
@@ -4031,7 +4045,7 @@ Provides the same interface as actual Resources.</p>
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.RayResource.redis_port">redis_port</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray.core.resources.LocalRay.redis_port&lt;/code&gt;)" href="./#dagster_ray.RayResource.redis_port">redis_port</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></code>)
             </li>
             <li>
@@ -4040,7 +4054,7 @@ Provides the same interface as actual Resources.</p>
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.RayResource.dashboard_port">dashboard_port</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray.core.resources.LocalRay.dashboard_port&lt;/code&gt;)" href="./#dagster_ray.RayResource.dashboard_port">dashboard_port</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></code>)
             </li>
             <li>
@@ -4049,7 +4063,7 @@ Provides the same interface as actual Resources.</p>
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.RayResource.env_vars">env_vars</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray.core.resources.LocalRay.env_vars&lt;/code&gt;)" href="./#dagster_ray.RayResource.env_vars">env_vars</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a>, <a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a>] | None</code>)
             </li>
             <li>
@@ -4058,7 +4072,7 @@ Provides the same interface as actual Resources.</p>
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.RayResource.enable_tracing">enable_tracing</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray.core.resources.LocalRay.enable_tracing&lt;/code&gt;)" href="./#dagster_ray.RayResource.enable_tracing">enable_tracing</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#bool">bool</a></code>)
             </li>
             <li>
@@ -4067,7 +4081,7 @@ Provides the same interface as actual Resources.</p>
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.RayResource.enable_actor_task_logging">enable_actor_task_logging</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray.core.resources.LocalRay.enable_actor_task_logging&lt;/code&gt;)" href="./#dagster_ray.RayResource.enable_actor_task_logging">enable_actor_task_logging</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#bool">bool</a></code>)
             </li>
             <li>
@@ -4076,7 +4090,7 @@ Provides the same interface as actual Resources.</p>
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.RayResource.enable_debug_post_mortem">enable_debug_post_mortem</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray.core.resources.LocalRay.enable_debug_post_mortem&lt;/code&gt;)" href="./#dagster_ray.RayResource.enable_debug_post_mortem">enable_debug_post_mortem</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#bool">bool</a></code>)
             </li>
             <li>
@@ -4085,7 +4099,7 @@ Provides the same interface as actual Resources.</p>
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.RayResource.enable_legacy_debugger">enable_legacy_debugger</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray.core.resources.LocalRay.enable_legacy_debugger&lt;/code&gt;)" href="./#dagster_ray.RayResource.enable_legacy_debugger">enable_legacy_debugger</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#bool">bool</a></code>)
             </li>
         </ul>
@@ -4169,22 +4183,22 @@ Provides the same interface as actual Resources.</p>
 <a href="#dagster_ray.core.run_launcher.RayRunLauncher" class="headerlink" title="Permanent link">&para;</a></h3>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">RayRunLauncher</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">address</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">,</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">metadata</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">headers</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">cookies</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">metadata</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;typing.Any&lt;/code&gt;" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">headers</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;typing.Any&lt;/code&gt;" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">cookies</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;typing.Any&lt;/code&gt;" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">env_vars</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#list">list</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">runtime_env</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">runtime_env</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;typing.Any&lt;/code&gt;" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">num_cpus</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">num_gpus</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">memory</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">resources</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">inst_data</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="dagster._serdes.ConfigurableClassData" href="https://docs.dagster.io/api/dagster/internals/#dagster._serdes.ConfigurableClassData">ConfigurableClassData</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">inst_data</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;dagster._serdes.ConfigurableClassData&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/internals/#dagster._serdes.ConfigurableClassData">ConfigurableClassData</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="p">)</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-external" title="dagster._core.launcher.RunLauncher" href="https://docs.dagster.io/api/dagster/internals/#dagster._core.launcher.RunLauncher">RunLauncher</a></code>, <code><a class="autorefs autorefs-external" title="dagster._serdes.ConfigurableClass" href="https://docs.dagster.io/api/dagster/internals/#dagster._serdes.ConfigurableClass">ConfigurableClass</a></code></p>
+              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.launcher.RunLauncher&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/internals/#dagster._core.launcher.RunLauncher">RunLauncher</a></code>, <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster._serdes.ConfigurableClass&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/internals/#dagster._serdes.ConfigurableClass">ConfigurableClass</a></code></p>
 
 
         <p>RunLauncher that submits Dagster runs as isolated Ray jobs to a Ray cluster.</p>
@@ -4321,7 +4335,7 @@ settings using the <code>dagster-ray/config</code> tag.</p>
 
 
 <a href="#dagster_ray.core.executor.ray_executor" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">ray_executor</span><span class="p">(</span><span class="n">init_context</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="dagster._core.executor.init.InitExecutorContext" href="https://docs.dagster.io/api/dagster/internals/#dagster.InitExecutorContext">InitExecutorContext</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="dagster._core.executor.base.Executor" href="https://docs.dagster.io/api/dagster/internals/#dagster.Executor">Executor</a></span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">ray_executor</span><span class="p">(</span><span class="n">init_context</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.executor.init.InitExecutorContext&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/internals/#dagster.InitExecutorContext">InitExecutorContext</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.executor.base.Executor&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/internals/#dagster.Executor">Executor</a></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents first">
@@ -4512,12 +4526,12 @@ This behavior can be disabled by setting <code>inherit_job_submission_client_fro
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">PipesRayJobClient</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">address</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">create_cluster_if_needed</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">headers</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">headers</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;typing.Any&lt;/code&gt;" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">verify</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">cookies</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">metadata</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">context_injector</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="dagster.PipesContextInjector" href="https://docs.dagster.io/api/dagster/pipes/#dagster.PipesContextInjector">PipesContextInjector</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">message_reader</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="dagster.PipesMessageReader" href="https://docs.dagster.io/api/dagster/pipes/#dagster.PipesMessageReader">PipesMessageReader</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">cookies</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;typing.Any&lt;/code&gt;" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">metadata</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;typing.Any&lt;/code&gt;" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">context_injector</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.PipesContextInjector&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/pipes/#dagster.PipesContextInjector">PipesContextInjector</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">message_reader</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.PipesMessageReader&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/pipes/#dagster.PipesMessageReader">PipesMessageReader</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">forward_termination</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">timeout</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a></span> <span class="o">=</span> <span class="mi">600</span><span class="p">,</span>
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">poll_interval</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#float">float</a></span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
@@ -4527,7 +4541,7 @@ This behavior can be disabled by setting <code>inherit_job_submission_client_fro
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-external" title="dagster.PipesClient" href="https://docs.dagster.io/api/dagster/pipes/#dagster.PipesClient">PipesClient</a></code>, <code><span title="dagster._core.definitions.resource_annotation.TreatAsResourceParam">TreatAsResourceParam</span></code></p>
+              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.PipesClient&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/pipes/#dagster.PipesClient">PipesClient</a></code>, <code><span title="dagster._core.definitions.resource_annotation.TreatAsResourceParam">TreatAsResourceParam</span></code></p>
 
 
         <p>A <a href="https://docs.dagster.io/guides/build/external-pipelines">Pipes</a> client for running Ray jobs on remote clusters.</p>
@@ -4560,7 +4574,7 @@ If unspecified, connects to a local Ray cluster or uses the <code>RAY_ADDRESS</c
         </li>
         <li class="doc-section-item field-body">
             <b><code>headers</code></b>
-              (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a>, <a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a>] | None</code>, default:
+              (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a>, <a class="autorefs autorefs-external" title="&lt;code&gt;typing.Any&lt;/code&gt;" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a>] | None</code>, default:
                   <code>None</code>
 )
           –
@@ -4580,7 +4594,7 @@ If unspecified, connects to a local Ray cluster or uses the <code>RAY_ADDRESS</c
         </li>
         <li class="doc-section-item field-body">
             <b><code>cookies</code></b>
-              (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a>, <a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a>] | None</code>, default:
+              (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a>, <a class="autorefs autorefs-external" title="&lt;code&gt;typing.Any&lt;/code&gt;" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a>] | None</code>, default:
                   <code>None</code>
 )
           –
@@ -4590,7 +4604,7 @@ If unspecified, connects to a local Ray cluster or uses the <code>RAY_ADDRESS</c
         </li>
         <li class="doc-section-item field-body">
             <b><code>metadata</code></b>
-              (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a>, <a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a>] | None</code>, default:
+              (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a>, <a class="autorefs autorefs-external" title="&lt;code&gt;typing.Any&lt;/code&gt;" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a>] | None</code>, default:
                   <code>None</code>
 )
           –
@@ -4600,7 +4614,7 @@ If unspecified, connects to a local Ray cluster or uses the <code>RAY_ADDRESS</c
         </li>
         <li class="doc-section-item field-body">
             <b><code>context_injector</code></b>
-              (<code><a class="autorefs autorefs-external" title="dagster.PipesContextInjector" href="https://docs.dagster.io/api/dagster/pipes/#dagster.PipesContextInjector">PipesContextInjector</a> | None</code>, default:
+              (<code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.PipesContextInjector&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/pipes/#dagster.PipesContextInjector">PipesContextInjector</a> | None</code>, default:
                   <code>None</code>
 )
           –
@@ -4611,7 +4625,7 @@ context into the Ray job. Defaults to <a class="autorefs autorefs-external" href
         </li>
         <li class="doc-section-item field-body">
             <b><code>message_reader</code></b>
-              (<code><a class="autorefs autorefs-external" title="dagster.PipesMessageReader" href="https://docs.dagster.io/api/dagster/pipes/#dagster.PipesMessageReader">PipesMessageReader</a> | None</code>, default:
+              (<code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.PipesMessageReader&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/pipes/#dagster.PipesMessageReader">PipesMessageReader</a> | None</code>, default:
                   <code>None</code>
 )
           –
@@ -4772,7 +4786,7 @@ Is useful when running in a local environment.</p>
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-module-attribute&quot;&gt;&lt;code&gt;module-attribute&lt;/code&gt;&lt;/small&gt;
   &lt;/span&gt;" href="../types/#dagster_ray.types.OpOrAssetExecutionContext">OpOrAssetExecutionContext</a></span><span class="p">,</span> <span class="n">submit_job_params</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;dagster_ray.core.pipes.SubmitJobParams&lt;/span&gt;" href="../types/#dagster_ray.core.pipes.SubmitJobParams">SubmitJobParams</a></span><span class="p">,</span> <span class="n">extras</span><span class="p">:</span> <span class="n"><span title="dagster_pipes.PipesExtras">PipesExtras</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="dagster._core.pipes.client.PipesClientCompletedInvocation" href="https://docs.dagster.io/api/dagster/pipes/#dagster.PipesClientCompletedInvocation">PipesClientCompletedInvocation</a></span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;dagster._core.pipes.client.PipesClientCompletedInvocation&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/pipes/#dagster.PipesClientCompletedInvocation">PipesClientCompletedInvocation</a></span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -4910,12 +4924,12 @@ Is useful when running in a local environment.</p>
 
 
 <a href="#dagster_ray.core.pipes.PipesRayJobMessageReader" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">PipesRayJobMessageReader</span><span class="p">(</span><span class="n">job_submission_client_kwargs</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">PipesRayJobMessageReader</span><span class="p">(</span><span class="n">job_submission_client_kwargs</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;typing.Any&lt;/code&gt;" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-external" title="dagster.PipesMessageReader" href="https://docs.dagster.io/api/dagster/pipes/#dagster.PipesMessageReader">PipesMessageReader</a></code></p>
+              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.PipesMessageReader&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/pipes/#dagster.PipesMessageReader">PipesMessageReader</a></code></p>
 
 
 
@@ -4984,7 +4998,7 @@ Is useful when running in a local environment.</p>
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-external" title="dagster.ConfigurableIOManager" href="https://docs.dagster.io/api/dagster/io-managers/#dagster.ConfigurableIOManager">ConfigurableIOManager</a></code></p>
+              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.ConfigurableIOManager&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/io-managers/#dagster.ConfigurableIOManager">ConfigurableIOManager</a></code></p>
 
 
         <p>IO Manager that stores intermediate values in Ray's object store.</p>
@@ -5082,6 +5096,9 @@ If None, assumes Ray is already initialized.</p>
 
 
 
+  
+  
+
 
 
 
@@ -5140,7 +5157,7 @@ If None, assumes Ray is already initialized.</p>
 </footer>
       
     </div>
-    <div class="md-dialog" data-md-component="dialog">
+    <div class="md-dialog" data-md-component="dialog" role="status" aria-atomic="true">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
@@ -5148,10 +5165,14 @@ If None, assumes Ray is already initialized.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.code.copy","content.code.select","content.tabs.link","navigation.tabs","navigation.tabs.sticky","navigation.sections","navigation.expand","navigation.path","navigation.top","search.highlight","search.share","search.suggest","content.code.annotate","content.tooltips"],"search":"../../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
+      
+      
+        
+        
+      <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.code.copy","content.code.select","content.tabs.link","navigation.tabs","navigation.tabs.sticky","navigation.sections","navigation.expand","navigation.path","navigation.top","search.highlight","search.share","search.suggest","content.code.annotate","content.tooltips"],"redirect":null,"search":"../../assets/javascripts/workers/search.c47bb847.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","clipboard.error":"Could not copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.49251538.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a2388154.min.js"></script>
       
     
   </body>

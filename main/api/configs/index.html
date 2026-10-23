@@ -6,11 +6,12 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Dagster integration library for Ray">
+        <meta name="description" content="API reference for the settings that control a Ray resource's lifecycle and how Ray Data runs inside Dagster steps.">
       
       
       
         <link rel="canonical" href="https://danielgafni.github.io/main/api/configs/">
+      
       
       
         <link rel="prev" href="../kuberay/">
@@ -22,24 +23,24 @@
         
       
       
-      <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.57">
+      <link rel="icon" href="../../assets/logo.svg">
+      <meta name="generator" content="zensical-0.0.71">
     
     
       
-        <title>Configuration API Reference - dagster-ray</title>
+        <title>Configuration API - dagster-ray</title>
       
     
     
       
         
       
-      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.5da3a30f.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.e442bf79.min.css">
       
         
           
         
-        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.812a03bb.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.b60ce83d.min.css">
       
       
 
@@ -66,7 +67,19 @@
 
     
     
-  </head>
+  <meta property="og:type" content="website" />
+<meta property="og:title" content="Configuration API - dagster-ray" />
+<meta property="og:description" content="API reference for the settings that control a Ray resource&#39;s lifecycle and how Ray Data runs inside Dagster steps." />
+<meta property="og:image" content="https://danielgafni.github.io/main/assets/images/social/api/configs.png" />
+<meta property="og:image:type" content="image/png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:url" content="https://danielgafni.github.io/main/api/configs/" />
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:title" content="Configuration API - dagster-ray" />
+<meta property="twitter:description" content="API reference for the settings that control a Ray resource&#39;s lifecycle and how Ray Data runs inside Dagster steps." />
+<meta property="twitter:image" content="https://danielgafni.github.io/main/assets/images/social/api/configs.png" />
+</head>
   
   
     
@@ -81,14 +94,11 @@
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
-    <label class="md-overlay" for="__drawer" aria-label="Navigation"></label>
+    <label class="md-overlay" for="__drawer" aria-hidden="true"></label>
     <div data-md-component="skip">
-      
-        
-        <a href="#configuration-api-reference" class="md-skip">
-          Skip to content
-        </a>
-      
+      <a href="#__skip" class="md-skip">
+        Skip to content
+      </a>
     </div>
     <div data-md-component="announce">
       
@@ -107,8 +117,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="dagster-ray" class="md-header__button md-logo" aria-label="dagster-ray" data-md-component="logo">
       
-  
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+  <img src="../../assets/logo.svg" alt="dagster-ray">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer" aria-label="Navigation">
@@ -125,7 +134,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Configuration API Reference
+              Configuration API
             
           </span>
         </div>
@@ -331,8 +340,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href="../.." title="dagster-ray" class="md-nav__button md-logo" aria-label="dagster-ray" data-md-component="logo">
       
-  
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+  <img src="../../assets/logo.svg" alt="dagster-ray">
 
     </a>
     dagster-ray
@@ -420,18 +428,19 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2">
-            <span class="md-nav__icon md-icon"></span>
-            
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_2">
+              <span class="md-nav__icon md-icon"></span>
+              
   
   Tutorial
 
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
               
                 
+                  
   
   
   
@@ -455,10 +464,10 @@
     </li>
   
 
-              
-            
+                
               
                 
+                  
   
   
   
@@ -482,10 +491,10 @@
     </li>
   
 
-              
-            
+                
               
                 
+                  
   
   
   
@@ -509,10 +518,10 @@
     </li>
   
 
-              
-            
+                
               
                 
+                  
   
   
   
@@ -536,10 +545,11 @@
     </li>
   
 
+                
               
-            
-          </ul>
-        </nav>
+            </ul>
+          </nav>
+        
       
     </li>
   
@@ -590,18 +600,19 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_3">
-            <span class="md-nav__icon md-icon"></span>
-            
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+            <label class="md-nav__title" for="__nav_3">
+              <span class="md-nav__icon md-icon"></span>
+              
   
   API Reference
 
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
               
                 
+                  
   
   
   
@@ -625,10 +636,10 @@
     </li>
   
 
-              
-            
+                
               
                 
+                  
   
   
   
@@ -652,10 +663,10 @@
     </li>
   
 
-              
-            
+                
               
                 
+                  
   
   
   
@@ -679,10 +690,10 @@
     </li>
   
 
-              
-            
+                
               
                 
+                  
   
   
     
@@ -1026,10 +1037,10 @@
     </li>
   
 
-              
-            
+                
               
                 
+                  
   
   
   
@@ -1053,10 +1064,11 @@
     </li>
   
 
+                
               
-            
-          </ul>
-        </nav>
+            </ul>
+          </nav>
+        
       
     </li>
   
@@ -1492,8 +1504,10 @@
 
               
               <article class="md-content__inner md-typeset">
+                <a id="__skip" tabindex="-1"></a>
                 
                   
+
   
   
 
@@ -1520,7 +1534,7 @@
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-external" title="dagster.Config" href="https://docs.dagster.io/api/dagster/config/#dagster.Config">Config</a></code></p>
+              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.Config&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/config/#dagster.Config">Config</a></code></p>
 
       <details><summary>Show JSON schema:</summary>
         <div class="language-json highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
@@ -1570,7 +1584,7 @@
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.configs.Lifecycle.create">create</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray.configs.Lifecycle.create&lt;/code&gt;)" href="./#dagster_ray.configs.Lifecycle.create">create</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#bool">bool</a></code>)
             </li>
             <li>
@@ -1579,7 +1593,7 @@
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.configs.Lifecycle.wait">wait</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray.configs.Lifecycle.wait&lt;/code&gt;)" href="./#dagster_ray.configs.Lifecycle.wait">wait</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#bool">bool</a></code>)
             </li>
             <li>
@@ -1588,7 +1602,7 @@
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.configs.Lifecycle.connect">connect</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray.configs.Lifecycle.connect&lt;/code&gt;)" href="./#dagster_ray.configs.Lifecycle.connect">connect</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#bool">bool</a></code>)
             </li>
             <li>
@@ -1597,8 +1611,8 @@
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.configs.Lifecycle.cleanup">cleanup</a></code>
-                (<code><a class="autorefs autorefs-external" title="typing.Literal" href="https://docs.python.org/3/library/typing.html#typing.Literal">Literal</a>[&#39;never&#39;, &#39;always&#39;, &#39;on_exception&#39;]</code>)
+  &lt;/span&gt; (&lt;code&gt;dagster_ray.configs.Lifecycle.cleanup&lt;/code&gt;)" href="./#dagster_ray.configs.Lifecycle.cleanup">cleanup</a></code>
+                (<code><a class="autorefs autorefs-external" title="&lt;code&gt;typing.Literal&lt;/code&gt;" href="https://docs.python.org/3/library/typing.html#typing.Literal">Literal</a>[&#39;never&#39;, &#39;always&#39;, &#39;on_exception&#39;]</code>)
             </li>
         </ul>
 
@@ -1698,7 +1712,7 @@
   </span>
 
 <a href="#dagster_ray.configs.Lifecycle.cleanup" class="headerlink" title="Permanent link">&para;</a></h5>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">cleanup</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Literal" href="https://docs.python.org/3/library/typing.html#typing.Literal">Literal</a></span><span class="p">[</span><span class="s1">&#39;never&#39;</span><span class="p">,</span> <span class="s1">&#39;always&#39;</span><span class="p">,</span> <span class="s1">&#39;on_exception&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;always&#39;</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">cleanup</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="&lt;code&gt;typing.Literal&lt;/code&gt;" href="https://docs.python.org/3/library/typing.html#typing.Literal">Literal</a></span><span class="p">[</span><span class="s1">&#39;never&#39;</span><span class="p">,</span> <span class="s1">&#39;always&#39;</span><span class="p">,</span> <span class="s1">&#39;on_exception&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;always&#39;</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -1737,7 +1751,7 @@
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-external" title="dagster.Config" href="https://docs.dagster.io/api/dagster/config/#dagster.Config">Config</a></code></p>
+              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.Config&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/config/#dagster.Config">Config</a></code></p>
 
       <details><summary>Show JSON schema:</summary>
         <div class="language-json highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
@@ -1825,7 +1839,7 @@
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.configs.RayDataExecutionOptions.execution_options">execution_options</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray.configs.RayDataExecutionOptions.execution_options&lt;/code&gt;)" href="./#dagster_ray.configs.RayDataExecutionOptions.execution_options">execution_options</a></code>
                 (<code><a class="autorefs autorefs-internal" title="&lt;span class=&quot;doc doc-object-name doc-class-name&quot;&gt;dagster_ray.configs.ExecutionOptionsConfig&lt;/span&gt;
 
 
@@ -1839,7 +1853,7 @@
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.configs.RayDataExecutionOptions.cpu_limit">cpu_limit</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray.configs.RayDataExecutionOptions.cpu_limit&lt;/code&gt;)" href="./#dagster_ray.configs.RayDataExecutionOptions.cpu_limit">cpu_limit</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></code>)
             </li>
             <li>
@@ -1848,7 +1862,7 @@
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.configs.RayDataExecutionOptions.gpu_limit">gpu_limit</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray.configs.RayDataExecutionOptions.gpu_limit&lt;/code&gt;)" href="./#dagster_ray.configs.RayDataExecutionOptions.gpu_limit">gpu_limit</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a></code>)
             </li>
             <li>
@@ -1857,7 +1871,7 @@
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.configs.RayDataExecutionOptions.verbose_progress">verbose_progress</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray.configs.RayDataExecutionOptions.verbose_progress&lt;/code&gt;)" href="./#dagster_ray.configs.RayDataExecutionOptions.verbose_progress">verbose_progress</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#bool">bool</a></code>)
             </li>
             <li>
@@ -1866,7 +1880,7 @@
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.configs.RayDataExecutionOptions.use_polars">use_polars</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray.configs.RayDataExecutionOptions.use_polars&lt;/code&gt;)" href="./#dagster_ray.configs.RayDataExecutionOptions.use_polars">use_polars</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#bool">bool</a></code>)
             </li>
         </ul>
@@ -2119,7 +2133,7 @@
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-external" title="dagster.Config" href="https://docs.dagster.io/api/dagster/config/#dagster.Config">Config</a></code></p>
+              Bases: <code><a class="autorefs autorefs-external" title="&lt;code&gt;dagster.Config&lt;/code&gt;" href="https://docs.dagster.io/api/dagster/config/#dagster.Config">Config</a></code></p>
 
       <details><summary>Show JSON schema:</summary>
         <div class="language-json highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
@@ -2176,7 +2190,7 @@
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.configs.ExecutionOptionsConfig.cpu">cpu</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray.configs.ExecutionOptionsConfig.cpu&lt;/code&gt;)" href="./#dagster_ray.configs.ExecutionOptionsConfig.cpu">cpu</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a> | None</code>)
             </li>
             <li>
@@ -2185,7 +2199,7 @@
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.configs.ExecutionOptionsConfig.gpu">gpu</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray.configs.ExecutionOptionsConfig.gpu&lt;/code&gt;)" href="./#dagster_ray.configs.ExecutionOptionsConfig.gpu">gpu</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a> | None</code>)
             </li>
             <li>
@@ -2194,7 +2208,7 @@
 
   &lt;span class=&quot;doc doc-labels&quot;&gt;
       &lt;small class=&quot;doc doc-label doc-label-pydantic-field&quot;&gt;&lt;code&gt;pydantic-field&lt;/code&gt;&lt;/small&gt;
-  &lt;/span&gt;" href="./#dagster_ray.configs.ExecutionOptionsConfig.object_store_memory">object_store_memory</a></code>
+  &lt;/span&gt; (&lt;code&gt;dagster_ray.configs.ExecutionOptionsConfig.object_store_memory&lt;/code&gt;)" href="./#dagster_ray.configs.ExecutionOptionsConfig.object_store_memory">object_store_memory</a></code>
                 (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/builtins/functions.html#int">int</a> | None</code>)
             </li>
         </ul>
@@ -2295,6 +2309,9 @@
 
 
 
+  
+  
+
 
 
 
@@ -2353,7 +2370,7 @@
 </footer>
       
     </div>
-    <div class="md-dialog" data-md-component="dialog">
+    <div class="md-dialog" data-md-component="dialog" role="status" aria-atomic="true">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
@@ -2361,10 +2378,14 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.code.copy","content.code.select","content.tabs.link","navigation.tabs","navigation.tabs.sticky","navigation.sections","navigation.expand","navigation.path","navigation.top","search.highlight","search.share","search.suggest","content.code.annotate","content.tooltips"],"search":"../../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
+      
+      
+        
+        
+      <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["content.code.copy","content.code.select","content.tabs.link","navigation.tabs","navigation.tabs.sticky","navigation.sections","navigation.expand","navigation.path","navigation.top","search.highlight","search.share","search.suggest","content.code.annotate","content.tooltips"],"redirect":null,"search":"../../assets/javascripts/workers/search.c47bb847.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","clipboard.error":"Could not copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"provider":"mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.49251538.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a2388154.min.js"></script>
       
     
   </body>
