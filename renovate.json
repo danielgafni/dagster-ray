@@ -11,7 +11,7 @@
       "matchPackageNames": ["dagster"],
       "matchUpdateTypes": ["minor"],
       "addLabels": ["dagster"],
-      "schedule": ["every friday"]
+      "schedule": ["on friday"]
     },
     {
       "matchPackageNames": ["ray"],
