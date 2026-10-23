@@ -1,3 +1,8 @@
+---
+title: "External Ray Clusters"
+description: "Use a Ray cluster that you manage outside of Dagster, and decide how much of your pipeline should run on it."
+---
+
 # Dagster + External Ray Clusters Tutorial
 
 This tutorial covers how to use dagster-ray with external Ray clusters - clusters that are managed outside of Dagster. This approach is ideal when you have existing Ray infrastructure or want to separate cluster management from your data pipelines.

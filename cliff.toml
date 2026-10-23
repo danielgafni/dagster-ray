@@ -44,6 +44,11 @@ sort_commits = "newest"
 [changelog]
 # `just release` prepends each release to docs/changelog.md, so earlier entries are kept as written there
 header = """
+---
+title: "Changelog"
+description: "User-facing changes in each dagster-ray release."
+---
+
 # Changelog
 
 All notable user-facing changes to `dagster-ray` will be documented in this file.

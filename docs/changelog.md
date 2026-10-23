@@ -1,3 +1,8 @@
+---
+title: "Changelog"
+description: "User-facing changes in each dagster-ray release."
+---
+
 # Changelog
 
 All notable user-facing changes to `dagster-ray` will be documented in this file.

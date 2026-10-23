@@ -1,5 +1,9 @@
 # `dagster-ray`
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/danielgafni/dagster-ray/main/docs/assets/logo.svg" alt="dagster-ray logo" width="200">
+</p>
+
 [![PyPI version](https://img.shields.io/pypi/v/dagster-ray.svg)](https://pypi.python.org/pypi/dagster-ray)
 [![License](https://img.shields.io/pypi/l/dagster-ray.svg)](https://pypi.python.org/pypi/dagster-ray)
 [![Python versions](https://img.shields.io/pypi/pyversions/dagster-ray.svg)](https://pypi.python.org/pypi/dagster-ray)

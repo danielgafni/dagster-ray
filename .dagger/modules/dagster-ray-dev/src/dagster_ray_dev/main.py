@@ -11,6 +11,8 @@ from dagster_ray_dev.kuberay import KuberayCluster
 from dagster_ray_dev.test_job import TestJob
 from dagster_ray_dev.test_matrix import MATRIX, add_test_checks
 
+# zensical requires Python 3.11+, newer than the oldest Python dagster-ray supports
+DOCS_PYTHON_VERSION = "3.14"
 # what the image and the tests need, so unrelated changes (docs, CI, editor config) keep the build cached
 SOURCE_INCLUDE = ["src", "tests", "examples", "pyproject.toml", "uv.lock", "README.md", ".python-version"]
 
@@ -61,9 +63,8 @@ class DagsterRayDev:
     @function
     async def docs(self) -> Directory:
         """The built documentation site."""
-        python_version = await pyright_python_version(self.repo)
         return (
-            dev_env(self.repo, python_version, groups=["docs"])
+            dev_env(self.repo, DOCS_PYTHON_VERSION, groups=["docs"])
             .with_exec(["zensical", "build", "--strict", "--clean"])
             .directory(f"{REPO_DIR}/site")
         )

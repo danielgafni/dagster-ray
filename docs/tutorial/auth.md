@@ -1,3 +1,8 @@
+---
+title: "Authentication"
+description: "Connect dagster-ray to Ray clusters that require token authentication, including dashboards behind an authenticating proxy."
+---
+
 # Authentication
 
 ## Ray Token Authentication
