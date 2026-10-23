@@ -1,7 +1,7 @@
 ignore = [".devenv", ".venv", "**/.venv", ".cache", "site", "**/__pycache__", ".pytest_cache", ".ruff_cache", ".hypothesis"]
 
 [modules.python-sdk]
-source = "dagger.io/sdk/python@32c11750f2ddf779fca873e460385d10914f8917"
+source = "dagger.io/sdk/python@dfb188732b665097c3976dfb38437ebde191f9f3"
 
 [sdks.python]
 module = "python-sdk"

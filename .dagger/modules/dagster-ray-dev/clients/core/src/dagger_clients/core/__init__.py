@@ -5,10 +5,9 @@ import warnings as _warnings  # noqa: F401
 from collections.abc import Callable as _Callable
 from dataclasses import dataclass as _dataclass
 from typing import Protocol as _Protocol
+from typing import Self as _Self
 from typing import overload as _overload
 from typing import runtime_checkable as _runtime_checkable
-
-from typing_extensions import Self as _Self
 
 from dagger.client import Session as _Session
 from dagger.client import client_root as _client_root

@@ -10,8 +10,7 @@ from __future__ import annotations
 
 import dataclasses
 from collections.abc import Sequence
-
-from typing_extensions import Self
+from typing import Self
 
 from dagger.client._core import Arg, Context, EnumName
 from dagger.client.base import Type

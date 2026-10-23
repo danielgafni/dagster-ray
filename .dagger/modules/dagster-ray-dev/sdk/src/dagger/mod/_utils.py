@@ -173,16 +173,12 @@ Obj_T = TypeVar("Obj_T", bound=Type)
 
 def is_self(annotation: type) -> typing.TypeGuard[type]:
     """Check if an annotatino is a Self type."""
-    # Typing extensions should return typing.Self if it exists (Python 3.11+)
-    return annotation is typing_extensions.Self
+    return annotation is typing.Self
 
 
 def is_annotated(annotation: type) -> bool:
     """Check if the given type is an annotated type."""
-    return typing.get_origin(annotation) in (
-        typing.Annotated,
-        typing_extensions.Annotated,
-    )
+    return typing.get_origin(annotation) is typing.Annotated
 
 
 def strip_annotations(t: _T) -> _T:

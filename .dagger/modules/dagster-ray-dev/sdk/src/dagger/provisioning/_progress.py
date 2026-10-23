@@ -1,10 +1,10 @@
 import dataclasses
+from typing import Self
 
 import anyio.to_thread
 import rich
 from rich.console import Console
 from rich.status import Status
-from typing_extensions import Self
 
 asyncify = anyio.to_thread.run_sync
 

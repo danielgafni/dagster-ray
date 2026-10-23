@@ -9,9 +9,7 @@ import time
 from collections.abc import Iterable
 from importlib import metadata
 from pathlib import Path
-from typing import TextIO, cast
-
-from typing_extensions import Self
+from typing import Self, TextIO, cast
 
 from dagger._managers import SyncResource
 from dagger.client._session import ConnectParams
@@ -202,7 +200,7 @@ def _spawn_with_etxtbsy_retry(
                 stderr=stderr_target,
                 encoding="utf-8",
             )
-        except OSError as e:  # noqa: PERF203
+        except OSError as e:
             if e.errno != OS_ETXTBSY:
                 raise
             logger.warning("file busy, retrying in 0.1 seconds...")

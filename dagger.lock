@@ -7,7 +7,7 @@
 ["","git-latest",["github.com/dagger/sdk-helpers",["version","v1.0.6"]],"refs/tags/v1.0.6"]
 ["","git-latest",["github.com/marcosnils/daggerverse",["tagPrefix","k3s"]],"refs/tags/k3s/v0.11.1"]
 ["","git-latest",["github.com/typesafe-ai/daggerverse",["tagPrefix","uv"]],"refs/tags/uv/v0.2.5"]
-["","git-sha",["github.com/dagger/python-sdk","main"],"32c11750f2ddf779fca873e460385d10914f8917"]
+["","git-sha",["github.com/dagger/python-sdk","main"],"dfb188732b665097c3976dfb38437ebde191f9f3"]
 ["","git-sha",["github.com/dagger/python-sdk","refs/tags/v1.1.1"],"e17d053083974be9fad49d241bd6c1d7d5e33a4a"]
 ["","git-sha",["github.com/dagger/sdk-helpers","refs/tags/v1.0.6"],"16e5bf2837eb1dc840a1c9ad7d6dba385f0038d3"]
 ["","git-sha",["github.com/marcosnils/daggerverse","refs/tags/k3s/v0.11.1"],"c07646d1bf7f6079dab47ba152c767e062aa0f58"]

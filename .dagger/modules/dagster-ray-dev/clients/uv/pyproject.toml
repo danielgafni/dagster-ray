@@ -4,7 +4,7 @@ version = "0.0.0"
 dependencies = ["dagger-io", "dagger-clients-core"]
 
 [build-system]
-requires = ["uv_build>=0.8.4,<0.12.0"]
+requires = ["uv_build>=0.8.4,<0.14.0"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]

@@ -213,7 +213,6 @@ source = { editable = "sdk" }
 dependencies = [
     { name = "anyio" },
     { name = "cattrs" },
-    { name = "exceptiongroup" },
     { name = "httpcore" },
     { name = "httpx" },
     { name = "opentelemetry-exporter-otlp-proto-http" },
@@ -228,7 +227,6 @@ dependencies = [
 requires-dist = [
     { name = "anyio", specifier = ">=3.6.2" },
     { name = "cattrs", specifier = ">=25.1.0" },
-    { name = "exceptiongroup", specifier = ">=1.3.0" },
     { name = "httpcore", specifier = ">=1.0.8" },
     { name = "httpx", specifier = ">=0.27.0" },
     { name = "opentelemetry-exporter-otlp-proto-http", specifier = ">=1.23.0" },
@@ -260,15 +258,6 @@ requires-dist = [
     { name = "dagger-clients-uv", editable = "clients/uv" },
     { name = "dagger-io", editable = "sdk" },
     { name = "packaging", specifier = ">=26.3" },
-]
-
-[[package]]
-name = "exceptiongroup"
-version = "1.3.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/50/79/66800aadf48771f6b62f7eb014e352e5d06856655206165d775e675a02c9/exceptiongroup-1.3.1.tar.gz", hash = "sha256:8b412432c6055b0b7d14c310000ae93352ed6754f70fa8f7c34141f91c4e3219", size = 30371, upload-time = "2025-11-21T23:01:54.787Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/8a/0e/97c33bf5009bdbac74fd2beace167cab3f978feb69cc36f1ef79360d6c4e/exceptiongroup-1.3.1-py3-none-any.whl", hash = "sha256:a7a39a3bd276781e98394987d3a5701d0c4edffb633bb7a5144577f82c773598", size = 16740, upload-time = "2025-11-21T23:01:53.443Z" },
 ]
 
 [[package]]

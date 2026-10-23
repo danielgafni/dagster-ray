@@ -2,8 +2,7 @@ from __future__ import annotations
 
 import enum
 import typing
-
-from typing_extensions import override
+from typing import override
 
 if typing.TYPE_CHECKING:
     from dagger.client._core import Context

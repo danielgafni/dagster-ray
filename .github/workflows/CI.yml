@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  DAGGER_VERSION: 1.0.0-beta.20
+  DAGGER_VERSION: 1.0.0-beta.21
 
 jobs:
   qa_success:
