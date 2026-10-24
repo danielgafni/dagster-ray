@@ -29,6 +29,7 @@ The TOML expands to the latest versions, the oldest versions, and each other ver
 ```bash
 dagger check                                           # everything CI runs
 dagger check -l                                        # list checks
+dagger check test-kubernetes-client                     # JSON Patch across Kubernetes Python client versions
 dagger check 'test-core-*'                             # the core tests only
 dagger call test --python-version 3.13 --ray-version 2.58.0
 dagger generate                                        # after changing functions or dependencies
