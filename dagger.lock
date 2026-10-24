@@ -14,6 +14,7 @@
 ["","git-sha",["github.com/typesafe-ai/daggerverse","refs/tags/uv/v0.2.5"],"f67568baddc6bce2d456a319ef5537f803de57ac"]
 ["","oci-sha",["docker.io/library/golang:1.25-alpine"],"sha256:1ae0735f00daffa3aaf1363a5184c0d2dc55c78e3db4ec70241cdac97bf84b59"]
 ["","oci-sha",["docker.io/library/python:3.10-slim"],"sha256:6ff506466f8b1e981719b468cc0023b8ef000b983cdec0eafe119d01f379e31d"]
+["","oci-sha",["docker.io/library/python:3.12-slim"],"sha256:a0f57064cbdcd6285fa45f51237ab0b35ea8ebaed06a1f5973e89e19dfb86704"]
 ["","oci-sha",["docker.io/library/python:3.13-slim"],"sha256:70729b46c69b4f1e97c4822c1af3df53a1476cf5ddc6c087c0c10bc3a5678c2f"]
 ["","oci-sha",["docker.io/library/python:3.14-slim"],"sha256:0514bc76712d64f8bb48adcb95b1ab0d88c69fee95d62fe4c18ee948bee9b1e1"]
 ["","oci-sha",["ghcr.io/astral-sh/ruff:0.9.7"],"sha256:55161ce6c71ce6965ecd61a03b21909746705d6dca5d99a5904c66cc48850ea7"]

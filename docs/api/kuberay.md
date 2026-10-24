@@ -189,6 +189,10 @@ By default it monitors the `ray` namespace. This can be configured by setting `D
 
 ## Kubernetes API Clients
 
+Both clients provide `update_json_patch(name, namespace, body)` for RFC 6902 patch operations.
+It sends `application/json-patch+json` and returns the updated resource. Kubernetes Python
+clients 36 and later use the generated custom-object API; older clients use the legacy API.
+
 ::: dagster_ray.kuberay.client.RayClusterClient
     options:
       members:
@@ -198,6 +202,7 @@ By default it monitors the `ray` namespace. This can be configured by setting `D
         - "get"
         - "list"
         - "update"
+        - "update_json_patch"
 
 ::: dagster_ray.kuberay.client.RayJobClient
     options:
@@ -208,3 +213,4 @@ By default it monitors the `ray` namespace. This can be configured by setting `D
         - "get"
         - "list"
         - "update"
+        - "update_json_patch"

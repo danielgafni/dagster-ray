@@ -219,6 +219,11 @@ type ModuleTypes {
             .withCheck
         )
         .withFunction(
+          function("test_kubernetes_client", typeDef.withOptional(true).withKind(TypeDefKind.VOID_KIND))
+            .withDescription("Check JSON Patch requests across legacy and modern Kubernetes Python clients.")
+            .withCheck
+        )
+        .withFunction(
           function("typecheck", typeDef.withOptional(true).withKind(TypeDefKind.VOID_KIND))
             .withDescription("Type check with basedpyright.")
             .withCheck
