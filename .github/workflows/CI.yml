@@ -26,7 +26,7 @@ jobs:
       contents: read
       statuses: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Wait for Dagger Cloud checks
         uses: dagger/dagger-for-github@v8.4.1
         with:
