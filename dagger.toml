@@ -12,4 +12,4 @@ source = ".dagger/modules/dagster-ray-dev"
 
 [sdks.python.scopes.".dagger/modules/dagster-ray-dev"]
 is-module = true
-clients = ["github.com/marcosnils/daggerverse/k3s", "github.com/typesafe-ai/daggerverse/github@77e6c9f779968f1d4cfacbc46061f054750a9cc8", "github.com/typesafe-ai/daggerverse/uv@6dd21606e5c31acd11a789829e5e74ed799f50a4"]
+clients = ["github.com/marcosnils/daggerverse/k3s", "github.com/typesafe-ai/daggerverse/github@77e6c9f779968f1d4cfacbc46061f054750a9cc8", "github.com/typesafe-ai/daggerverse/uv@d87523f66e6b1a4fb47b0c88ce541339278a869c"]
