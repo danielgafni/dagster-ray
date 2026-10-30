@@ -2711,8 +2711,8 @@ class UvSyncPlan(_Type):
 class UvSyncPlanner(_Type):
     """ Resolves a workspace's sync plan for a package selection.  Holds
     what planning reads: the workspace's manifests and sources, its build
-    backend handlers, and the workspace those were loaded from, for the
-    handlers' `/`-prefixed build inputs.  """
+    backend handlers, and every file its builds read, for the handlers'
+    `/`-prefixed build inputs.  """
 
     async def id(self) -> str:
         """A unique identifier for this UvSyncPlanner.
@@ -3693,10 +3693,10 @@ class UvWorkspaceSource(_Type):
         """
         Every file a `builder` reads, at workspace-root-relative paths.
 
-        `Uv.workspace` loads the workspace from just these files. A module
-        that
-        reads more of the workspace can merge its own files into them and hand
-        the result on with `as_workspace()`.
+        `Uv.workspace` loads the workspace's directories from just these
+        files.
+        A module that reads more of the workspace can merge its own files into
+        them and hand the result on with `as_workspace()`.
         """
         _args: list[_Arg] = []
         _ctx = self._select("inputs", _args)
