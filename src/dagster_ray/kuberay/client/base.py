@@ -3,6 +3,8 @@ from __future__ import annotations
 import time
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, cast
 
+from packaging.version import Version
+
 if TYPE_CHECKING:
     from kubernetes import client
     from kubernetes.client.models.v1_endpoints import V1Endpoints
@@ -162,7 +164,25 @@ class BaseKubeRayClient(Generic[T_Status]):
         )
 
     def update_json_patch(self, name: str, namespace: str, body: Any) -> Any:
-        data, status_code, headers = self._api.api_client.call_api(  # pyright: ignore[reportGeneralTypeIssues]
+        """Apply an RFC 6902 JSON Patch and return the updated resource."""
+        from kubernetes.client import __version__
+
+        # Kubernetes 36+ supports an explicit content type on the generated API,
+        # and changes the low-level call_api interface used by older clients.
+        if Version(__version__) >= Version("36.0.0"):
+            return self._api.patch_namespaced_custom_object(
+                group=self.group,
+                version=self.version,
+                plural=self.plural,
+                name=name,
+                namespace=namespace,
+                body=body,
+                _content_type="application/json-patch+json",
+            )
+
+        # The legacy signature is absent from modern client type information.
+        call_api = cast(Any, self._api.api_client.call_api)
+        data, status_code, headers = call_api(
             f"/apis/{self.group}/{self.version}/namespaces/{namespace}/{self.plural}/{name}",
             "PATCH",
             header_params={"Content-Type": "application/json-patch+json"},

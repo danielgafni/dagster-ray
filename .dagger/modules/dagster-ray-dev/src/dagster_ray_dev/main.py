@@ -55,6 +55,22 @@ class DagsterRayDev:
 
     @function
     @check
+    async def test_kubernetes_client(self) -> None:
+        """Check JSON Patch requests across legacy and modern Kubernetes Python clients."""
+        runner = dev_env(self.repo, "3.12")
+        # Oldest supported client, last legacy API, and both modern API generations.
+        # The regular core checks also exercise the version pinned in uv.lock.
+        for version in ("20.13.0", "35.0.0", "36.0.0", "37.0.1"):
+            runner = await (
+                runner
+                # Test the client independently of dagster-k8s's version constraints.
+                .with_exec(["pip", "install", "--no-deps", f"kubernetes=={version}"])
+                .with_exec(["pytest", "tests/test_kuberay_client.py"])
+                .sync()
+            )
+
+    @function
+    @check
     async def typecheck(self) -> None:
         """Type check with basedpyright."""
         python_version = await pyright_python_version(self.repo)
