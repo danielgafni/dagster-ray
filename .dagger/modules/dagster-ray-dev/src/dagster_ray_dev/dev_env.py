@@ -31,9 +31,7 @@ def dev_env(repo: Directory, python_version: str, groups: list[str] | None = Non
         .with_env_variable("PATH", f"{VENV_DIR}/bin:$PATH", expand=True)
         .with_workdir(REPO_DIR)
     )
-    return (
-        uv(source=repo)
-        .workspace()
-        .install(base_container=base, all_extras=True, group=groups)
-        .with_directory(REPO_DIR, repo)
-    )
+    builder = uv(repo.as_workspace()).workspace(".").builder(base_container=base).with_all_extras()
+    if groups:
+        builder = builder.with_groups(groups)
+    return builder.with_dependencies().container().with_directory(REPO_DIR, repo)

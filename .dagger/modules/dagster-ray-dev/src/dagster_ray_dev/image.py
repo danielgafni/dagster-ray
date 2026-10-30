@@ -81,9 +81,12 @@ class Image:
         )
         source = self.pinned_source()
         return (
-            uv(source=source)
-            .workspace()
-            .install(base_container=base, all_extras=True)
+            uv(source.as_workspace())
+            .workspace(".")
+            .builder(base_container=base)
+            .with_all_extras()
+            .with_dependencies()
+            .container()
             # Ray pods run scripts from tests/
             .with_directory(APP_DIR, source)
         )
