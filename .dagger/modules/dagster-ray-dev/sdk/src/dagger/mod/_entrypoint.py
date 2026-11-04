@@ -22,13 +22,14 @@ def write_entrypoint(
     desc: ModuleDescription,
     *,
     name: str,
+    client_version: str,
     output: pathlib.Path,
     outside: Sequence[str] = (),
 ) -> None:
     """Write types.dang and main.dang for the module."""
     output.mkdir(parents=True, exist_ok=True)
     (output / "types.dang").write_text(render_types(desc))
-    (output / "main.dang").write_text(render_main(name, outside))
+    (output / "main.dang").write_text(render_main(name, client_version, outside))
 
 
 def render_types(desc: ModuleDescription) -> str:
@@ -43,15 +44,18 @@ def render_types(desc: ModuleDescription) -> str:
     return "\n".join(lines)
 
 
-def render_main(name: str, outside: Sequence[str] = ()) -> str:
+def render_main(name: str, client_version: str, outside: Sequence[str] = ()) -> str:
     """Return the module and each directory outside it from sources.
 
+    `client_version` is the engine release the module's code is generated
+    for, which the entrypoint declares when it starts the module's process.
     `outside` holds the directories outside the module that its build reads,
     relative to the module directory.
     """
     return MAIN_TEMPLATE.format(
         header=HEADER,
         name=_quote(name),
+        client_version=_quote(client_version),
         outside="".join(
             f"      .withDirectory(workspace.cwd + {_quote('/' + path)}, "
             f"workspace.directory({_quote(path)}, exclude: {SOURCES_EXCLUDE}, "
@@ -198,9 +202,9 @@ def _indent(lines: list[str], width: int) -> list[str]:
 SOURCES_EXCLUDE = '["**/.git", "**/.venv", "**/__pycache__"]'
 
 MAIN_TEMPLATE = """{header}
-# Needs Dagger v1.0.0-beta.18 or later; older engines report a missing "workspace" argument.
 type Entrypoint implements ModuleEntrypoint {{
   let moduleName: String! = {name}
+  let clientVersion: String! = {client_version}
 
   pub sources(workspace: Workspace!): Directory! {{
     directory
@@ -225,10 +229,8 @@ type Entrypoint implements ModuleEntrypoint {{
       fnArgs: fnArgs,
     }}}})
     let result = runtime
-      # The exec is cached on its own recipe, which holds neither the call's
-      # arguments nor its cache policy; the engine's digest of the call does
-      # (dagger/dagger#14491), so a policy reaches the exec through it.
       .withEnvVariable("DAGGER_MODULE_CALL_DIGEST", callDigest ?? "")
+      .withEnvVariable("DAGGER_CLIENT_VERSION", clientVersion)
       .withExec(["python", "-m", "dagger.mod", "call", "--output", "/dagger/result.json"], stdin: request, experimentalPrivilegedNesting: true)
       .file("/dagger/result.json")
       .contents

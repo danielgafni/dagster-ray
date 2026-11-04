@@ -5,7 +5,6 @@ requires-python = ">=3.14"
 [manifest]
 members = [
     "dagger-clients-core",
-    "dagger-clients-github",
     "dagger-clients-k3s",
     "dagger-clients-uv",
     "dagger-io",
@@ -162,21 +161,6 @@ dependencies = [
 requires-dist = [{ name = "dagger-io", editable = "sdk" }]
 
 [[package]]
-name = "dagger-clients-github"
-version = "0.0.0"
-source = { editable = "clients/github" }
-dependencies = [
-    { name = "dagger-clients-core" },
-    { name = "dagger-io" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "dagger-clients-core", editable = "clients/core" },
-    { name = "dagger-io", editable = "sdk" },
-]
-
-[[package]]
 name = "dagger-clients-k3s"
 version = "0.0.0"
 source = { editable = "clients/k3s" }
@@ -243,7 +227,6 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "dagger-clients-core" },
-    { name = "dagger-clients-github" },
     { name = "dagger-clients-k3s" },
     { name = "dagger-clients-uv" },
     { name = "dagger-io" },
@@ -253,7 +236,6 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "dagger-clients-core", editable = "clients/core" },
-    { name = "dagger-clients-github", editable = "clients/github" },
     { name = "dagger-clients-k3s", editable = "clients/k3s" },
     { name = "dagger-clients-uv", editable = "clients/uv" },
     { name = "dagger-io", editable = "sdk" },

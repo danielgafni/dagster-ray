@@ -228,14 +228,6 @@ type ModuleTypes {
             .withDescription("Type check with basedpyright.")
             .withCheck
         )
-        .withFunction(
-          function("wait_for_cloud_checks", typeDef.withKind(TypeDefKind.STRING_KIND))
-            .withDescription("Wait until every check of this workspace passes on `ref`. GitHub CI runs this.\n\nDagger Cloud reports each check as a GitHub commit status named after the check.")
-            .withArg("ws", typeDef.withObject("Workspace"), description: "A Dagger workspace detected from the current working directory or\nconstructed from a Directory.")
-            .withArg("repo", typeDef.withKind(TypeDefKind.STRING_KIND), description: "GitHub repository as `owner/name`")
-            .withArg("ref", typeDef.withKind(TypeDefKind.STRING_KIND), description: "Commit SHA")
-            .withArg("token", typeDef.withObject("Secret"), description: "GitHub token that can read commit statuses")
-        )
         .withConstructor(
           function("", typeDef.withObject("DagsterRayDev"))
             .withArg("ws", typeDef.withObject("Workspace"), description: "A Dagger workspace detected from the current working directory or\nconstructed from a Directory.")

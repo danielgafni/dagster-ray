@@ -1,6 +1,6 @@
 # dagster-ray Dagger module
 
-Runs all of CI as Dagger checks: ruff, basedpyright, the docs build and the test suite against KubeRay in k3s. The GitHub `CI` workflow runs `wait-for-cloud-checks`, which waits for their Dagger Cloud statuses with `typesafe-ai/daggerverse/github`.
+Runs all of CI as Dagger checks: ruff, basedpyright, the docs build and the test suite against KubeRay in k3s. Dagger Cloud runs them on every commit, and they gate PRs through the ruleset.
 
 ## Layout
 

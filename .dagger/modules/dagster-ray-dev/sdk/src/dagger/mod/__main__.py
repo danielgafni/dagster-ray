@@ -28,6 +28,12 @@ def main(argv: list[str] | None = None) -> int:
         help="render the static entrypoint of the module in the current directory",
     )
     entrypoint.add_argument("--name", required=True, help="module name")
+    entrypoint.add_argument(
+        "--client-version",
+        required=True,
+        help="the engine release the module's code is generated for, which the "
+        "entrypoint declares when it starts the module's process",
+    )
     entrypoint.add_argument("--output", required=True, type=pathlib.Path)
     entrypoint.add_argument(
         "--outside",
@@ -74,6 +80,7 @@ def _entrypoint(args: argparse.Namespace) -> None:
     write_entrypoint(
         mod.describe(),
         name=args.name,
+        client_version=args.client_version,
         output=args.output,
         outside=args.outside,
     )
