@@ -11,6 +11,7 @@ from importlib import metadata
 from pathlib import Path
 from typing import Self, TextIO, cast
 
+from dagger._engine._version import CLI_VERSION
 from dagger._managers import SyncResource
 from dagger.client._session import ConnectParams
 
@@ -148,6 +149,9 @@ def _build_session_args(cfg: Config, path: str) -> list[str]:
     args = [
         path,
         "session",
+        # The engine serves this release's view whichever CLI runs the session.
+        "--version",
+        f"v{CLI_VERSION}",
         "--label",
         "dagger.io/sdk.name:python",
         "--label",

@@ -1,15 +1,15 @@
 ignore = [".devenv", ".venv", "**/.venv", ".cache", "site", "**/__pycache__", ".pytest_cache", ".ruff_cache", ".hypothesis"]
 
 [modules.python-sdk]
-source = "dagger.io/sdk/python@dfb188732b665097c3976dfb38437ebde191f9f3"
+source = "github.com/dagger/python-sdk@v1.6.0"
 
 [sdks.python]
 module = "python-sdk"
 
 [modules.dagster-ray-dev]
-entrypoint = true
+main = true
 source = ".dagger/modules/dagster-ray-dev"
 
 [sdks.python.scopes.".dagger/modules/dagster-ray-dev"]
 is-module = true
-clients = ["github.com/marcosnils/daggerverse/k3s", "github.com/typesafe-ai/daggerverse/github@77e6c9f779968f1d4cfacbc46061f054750a9cc8", "github.com/typesafe-ai/daggerverse/uv@2f9602a9e43f0e31c52997f6a300fc7c88d5fdc1"]
+clients = ["github.com/marcosnils/daggerverse/k3s@c07646d1bf7f6079dab47ba152c767e062aa0f58", "github.com/typesafe-ai/daggerverse/uv@c8a0afc7689140f6148ed4352f2c96c5171b38b5"]

@@ -8,7 +8,6 @@ dependencies = [
     "dagger-clients-k3s",
     "dagger-clients-uv",
     "packaging>=26.3",
-    "dagger-clients-github",
 ]
 
 [build-system]
@@ -16,11 +15,10 @@ requires = ["uv_build>=0.13.6,<0.14.0"]
 build-backend = "uv_build"
 
 [tool.uv.workspace]
-members = ["sdk", "clients/core", "clients/k3s", "clients/uv", "clients/github"]
+members = ["sdk", "clients/core", "clients/k3s", "clients/uv"]
 
 [tool.uv.sources]
 dagger-io = { workspace = true }
 dagger-clients-core = { workspace = true }
 dagger-clients-k3s = { workspace = true }
 dagger-clients-uv = { workspace = true }
-dagger-clients-github = { workspace = true }

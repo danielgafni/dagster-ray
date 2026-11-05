@@ -1,8 +1,5 @@
-from typing import Annotated
-
-from dagger import Doc, check, function, generate, object_type
-from dagger_clients.core import Changeset, Directory, Secret, Workspace, core
-from dagger_clients.github import github
+from dagger import check, function, generate, object_type
+from dagger_clients.core import Changeset, Directory, Workspace, core
 
 from dagster_ray_dev.compatibility import COMPATIBILITY_MATRIX_PATH, compatibility_matrix
 from dagster_ray_dev.dev_env import REPO_DIR, dev_env, pyright_python_version, ruff_version
@@ -97,29 +94,6 @@ class DagsterRayDev:
         """Generate docs/compatibility_matrix.md from pyproject.toml and test-matrix.toml."""
         page = compatibility_matrix(await self.repo.file("pyproject.toml").contents(), MATRIX)
         return self.repo.with_new_file(COMPATIBILITY_MATRIX_PATH, page).changes(self.repo)
-
-    @function
-    async def wait_for_cloud_checks(
-        self,
-        ws: Workspace,
-        repo: Annotated[str, Doc("GitHub repository as `owner/name`")],
-        ref: Annotated[str, Doc("Commit SHA")],
-        token: Annotated[Secret, Doc("GitHub token that can read commit statuses")],
-    ) -> str:
-        """Wait until every check of this workspace passes on `ref`. GitHub CI runs this.
-
-        Dagger Cloud reports each check as a GitHub commit status named after the check.
-        """
-        # the github module's wait-for-dagger-checks lists checks with an API engine 1.0 no longer has
-        checks = [
-            "/".join(await artifact.path()) for artifact in await ws.artifacts().filter_directives(["check"]).items()
-        ]
-        return await (
-            github()
-            .status_monitor()
-            # statuses appear late when Dagger Cloud is short on engines
-            .wait_for_statuses(repo=repo, ref=ref, token=token, checks=checks, timeout=10800, discovery_timeout=1800)
-        )
 
     @function
     def image(
